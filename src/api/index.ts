@@ -1,5 +1,8 @@
 import { AvailableLoan } from "./AvailableLoan";
+import { AvailableShip } from "./AvailableShip";
+import { Loan } from "./Loan";
 import { LoanType } from "./LoanType";
+import { Ship } from "./Ship";
 import { User } from "./User";
 
 const getUrl = (segment: string) => `https://api.spacetraders.io/${segment}`;
@@ -57,7 +60,7 @@ const getSecure = async (token: string, urlSegment: string) => {
   });
 };
 
-export interface GetAvailableLoansResponse {
+interface GetAvailableLoansResponse {
   loans: AvailableLoan[];
 }
 
@@ -67,10 +70,14 @@ export const getAvailableLoans = async (
   return await getSecure(token, "game/loans");
 };
 
+interface GetLoansResponse {
+  loans: Loan[];
+}
+
 export const getLoans = async (
   token: string,
   username: string
-): Promise<GetAvailableLoansResponse> => {
+): Promise<GetLoansResponse> => {
   return await getSecure(token, `users/${username}/loans`);
 };
 
@@ -82,23 +89,7 @@ export const requestNewLoan = async (
   return await postSecure(token, `users/${username}/loans`, { type });
 };
 
-export interface PurchaseLocation {
-  location: string;
-  price: number;
-}
-
-export interface AvailableShip {
-  type: string;
-  class: string;
-  maxCargo: number;
-  speed: number;
-  manufacturer: string;
-  plating: number;
-  weapons: number;
-  purchaseLocations: PurchaseLocation[];
-}
-
-export interface GetAvailableShipsResponse {
+interface GetAvailableShipsResponse {
   ships: AvailableShip[];
 }
 
@@ -106,4 +97,24 @@ export const getAvailableShips = async (
   token: string
 ): Promise<GetAvailableShipsResponse> => {
   return await getSecure(token, "game/ships");
+};
+
+interface GetShipsResponse {
+  ships: Ship[];
+}
+
+export const getShips = async (
+  token: string,
+  username: string
+): Promise<GetShipsResponse> => {
+  return await getSecure(token, `users/${username}/ships`);
+};
+
+export const buyShip = async (
+  token: string,
+  username: string,
+  location: string,
+  type: string
+): Promise<AvailableShip> => {
+  return await postSecure(token, `users/${username}/ships`, { location, type });
 };

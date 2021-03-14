@@ -6,14 +6,17 @@ import {
   PayloadAction,
 } from "@reduxjs/toolkit";
 import * as api from "../api";
-import { AvailableShip } from "../api";
 import { AvailableLoan } from "../api/AvailableLoan";
+import { AvailableShip } from "../api/AvailableShip";
+import { Loan } from "../api/Loan";
 import { LoanType } from "../api/LoanType";
+import { Ship } from "../api/Ship";
 import { Player } from "./Player";
 
 type Game = {
   player?: Player;
-  loans: AvailableLoan[];
+  loans: Loan[];
+  ships: Ship[];
   availableLoans: AvailableLoan[];
   availableShips: AvailableShip[];
 };
@@ -27,6 +30,7 @@ const initialState = {
   loans: [],
   availableLoans: [],
   availableShips: [],
+  ships: [],
 } as Game;
 
 export const getToken = createAsyncThunk(
@@ -43,6 +47,7 @@ export const getAvailableLoans = createAsyncThunk(
     return await api.getAvailableLoans(token);
   }
 );
+
 export const getAvailableShips = createAsyncThunk(
   "getAvailableShips",
   async (token: string) => {
@@ -50,7 +55,7 @@ export const getAvailableShips = createAsyncThunk(
   }
 );
 
-type RequestNewLoanParams = GetLoansParams & { type: LoanType };
+type RequestNewLoanParams = UserParams & { type: LoanType };
 
 export const requestNewLoan = createAsyncThunk(
   "requestNewLoan",
@@ -59,14 +64,30 @@ export const requestNewLoan = createAsyncThunk(
   }
 );
 
-type GetLoansParams = {
+type BuyShipParams = UserParams & { type: string; location: string };
+
+export const buyShip = createAsyncThunk(
+  "buyShip",
+  async ({ token, username, type, location }: BuyShipParams) => {
+    return await api.buyShip(token, username, location, type);
+  }
+);
+
+type UserParams = {
   token: string;
   username: string;
 };
 export const getLoans = createAsyncThunk(
   "getLoans",
-  async ({ token, username }: GetLoansParams) => {
+  async ({ token, username }: UserParams) => {
     return await api.getLoans(token, username);
+  }
+);
+
+export const getShips = createAsyncThunk(
+  "getShips",
+  async ({ token, username }: UserParams) => {
+    return await api.getShips(token, username);
   }
 );
 
@@ -87,7 +108,10 @@ const gameSlice = createSlice({
   extraReducers: (builder) => {
     const reduceThunk = <Returned, ThunkArg>(
       thunk: AsyncThunk<Returned, ThunkArg, {}>,
-      fulfilledCaseReducer: CaseReducer<Game> | undefined = undefined
+      fulfilledCaseReducer:
+        | CaseReducer<Game, PayloadAction<Returned, string, {}>>
+        | undefined = undefined,
+      fulfilledPayloadLogConverter = (payload: Returned) => payload
     ) => {
       builder.addCase(thunk.pending, (state, action) => {
         console.log(`${thunk.typePrefix}-pending`);
@@ -95,7 +119,7 @@ const gameSlice = createSlice({
       builder.addCase(thunk.fulfilled, (state, action) => {
         console.log(
           `${thunk.typePrefix}-fulfilled`,
-          JSON.stringify(action.payload, null, 2)
+          JSON.stringify(fulfilledPayloadLogConverter(action.payload), null, 2)
         );
         if (fulfilledCaseReducer) return fulfilledCaseReducer(state, action);
       });
@@ -117,6 +141,7 @@ const gameSlice = createSlice({
       };
     });
     reduceThunk(requestNewLoan);
+    reduceThunk(buyShip);
     reduceThunk(getAvailableLoans, (state, action) => ({
       ...state,
       availableLoans: action.payload.loans,
@@ -125,6 +150,24 @@ const gameSlice = createSlice({
       ...state,
       loans: action.payload.loans,
     }));
+    reduceThunk(getShips, (state, action) => ({
+      ...state,
+      ships: action.payload.ships,
+    }));
+    reduceThunk(
+      getAvailableShips,
+      (state, action) => ({
+        ...state,
+        availableShips: action.payload.ships.sort(
+          (a, b) => a.purchaseLocations[0].price - b.purchaseLocations[0].price
+        ),
+      }),
+      (p) => ({
+        ships: p.ships.sort(
+          (a, b) => a.purchaseLocations[0].price - b.purchaseLocations[0].price
+        ),
+      })
+    );
   },
 });
 

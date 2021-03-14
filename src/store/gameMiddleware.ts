@@ -1,8 +1,11 @@
 import { Middleware } from "redux";
 import { newPlayerName } from "../newPlayerName";
 import {
+  buyShip,
   getAvailableLoans,
+  getAvailableShips,
   getLoans,
+  getShips,
   getToken,
   requestNewLoan,
   setPlayer,
@@ -25,11 +28,17 @@ export const gameMiddleware: Middleware<
     const token = getState().game.player?.token || "";
     const username = getState().game.player?.user?.username || "";
 
-    const getStartupData = (state: RootState) => {
+    const getStartupData = () => {
       dispatch(
         getLoans({
-          token: state.game.player!.token,
-          username: state.game.player!.user.username,
+          token,
+          username,
+        })
+      );
+      dispatch(
+        getShips({
+          token,
+          username,
         })
       );
     };
@@ -38,21 +47,49 @@ export const gameMiddleware: Middleware<
       const state = getState();
       if (!state.game.player) {
         dispatch(getToken(newPlayerName()));
-      } else getStartupData(getState());
+      } else getStartupData();
       return result;
     } else if (setPlayer.match(action)) {
-      getStartupData(getState());
+      getStartupData();
     } else if (getLoans.fulfilled.match(action)) {
-      //if (!action.payload.loans.length) {
-      dispatch(getAvailableLoans(token));
-      // }
+      if (!action.payload.loans.length) {
+        dispatch(getAvailableLoans(token));
+      }
+    } else if (getShips.fulfilled.match(action)) {
+      if (!action.payload.ships.length) {
+        dispatch(getAvailableShips(token));
+      }
     }
+
+    // TODO: buy loan logic?
     if (
       getAvailableLoans.fulfilled.match(action) &&
       !getState().game.loans.length
     ) {
       dispatch(
         requestNewLoan({ token, username, type: action.payload.loans[0].type })
+      );
+    }
+
+    // TODO: buy ship logic?
+    if (
+      getAvailableShips.fulfilled.match(action) &&
+      !getState().game.ships.length
+    ) {
+      console.log("not ordered", action.payload.ships);
+      const orderedShips = [...action.payload.ships].sort(
+        (a, b) => a.purchaseLocations[0].price - b.purchaseLocations[0].price
+      );
+      console.log("ordered", JSON.stringify(orderedShips));
+      const cheapestShip = orderedShips[0];
+
+      dispatch(
+        buyShip({
+          token,
+          username,
+          type: cheapestShip.type,
+          location: cheapestShip.purchaseLocations[0].location,
+        })
       );
     }
 
