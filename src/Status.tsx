@@ -29,11 +29,12 @@ export const Status = () => {
       const response = await getStatus();
       setStatus(response.status);
     } catch (e) {
-      setStatus(e);
+      console.error(e);
+      setStatus(e.message);
     }
   };
 
-  useInterval(updateStatus, 5000);
+  useInterval(updateStatus, 60000);
 
   useEffect(() => {
     updateStatus();
