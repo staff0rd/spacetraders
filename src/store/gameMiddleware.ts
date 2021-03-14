@@ -5,7 +5,9 @@ import {
   getAvailableLoans,
   getAvailableShips,
   getLoans,
+  getMarket,
   getShips,
+  getSystems,
   getToken,
   requestNewLoan,
   setPlayer,
@@ -41,6 +43,7 @@ export const gameMiddleware: Middleware<
           username,
         })
       );
+      dispatch(getSystems(token));
     };
 
     if (startup.match(action)) {
@@ -59,6 +62,9 @@ export const gameMiddleware: Middleware<
       if (!action.payload.ships.length) {
         dispatch(getAvailableShips(token));
       }
+    } else if (getSystems.fulfilled.match(action)) {
+      const symbol = action.payload.systems[0].locations[0].symbol;
+      dispatch(getMarket({ token, symbol }));
     }
 
     // TODO: buy loan logic?

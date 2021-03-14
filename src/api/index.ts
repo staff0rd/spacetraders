@@ -3,9 +3,16 @@ import { AvailableShip } from "./AvailableShip";
 import { Loan } from "./Loan";
 import { LoanType } from "./LoanType";
 import { Ship } from "./Ship";
+import { System } from "./System";
 import { User } from "./User";
+import Bottleneck from "bottleneck";
 
 const getUrl = (segment: string) => `https://api.spacetraders.io/${segment}`;
+
+const limiter = new Bottleneck({
+  maxConcurrent: 2,
+  minTime: 500,
+});
 
 type Status = {
   status: string;
@@ -15,27 +22,39 @@ export const getStatus = async () => {
   return json;
 };
 
-const get = async (urlSegment: string, headers = {}) => {
-  const response = await fetch(getUrl(urlSegment), {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-    },
-  });
-  return response.json();
-};
-
-const post = async (urlSegment: string, data?: any, headers = {}) => {
-  const response = await fetch(getUrl(urlSegment), {
-    method: "POST",
+const makeRequest = async (
+  url: string,
+  method: "GET" | "POST",
+  headers: any,
+  data: any = undefined,
+  retry = 0
+) => {
+  const response = await fetch(url, {
+    method,
     headers: {
       "Content-Type": "application/json",
       ...headers,
     },
     body: data ? JSON.stringify(data) : undefined,
   });
-  return response.json();
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.error.message);
+  }
+  return result;
+};
+
+const get = (urlSegment: string, headers = {}) => {
+  return limiter.schedule(() =>
+    makeRequest(getUrl(urlSegment), "GET", headers)
+  );
+};
+
+const post = (urlSegment: string, data?: any, headers = {}) => {
+  return limiter.schedule(() =>
+    makeRequest(getUrl(urlSegment), "POST", headers, data)
+  );
 };
 
 export interface GetTokenResponse {
@@ -97,6 +116,23 @@ export const getAvailableShips = async (
   token: string
 ): Promise<GetAvailableShipsResponse> => {
   return await getSecure(token, "game/ships");
+};
+
+export interface GetSystemsResponse {
+  systems: System[];
+}
+
+export const getSystems = async (
+  token: string
+): Promise<GetSystemsResponse> => {
+  return await getSecure(token, "game/systems");
+};
+
+export const getMarket = async (
+  token: string,
+  symbol: string
+): Promise<any> => {
+  return await getSecure(token, `game/locations/${symbol}/marketplace`);
 };
 
 interface GetShipsResponse {

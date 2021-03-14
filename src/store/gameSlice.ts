@@ -11,6 +11,7 @@ import { AvailableShip } from "../api/AvailableShip";
 import { Loan } from "../api/Loan";
 import { LoanType } from "../api/LoanType";
 import { Ship } from "../api/Ship";
+import { System } from "../api/System";
 import { Player } from "./Player";
 
 type Game = {
@@ -19,6 +20,7 @@ type Game = {
   ships: Ship[];
   availableLoans: AvailableLoan[];
   availableShips: AvailableShip[];
+  systems: System[];
 };
 
 const getPlayer = () => {
@@ -31,6 +33,7 @@ const initialState = {
   availableLoans: [],
   availableShips: [],
   ships: [],
+  systems: [],
 } as Game;
 
 export const getToken = createAsyncThunk(
@@ -45,6 +48,36 @@ export const getAvailableLoans = createAsyncThunk(
   "getAvailableLoans",
   async (token: string) => {
     return await api.getAvailableLoans(token);
+  }
+);
+
+export const getSystems = createAsyncThunk(
+  "getSystems",
+  async (token: string) => {
+    return await api.getSystems(token);
+  }
+);
+
+type GetMarketParams = {
+  token: string;
+  symbol: string;
+};
+
+export const errorWrapper = async (
+  promise: Promise<any>,
+  rejectWithValue: (value: unknown) => any
+) => {
+  try {
+    return await promise;
+  } catch (e) {
+    return rejectWithValue({ message: e.message });
+  }
+};
+
+export const getMarket = createAsyncThunk(
+  "getMarket",
+  async ({ token, symbol }: GetMarketParams, { rejectWithValue }) => {
+    return await errorWrapper(api.getMarket(token, symbol), rejectWithValue);
   }
 );
 
@@ -124,10 +157,7 @@ const gameSlice = createSlice({
         if (fulfilledCaseReducer) return fulfilledCaseReducer(state, action);
       });
       builder.addCase(thunk.rejected, (state, action) => {
-        handleRejection(
-          thunk.typePrefix,
-          JSON.stringify(action.payload, null, 2)
-        );
+        handleRejection(thunk.typePrefix, action.payload);
       });
     };
 
@@ -142,6 +172,10 @@ const gameSlice = createSlice({
     });
     reduceThunk(requestNewLoan);
     reduceThunk(buyShip);
+    reduceThunk(getSystems, (state, action) => ({
+      ...state,
+      systems: action.payload.systems,
+    }));
     reduceThunk(getAvailableLoans, (state, action) => ({
       ...state,
       availableLoans: action.payload.loans,
@@ -154,6 +188,7 @@ const gameSlice = createSlice({
       ...state,
       ships: action.payload.ships,
     }));
+    reduceThunk(getMarket);
     reduceThunk(
       getAvailableShips,
       (state, action) => ({
@@ -176,5 +211,5 @@ export const { setPlayer, startup } = gameSlice.actions;
 export default gameSlice.reducer;
 
 const handleRejection = (name: string, payload: any) => {
-  console.warn(`${name}-rejected`, payload);
+  console.warn(`${name}-rejected |`, payload.message);
 };
