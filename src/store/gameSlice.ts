@@ -1,7 +1,6 @@
 import {
   AsyncThunk,
   CaseReducer,
-  createAsyncThunk,
   createSlice,
   PayloadAction,
 } from "@reduxjs/toolkit";
@@ -13,6 +12,7 @@ import { LoanType } from "../api/LoanType";
 import { Ship } from "../api/Ship";
 import { System } from "../api/System";
 import { Player } from "./Player";
+import { wrappedThunk } from "./wrappedThunk";
 
 type Game = {
   player?: Player;
@@ -36,26 +36,17 @@ const initialState = {
   systems: [],
 } as Game;
 
-export const getToken = createAsyncThunk(
-  "getToken",
-  async (username: string) => {
-    const response = await api.getToken(username);
-    return response;
-  }
+export const getToken = wrappedThunk("getToken", (username: string) =>
+  api.getToken(username)
 );
 
-export const getAvailableLoans = createAsyncThunk(
+export const getAvailableLoans = wrappedThunk(
   "getAvailableLoans",
-  async (token: string) => {
-    return await api.getAvailableLoans(token);
-  }
+  (token: string) => api.getAvailableLoans(token)
 );
 
-export const getSystems = createAsyncThunk(
-  "getSystems",
-  async (token: string) => {
-    return await api.getSystems(token);
-  }
+export const getSystems = wrappedThunk("getSystems", (token: string) =>
+  api.getSystems(token)
 );
 
 type GetMarketParams = {
@@ -63,65 +54,44 @@ type GetMarketParams = {
   symbol: string;
 };
 
-export const errorWrapper = async (
-  promise: Promise<any>,
-  rejectWithValue: (value: unknown) => any
-) => {
-  try {
-    return await promise;
-  } catch (e) {
-    return rejectWithValue({ message: e.message });
-  }
-};
-
-export const getMarket = createAsyncThunk(
+export const getMarket = wrappedThunk(
   "getMarket",
-  async ({ token, symbol }: GetMarketParams, { rejectWithValue }) => {
-    return await errorWrapper(api.getMarket(token, symbol), rejectWithValue);
-  }
+  ({ token, symbol }: GetMarketParams) => api.getMarket(token, symbol)
 );
 
-export const getAvailableShips = createAsyncThunk(
+export const getAvailableShips = wrappedThunk(
   "getAvailableShips",
-  async (token: string) => {
-    return await api.getAvailableShips(token);
-  }
+  (token: string) => api.getAvailableShips(token)
 );
 
 type RequestNewLoanParams = UserParams & { type: LoanType };
 
-export const requestNewLoan = createAsyncThunk(
+export const requestNewLoan = wrappedThunk(
   "requestNewLoan",
-  async ({ token, username, type }: RequestNewLoanParams) => {
-    return await api.requestNewLoan(token, username, type);
-  }
+  ({ token, username, type }: RequestNewLoanParams) =>
+    api.requestNewLoan(token, username, type)
 );
 
 type BuyShipParams = UserParams & { type: string; location: string };
 
-export const buyShip = createAsyncThunk(
+export const buyShip = wrappedThunk(
   "buyShip",
-  async ({ token, username, type, location }: BuyShipParams) => {
-    return await api.buyShip(token, username, location, type);
-  }
+  ({ token, username, type, location }: BuyShipParams) =>
+    api.buyShip(token, username, location, type)
 );
 
 type UserParams = {
   token: string;
   username: string;
 };
-export const getLoans = createAsyncThunk(
+export const getLoans = wrappedThunk(
   "getLoans",
-  async ({ token, username }: UserParams) => {
-    return await api.getLoans(token, username);
-  }
+  ({ token, username }: UserParams) => api.getLoans(token, username)
 );
 
-export const getShips = createAsyncThunk(
+export const getShips = wrappedThunk(
   "getShips",
-  async ({ token, username }: UserParams) => {
-    return await api.getShips(token, username);
-  }
+  ({ token, username }: UserParams) => api.getShips(token, username)
 );
 
 const gameSlice = createSlice({
