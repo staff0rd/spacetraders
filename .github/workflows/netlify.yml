@@ -9,8 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         name: Checkout
-      - run: npm i
-      - run: npm run build
       - uses: jsmrcaga/action-netlify-deploy@v1.1.0
         name: Deploy to Netlify
         with:
