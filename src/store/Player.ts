@@ -1,4 +1,4 @@
-import { User } from "./User";
+import { User } from "../api/User";
 
 export type Player = {
   user: User;

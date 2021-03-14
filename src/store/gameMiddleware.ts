@@ -1,6 +1,13 @@
 import { Middleware } from "redux";
 import { newPlayerName } from "../newPlayerName";
-import { getToken, startup } from "./gameSlice";
+import {
+  getAvailableLoans,
+  getLoans,
+  getToken,
+  requestNewLoan,
+  setPlayer,
+  startup,
+} from "./gameSlice";
 import { RootState } from "./rootReducer";
 import { AppDispatch } from "./store";
 
@@ -14,16 +21,41 @@ export const gameMiddleware: Middleware<
   RootState
 > = ({ getState, dispatch }: MiddlewareProps) => {
   return (next) => (action) => {
+    const result = next(action);
+    const token = getState().game.player?.token || "";
+    const username = getState().game.player?.user?.username || "";
+
+    const getStartupData = (state: RootState) => {
+      dispatch(
+        getLoans({
+          token: state.game.player!.token,
+          username: state.game.player!.user.username,
+        })
+      );
+    };
+
     if (startup.match(action)) {
-      const result = next(action);
       const state = getState();
       if (!state.game.player) {
-        const playerName = newPlayerName();
-        const action = getToken(playerName);
-        dispatch(action);
-      }
+        dispatch(getToken(newPlayerName()));
+      } else getStartupData(getState());
       return result;
+    } else if (setPlayer.match(action)) {
+      getStartupData(getState());
+    } else if (getLoans.fulfilled.match(action)) {
+      if (!action.payload.loans.length) {
+        dispatch(getAvailableLoans(token));
+      }
     }
-    return next(action);
+    if (
+      getAvailableLoans.fulfilled.match(action) &&
+      !getState().game.loans.length
+    ) {
+      dispatch(
+        requestNewLoan({ token, username, type: action.payload.loans[0].type })
+      );
+    }
+
+    return result;
   };
 };

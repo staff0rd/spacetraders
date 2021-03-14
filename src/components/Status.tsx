@@ -3,7 +3,7 @@ import DnsIcon from "@material-ui/icons/Dns";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { getStatus } from "./api";
+import { getStatus } from "../api";
 import useInterval from "@use-it/interval";
 import { makeStyles } from "@material-ui/core/styles";
 

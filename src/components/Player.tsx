@@ -3,7 +3,7 @@ import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
 import { useSelector } from "react-redux";
-import { RootState } from "./store/rootReducer";
+import { RootState } from "../store/rootReducer";
 import PersonIcon from "@material-ui/icons/Person";
 import { CircularProgress } from "@material-ui/core";
 
