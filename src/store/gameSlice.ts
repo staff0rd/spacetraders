@@ -1,5 +1,12 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  AsyncThunk,
+  CaseReducer,
+  createAsyncThunk,
+  createSlice,
+  PayloadAction,
+} from "@reduxjs/toolkit";
 import * as api from "../api";
+import { AvailableShip } from "../api";
 import { AvailableLoan } from "../api/AvailableLoan";
 import { LoanType } from "../api/LoanType";
 import { Player } from "./Player";
@@ -8,6 +15,7 @@ type Game = {
   player?: Player;
   loans: AvailableLoan[];
   availableLoans: AvailableLoan[];
+  availableShips: AvailableShip[];
 };
 
 const getPlayer = () => {
@@ -15,7 +23,11 @@ const getPlayer = () => {
   if (player) return JSON.parse(player) as Player;
 };
 
-const initialState = { loans: [], availableLoans: [] } as Game;
+const initialState = {
+  loans: [],
+  availableLoans: [],
+  availableShips: [],
+} as Game;
 
 export const getToken = createAsyncThunk(
   "getToken",
@@ -29,6 +41,12 @@ export const getAvailableLoans = createAsyncThunk(
   "getAvailableLoans",
   async (token: string) => {
     return await api.getAvailableLoans(token);
+  }
+);
+export const getAvailableShips = createAsyncThunk(
+  "getAvailableShips",
+  async (token: string) => {
+    return await api.getAvailableShips(token);
   }
 );
 
@@ -67,7 +85,29 @@ const gameSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(getToken.fulfilled, (state, action) => {
+    const reduceThunk = <Returned, ThunkArg>(
+      thunk: AsyncThunk<Returned, ThunkArg, {}>,
+      fulfilledCaseReducer: CaseReducer<Game> | undefined = undefined
+    ) => {
+      builder.addCase(thunk.pending, (state, action) => {
+        console.log(`${thunk.typePrefix}-pending`);
+      });
+      builder.addCase(thunk.fulfilled, (state, action) => {
+        console.log(
+          `${thunk.typePrefix}-fulfilled`,
+          JSON.stringify(action.payload, null, 2)
+        );
+        if (fulfilledCaseReducer) return fulfilledCaseReducer(state, action);
+      });
+      builder.addCase(thunk.rejected, (state, action) => {
+        handleRejection(
+          thunk.typePrefix,
+          JSON.stringify(action.payload, null, 2)
+        );
+      });
+    };
+
+    reduceThunk(getToken, (state, action) => {
       localStorage.setItem("player", JSON.stringify(action.payload));
       return {
         ...state,
@@ -76,33 +116,15 @@ const gameSlice = createSlice({
         },
       };
     });
-    builder.addCase(getToken.rejected, (state, action) => {
-      handleRejection(action.payload);
-    });
-    builder.addCase(getAvailableLoans.fulfilled, (state, action) => {
-      console.warn(action.payload);
-      return {
-        ...state,
-        availableLoans: action.payload.loans,
-      };
-    });
-    builder.addCase(getLoans.fulfilled, (state, action) => {
-      console.warn("getLoans", action.payload);
-      return {
-        ...state,
-        loans: action.payload.loans,
-      };
-    });
-    builder.addCase(requestNewLoan.fulfilled, (state, action) => {
-      console.warn("requestNewLoan-fulfilled", action.payload);
-    });
-    builder.addCase(requestNewLoan.rejected, (state, action) => {
-      console.warn("requestNewLoan-rejected", action.payload);
-    });
-
-    builder.addCase(getAvailableLoans.rejected, (state, action) =>
-      handleRejection(action.payload)
-    );
+    reduceThunk(requestNewLoan);
+    reduceThunk(getAvailableLoans, (state, action) => ({
+      ...state,
+      availableLoans: action.payload.loans,
+    }));
+    reduceThunk(getLoans, (state, action) => ({
+      ...state,
+      loans: action.payload.loans,
+    }));
   },
 });
 
@@ -110,6 +132,6 @@ export const { setPlayer, startup } = gameSlice.actions;
 
 export default gameSlice.reducer;
 
-const handleRejection = (payload: any) => {
-  console.error("rejected", payload);
+const handleRejection = (name: string, payload: any) => {
+  console.warn(`${name}-rejected`, payload);
 };

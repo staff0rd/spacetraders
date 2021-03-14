@@ -43,9 +43,9 @@ export const gameMiddleware: Middleware<
     } else if (setPlayer.match(action)) {
       getStartupData(getState());
     } else if (getLoans.fulfilled.match(action)) {
-      if (!action.payload.loans.length) {
-        dispatch(getAvailableLoans(token));
-      }
+      //if (!action.payload.loans.length) {
+      dispatch(getAvailableLoans(token));
+      // }
     }
     if (
       getAvailableLoans.fulfilled.match(action) &&

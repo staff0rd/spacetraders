@@ -81,3 +81,29 @@ export const requestNewLoan = async (
 ): Promise<GetAvailableLoansResponse> => {
   return await postSecure(token, `users/${username}/loans`, { type });
 };
+
+export interface PurchaseLocation {
+  location: string;
+  price: number;
+}
+
+export interface AvailableShip {
+  type: string;
+  class: string;
+  maxCargo: number;
+  speed: number;
+  manufacturer: string;
+  plating: number;
+  weapons: number;
+  purchaseLocations: PurchaseLocation[];
+}
+
+export interface GetAvailableShipsResponse {
+  ships: AvailableShip[];
+}
+
+export const getAvailableShips = async (
+  token: string
+): Promise<GetAvailableShipsResponse> => {
+  return await getSecure(token, "game/ships");
+};
