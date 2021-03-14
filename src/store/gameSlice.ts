@@ -36,7 +36,7 @@ type RequestNewLoanParams = GetLoansParams & { type: LoanType };
 
 export const requestNewLoan = createAsyncThunk(
   "requestNewLoan",
-  async ({ token, username: username, type }: RequestNewLoanParams) => {
+  async ({ token, username, type }: RequestNewLoanParams) => {
     return await api.requestNewLoan(token, username, type);
   }
 );
