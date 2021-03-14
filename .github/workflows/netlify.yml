@@ -17,5 +17,4 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_DEPLOY_TO_PROD: true
-          build_directory: _site
           NETLIFY_DEPLOY_MESSAGE: "Deployed commit ${{ github.sha }}"
