@@ -21,7 +21,7 @@ describe.only("gameMiddleware", () => {
     store.dispatch(startup());
     await wait();
     const state = store.getState();
-    expect(state.game.player.token).toBe("123");
+    expect(state.game.player!.token).toBe("123");
   });
   it("should use cached player", async () => {
     jest
@@ -31,6 +31,6 @@ describe.only("gameMiddleware", () => {
     store.dispatch(startup());
     await wait();
     const state = store.getState();
-    expect(state.game.player.token).toBe("hi!");
+    expect(state.game.player!.token).toBe("hi!");
   });
 });

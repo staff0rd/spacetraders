@@ -6,6 +6,7 @@ import { Ship } from "./Ship";
 import { System } from "./System";
 import { User } from "./User";
 import Bottleneck from "bottleneck";
+import { Location } from "./Location";
 
 const getUrl = (segment: string) => `https://api.spacetraders.io/${segment}`;
 
@@ -83,74 +84,101 @@ interface GetAvailableLoansResponse {
   loans: AvailableLoan[];
 }
 
-export const getAvailableLoans = async (
+export const getAvailableLoans = (
   token: string
-): Promise<GetAvailableLoansResponse> => {
-  return await getSecure(token, "game/loans");
-};
+): Promise<GetAvailableLoansResponse> => getSecure(token, "game/loans");
 
 interface GetLoansResponse {
   loans: Loan[];
 }
 
-export const getLoans = async (
+export const getLoans = (
   token: string,
   username: string
-): Promise<GetLoansResponse> => {
-  return await getSecure(token, `users/${username}/loans`);
-};
+): Promise<GetLoansResponse> => getSecure(token, `users/${username}/loans`);
 
-export const requestNewLoan = async (
+export const requestNewLoan = (
   token: string,
   username: string,
   type: LoanType
-): Promise<GetAvailableLoansResponse> => {
-  return await postSecure(token, `users/${username}/loans`, { type });
-};
+): Promise<GetAvailableLoansResponse> =>
+  postSecure(token, `users/${username}/loans`, { type });
 
 interface GetAvailableShipsResponse {
   ships: AvailableShip[];
 }
 
-export const getAvailableShips = async (
+export const getAvailableShips = (
   token: string
-): Promise<GetAvailableShipsResponse> => {
-  return await getSecure(token, "game/ships");
-};
+): Promise<GetAvailableShipsResponse> => getSecure(token, "game/ships");
 
 export interface GetSystemsResponse {
   systems: System[];
 }
 
-export const getSystems = async (
-  token: string
-): Promise<GetSystemsResponse> => {
-  return await getSecure(token, "game/systems");
+export const getSystems = (token: string): Promise<GetSystemsResponse> =>
+  getSecure(token, "game/systems");
+
+type GetMarketResponse = {
+  planet: Location;
 };
 
-export const getMarket = async (
+export const getMarket = (
   token: string,
   symbol: string
-): Promise<any> => {
-  return await getSecure(token, `game/locations/${symbol}/marketplace`);
-};
+): Promise<GetMarketResponse> =>
+  getSecure(token, `game/locations/${symbol}/marketplace`);
 
 interface GetShipsResponse {
   ships: Ship[];
 }
 
-export const getShips = async (
+export const getShips = (
   token: string,
   username: string
-): Promise<GetShipsResponse> => {
-  return await getSecure(token, `users/${username}/ships`);
-};
+): Promise<GetShipsResponse> => getSecure(token, `users/${username}/ships`);
 
-export const buyShip = async (
+export const buyShip = (
   token: string,
   username: string,
   location: string,
   type: string
-): Promise<AvailableShip> => {
-  return await postSecure(token, `users/${username}/ships`, { location, type });
-};
+): Promise<AvailableShip> =>
+  postSecure(token, `users/${username}/ships`, { location, type });
+
+export const purchaseOrder = (
+  token: string,
+  username: string,
+  shipId: string,
+  good: string,
+  quantity: number
+): Promise<any> =>
+  postSecure(token, `users/${username}/purchase-orders`, {
+    shipId,
+    good,
+    quantity,
+  });
+
+export const sellOrder = (
+  token: string,
+  username: string,
+  shipId: string,
+  good: string,
+  quantity: number
+): Promise<any> =>
+  postSecure(token, `users/${username}/sell-orders`, {
+    shipId,
+    good,
+    quantity,
+  });
+
+export const getFlightPlans = (token: string, symbol: string): Promise<any> =>
+  getSecure(token, `game/systems/${symbol}/flight-plans`);
+
+export const newFlightPlan = (
+  token: string,
+  username: string,
+  shipId: string,
+  destination: string
+): Promise<any> =>
+  postSecure(token, `users/${username}/flight-plans`, { shipId, destination });

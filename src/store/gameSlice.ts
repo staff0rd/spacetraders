@@ -49,6 +49,44 @@ export const getSystems = wrappedThunk("getSystems", (token: string) =>
   api.getSystems(token)
 );
 
+type GetFlightPlansParams = {
+  token: string;
+  symbol: string;
+};
+
+export const getFlightPlans = wrappedThunk(
+  "getFlightPlans",
+  ({ token, symbol }: GetFlightPlansParams) => api.getFlightPlans(token, symbol)
+);
+
+type NewFlightPlanParams = UserParams & {
+  shipId: string;
+  destination: string;
+};
+
+export const newFlightPlan = wrappedThunk(
+  "newFlightPlan",
+  ({ token, username, shipId, destination }: NewFlightPlanParams) =>
+    api.newFlightPlan(token, username, shipId, destination)
+);
+
+type OrderParams = UserParams & {
+  shipId: string;
+  good: string;
+  quantity: number;
+};
+
+export const purchaseOrder = wrappedThunk(
+  "purchaseOrder",
+  ({ token, username, shipId, good, quantity }: OrderParams) =>
+    api.purchaseOrder(token, username, shipId, good, quantity)
+);
+export const sellOrder = wrappedThunk(
+  "sellOrder",
+  ({ token, username, shipId, good, quantity }: OrderParams) =>
+    api.sellOrder(token, username, shipId, good, quantity)
+);
+
 type GetMarketParams = {
   token: string;
   symbol: string;
@@ -107,6 +145,7 @@ const gameSlice = createSlice({
       if (player) return { ...state, player };
       return state;
     },
+    instructShip: (state, action: PayloadAction<string>) => {},
   },
   extraReducers: (builder) => {
     const reduceThunk = <Returned, ThunkArg>(
@@ -158,7 +197,26 @@ const gameSlice = createSlice({
       ...state,
       ships: action.payload.ships,
     }));
-    reduceThunk(getMarket);
+    reduceThunk(getMarket, (state, action) => ({
+      ...state,
+      systems: [
+        ...state.systems.map((system) => ({
+          ...system,
+          locations: [
+            ...system.locations.map((location) =>
+              location.symbol === action.payload.planet.symbol
+                ? action.payload.planet
+                : location
+            ),
+          ],
+        })),
+      ],
+    }));
+
+    reduceThunk(getFlightPlans);
+    reduceThunk(newFlightPlan);
+    reduceThunk(purchaseOrder);
+    reduceThunk(sellOrder);
     reduceThunk(
       getAvailableShips,
       (state, action) => ({

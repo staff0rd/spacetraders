@@ -4,16 +4,20 @@ import {
   buyShip,
   getAvailableLoans,
   getAvailableShips,
+  getFlightPlans,
   getLoans,
   getMarket,
   getShips,
   getSystems,
   getToken,
+  newFlightPlan,
+  purchaseOrder,
   requestNewLoan,
   setPlayer,
   startup,
 } from "./gameSlice";
 import { RootState } from "./rootReducer";
+import { updateShip } from "./shipSlice";
 import { AppDispatch } from "./store";
 
 type MiddlewareProps = {
@@ -29,8 +33,12 @@ export const gameMiddleware: Middleware<
     const result = next(action);
     const token = getState().game.player?.token || "";
     const username = getState().game.player?.user?.username || "";
+    const state = getState();
+    const fuel =
+      state.game.ships[0]?.cargo.filter((c) => c.good === "FUEL").length ?? 0;
 
     const getStartupData = () => {
+      dispatch(getSystems(token));
       dispatch(
         getLoans({
           token,
@@ -43,11 +51,9 @@ export const gameMiddleware: Middleware<
           username,
         })
       );
-      dispatch(getSystems(token));
     };
 
     if (startup.match(action)) {
-      const state = getState();
       if (!state.game.player) {
         dispatch(getToken(newPlayerName()));
       } else getStartupData();
@@ -61,10 +67,33 @@ export const gameMiddleware: Middleware<
     } else if (getShips.fulfilled.match(action)) {
       if (!action.payload.ships.length) {
         dispatch(getAvailableShips(token));
+      } else {
+        dispatch(updateShip(action.payload.ships[0]));
+
+        // if (state.game.ships[0].spaceAvailable) {
+        //   dispatch(getMarket({ token, symbol: state.game.ships[0].location }));
+        // } else {
+        //   dispatch(
+        //     newFlightPlan({
+        //       token,
+        //       username,
+        //       shipId: state.game.ships[0].id,
+        //       destination: "OE-PM",
+        //     })
+        //   );
+        // }
       }
-    } else if (getSystems.fulfilled.match(action)) {
-      const symbol = action.payload.systems[0].locations[0].symbol;
-      dispatch(getMarket({ token, symbol }));
+    } else if (getMarket.fulfilled.match(action)) {
+      // dispatch(
+      //   purchaseOrder({
+      //     token,
+      //     username,
+      //     good: "METALS",
+      //     quantity: state.game.ships[0].spaceAvailable,
+      //     shipId: state.game.ships[0].id,
+      //   })
+      // );
+      // dispatch(getFlightPlans({ token, symbol: state.game.systems[0].symbol }));
     }
 
     // TODO: buy loan logic?
@@ -82,11 +111,9 @@ export const gameMiddleware: Middleware<
       getAvailableShips.fulfilled.match(action) &&
       !getState().game.ships.length
     ) {
-      console.log("not ordered", action.payload.ships);
       const orderedShips = [...action.payload.ships].sort(
         (a, b) => a.purchaseLocations[0].price - b.purchaseLocations[0].price
       );
-      console.log("ordered", JSON.stringify(orderedShips));
       const cheapestShip = orderedShips[0];
 
       dispatch(

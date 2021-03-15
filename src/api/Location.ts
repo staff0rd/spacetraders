@@ -1,5 +1,12 @@
 import { Ship } from "./Ship";
 
+export interface Marketplace {
+  symbol: string;
+  volumePerUnit: number;
+  pricePerUnit: number;
+  quantityAvailable: number;
+}
+
 export interface Location {
   symbol: string;
   type: string;
@@ -7,5 +14,6 @@ export interface Location {
   x: number;
   y: number;
   ships: Ship[];
-  anomoly: string;
+  anomaly: string;
+  marketplace: Marketplace[];
 }
