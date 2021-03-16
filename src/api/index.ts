@@ -15,11 +15,12 @@ const limiter = new Bottleneck({
   minTime: 500,
 });
 
-type Status = {
+export type GetStatusResponse = {
   status: string;
 };
+
 export const getStatus = async () => {
-  const json: Status = await get("game/status");
+  const json: GetStatusResponse = await get("game/status");
   return json;
 };
 

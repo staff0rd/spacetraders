@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import DnsIcon from "@material-ui/icons/Dns";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { getStatus } from "../api";
-import useInterval from "@use-it/interval";
 import { makeStyles } from "@material-ui/core/styles";
+import { useMachine } from "@xstate/react";
+import { apiPollMachine } from "./apiMachine";
+import { getStatus } from "../api";
+
+const statusMachine = apiPollMachine(getStatus);
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -21,30 +24,19 @@ const useStyles = makeStyles((theme) => ({
 
 export const Status = () => {
   const classes = useStyles();
-  const [status, setStatus] = useState("");
 
-  const updateStatus = async () => {
-    try {
-      setStatus("");
-      const response = await getStatus();
-      setStatus(response.status);
-    } catch (e) {
-      console.error(e);
-      setStatus(e.message);
-    }
-  };
-
-  useInterval(updateStatus, 60000);
+  const [state, send] = useMachine(statusMachine);
 
   useEffect(() => {
-    updateStatus();
+    send({ type: "FETCH" });
   }, []);
 
   return (
     <Paper className={classes.paper}>
-      {status ? (
+      {state.matches("success") ? (
         <>
-          <DnsIcon className={classes.icon} /> <Typography>{status}</Typography>
+          <DnsIcon className={classes.icon} />{" "}
+          <Typography>{state.context.result.status}</Typography>
         </>
       ) : (
         <CircularProgress size={24} />
