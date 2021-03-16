@@ -47,13 +47,13 @@ export const timerMachine = createMachine<TimerContext, TimerEvent, TimerState>(
             };
           },
         },
-        on: {
-          "": {
-            target: "paused",
-            cond: (context) => {
-              return context.elapsed >= context.duration;
-            },
+        always: {
+          target: "paused",
+          cond: (context) => {
+            return context.elapsed >= context.duration;
           },
+        },
+        on: {
           TICK: {
             actions: assign({
               elapsed: (context) =>
