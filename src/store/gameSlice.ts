@@ -21,6 +21,7 @@ type Game = {
   availableLoans: AvailableLoan[];
   availableShips: AvailableShip[];
   systems: System[];
+  credits: number;
 };
 
 const getPlayer = () => {
@@ -34,6 +35,7 @@ const initialState = {
   availableShips: [],
   ships: [],
   systems: [],
+  credits: 0,
 } as Game;
 
 export const getToken = wrappedThunk("getToken", (username: string) =>
@@ -57,6 +59,11 @@ type GetFlightPlansParams = {
 export const getFlightPlans = wrappedThunk(
   "getFlightPlans",
   ({ token, symbol }: GetFlightPlansParams) => api.getFlightPlans(token, symbol)
+);
+
+export const getUser = wrappedThunk(
+  "getUser",
+  ({ token, username }: UserParams) => api.getUser(token, username)
 );
 
 type NewFlightPlanParams = UserParams & {
@@ -136,7 +143,7 @@ const gameSlice = createSlice({
   name: "game",
   initialState,
   reducers: {
-    setPlayer: (state, action: PayloadAction<Player>) => ({
+    setPlayer: (state, action: PayloadAction<Player | undefined>) => ({
       ...state,
       player: action.payload,
     }),
@@ -153,10 +160,14 @@ const gameSlice = createSlice({
       fulfilledCaseReducer:
         | CaseReducer<Game, PayloadAction<Returned, string, {}>>
         | undefined = undefined,
-      fulfilledPayloadLogConverter = (payload: Returned) => payload
+      fulfilledPayloadLogConverter = (payload: Returned) => payload,
+      pendingCaseReducer:
+        | CaseReducer<Game, PayloadAction<void, string, {}>>
+        | undefined = undefined
     ) => {
       builder.addCase(thunk.pending, (state, action) => {
         console.log(`${thunk.typePrefix}-pending`);
+        if (pendingCaseReducer) return pendingCaseReducer(state, action);
       });
       builder.addCase(thunk.fulfilled, (state, action) => {
         console.log(
@@ -170,15 +181,20 @@ const gameSlice = createSlice({
       });
     };
 
-    reduceThunk(getToken, (state, action) => {
-      localStorage.setItem("player", JSON.stringify(action.payload));
-      return {
-        ...state,
-        player: {
-          ...action.payload,
-        },
-      };
-    });
+    reduceThunk(
+      getToken,
+      (state, action) => {
+        localStorage.setItem("player", JSON.stringify(action.payload));
+        return {
+          ...state,
+          player: {
+            ...action.payload,
+          },
+        };
+      },
+      undefined,
+      (state) => ({ ...state, player: undefined })
+    );
     reduceThunk(requestNewLoan);
     reduceThunk(buyShip);
     reduceThunk(getSystems, (state, action) => ({
@@ -213,6 +229,10 @@ const gameSlice = createSlice({
       ],
     }));
 
+    reduceThunk(getUser, (state, action) => ({
+      ...state,
+      ...action.payload.user,
+    }));
     reduceThunk(getFlightPlans);
     reduceThunk(newFlightPlan);
     reduceThunk(purchaseOrder);

@@ -182,3 +182,16 @@ export const newFlightPlan = (
   destination: string
 ): Promise<any> =>
   postSecure(token, `users/${username}/flight-plans`, { shipId, destination });
+
+type GetUserResponse = {
+  user: {
+    credits: number;
+    ships: Ship[];
+    loans: Loan[];
+  };
+};
+
+export const getUser = (
+  token: string,
+  username: string
+): Promise<GetUserResponse> => getSecure(token, `users/${username}`);
