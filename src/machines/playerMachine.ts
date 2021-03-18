@@ -4,23 +4,31 @@ import { apiMachine, ApiResult } from "./apiMachine";
 import { GetUserResponse, getUser, getToken } from "../api";
 import { newPlayerName } from "../newPlayerName";
 import { getLoanMachine } from "./getLoanMachine";
+import { buyShipMachine } from "./buyShipMachine";
+
+type MarketContext = {
+  [key: string]: Location;
+};
 
 type PlayerContext = {
   token?: string;
   user?: User;
+  locations: MarketContext;
 };
 
 const getCachedPlayer = (): PlayerContext => {
   const player = localStorage.getItem("player");
   if (player) return JSON.parse(player);
-  else return {};
+  else return { locations: {} };
 };
 
 export const playerMachine = createMachine(
   {
     id: "player",
     initial: "checkStorage",
-    context: {} as PlayerContext,
+    context: {
+      locations: {},
+    } as PlayerContext,
     states: {
       checkStorage: {
         entry: ["assignCachedPlayer", (c) => console.warn("checkStorage", c)],
@@ -72,7 +80,10 @@ export const playerMachine = createMachine(
         on: {
           CLEAR_PLAYER: "clearPlayer",
         },
-        always: [{ target: "getLoan", cond: "noLoans" }],
+        always: [
+          { target: "getLoan", cond: "noLoans" },
+          { target: "buyShip", cond: "noShips" },
+        ],
       },
       clearPlayer: {
         invoke: {
@@ -93,7 +104,21 @@ export const playerMachine = createMachine(
           },
           onDone: {
             target: "loaded",
-            actions: "assignLoan",
+            actions: "assignUser",
+          },
+        },
+      },
+      buyShip: {
+        entry: () => console.warn("buyShip"),
+        invoke: {
+          src: buyShipMachine,
+          data: {
+            token: (context: PlayerContext) => context.token,
+            username: (context: PlayerContext) => context.user!.username,
+          },
+          onDone: {
+            target: "loaded",
+            actions: "assignUser",
           },
         },
       },
@@ -109,8 +134,8 @@ export const playerMachine = createMachine(
         token: undefined,
         user: undefined,
       }) as any,
-      assignLoan: assign<PlayerContext>({
-        user: (c: PlayerContext, e: any) => e.data.user,
+      assignUser: assign<PlayerContext>({
+        user: (c: PlayerContext, e: any) => e.data.response.user,
       }) as any,
     },
     services: {
@@ -127,6 +152,7 @@ export const playerMachine = createMachine(
     },
     guards: {
       noLoans: (c) => c.user?.loans.length === 0,
+      noShips: (c) => c.user?.ships.length === 0,
     },
   }
 );

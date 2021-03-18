@@ -1,13 +1,12 @@
 import { assign, createMachine } from "xstate";
 import * as api from "../api";
 import { AvailableLoan } from "../api/AvailableLoan";
-import { Loan } from "../api/Loan";
 
 type Context = {
   token: string;
   username: string;
   availableLoans: AvailableLoan[];
-  loan: Loan | undefined;
+  response?: api.GetUserResponse;
 };
 
 export const getLoanMachine = createMachine<Context, any, any>({
@@ -17,7 +16,7 @@ export const getLoanMachine = createMachine<Context, any, any>({
     token: "",
     username: "",
     availableLoans: [],
-    loan: undefined,
+    response: undefined,
   },
   states: {
     getAvailableLoans: {
@@ -37,14 +36,16 @@ export const getLoanMachine = createMachine<Context, any, any>({
           api.requestNewLoan(context.token, context.username, "STARTUP"),
         onDone: {
           target: "done",
-          actions: assign({ loan: (c: any, e: any) => e.data }) as any,
+          actions: assign<Context>({
+            response: (c: any, e: any) => e.data,
+          }) as any,
         },
       },
     },
     done: {
       type: "final",
       data: {
-        loan: (context: Context) => context.loan,
+        response: (context: Context) => context.response,
       },
     },
   },

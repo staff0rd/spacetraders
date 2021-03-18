@@ -144,7 +144,7 @@ export const buyShip = (
   username: string,
   location: string,
   type: string
-): Promise<AvailableShip> =>
+): Promise<GetUserResponse> =>
   postSecure(token, `users/${username}/ships`, { location, type });
 
 export const purchaseOrder = (
