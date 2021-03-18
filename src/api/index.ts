@@ -81,7 +81,7 @@ const getSecure = async (token: string, urlSegment: string) => {
   });
 };
 
-interface GetAvailableLoansResponse {
+export interface GetAvailableLoansResponse {
   loans: AvailableLoan[];
 }
 
@@ -102,7 +102,7 @@ export const requestNewLoan = (
   token: string,
   username: string,
   type: LoanType
-): Promise<GetAvailableLoansResponse> =>
+): Promise<GetUserResponse> =>
   postSecure(token, `users/${username}/loans`, { type });
 
 interface GetAvailableShipsResponse {

@@ -3,6 +3,7 @@ import { User } from "../api/User";
 import { apiMachine, ApiResult } from "./apiMachine";
 import { GetUserResponse, getUser, getToken } from "../api";
 import { newPlayerName } from "../newPlayerName";
+import { getLoanMachine } from "./getLoanMachine";
 
 type PlayerContext = {
   token?: string;
@@ -71,6 +72,7 @@ export const playerMachine = createMachine(
         on: {
           CLEAR_PLAYER: "clearPlayer",
         },
+        always: [{ target: "getLoan", cond: "noLoans" }],
       },
       clearPlayer: {
         invoke: {
@@ -78,6 +80,20 @@ export const playerMachine = createMachine(
           onDone: {
             target: "checkStorage",
             actions: "clearPlayer",
+          },
+        },
+      },
+      getLoan: {
+        entry: () => console.warn("getLoan"),
+        invoke: {
+          src: getLoanMachine,
+          data: {
+            token: (context: PlayerContext) => context.token,
+            username: (context: PlayerContext) => context.user!.username,
+          },
+          onDone: {
+            target: "loaded",
+            actions: "assignLoan",
           },
         },
       },
@@ -93,6 +109,9 @@ export const playerMachine = createMachine(
         token: undefined,
         user: undefined,
       }) as any,
+      assignLoan: assign<PlayerContext>({
+        user: (c: PlayerContext, e: any) => e.data.user,
+      }) as any,
     },
     services: {
       getUser: (c: PlayerContext) => getUser(c.token!, c.user!.username),
@@ -105,6 +124,9 @@ export const playerMachine = createMachine(
         console.warn("Player cleared");
         localStorage.removeItem("player");
       },
+    },
+    guards: {
+      noLoans: (c) => c.user?.loans.length === 0,
     },
   }
 );

@@ -10,6 +10,7 @@ import { Grid } from "@material-ui/core";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { playerMachine } from "../machines/playerMachine";
 import { useMachine } from "@xstate/react";
+import NumberFormat from "react-number-format";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -25,6 +26,9 @@ const useStyles = makeStyles((theme) => ({
   },
   icon: {
     marginRight: theme.spacing(1),
+  },
+  money: {
+    marginLeft: theme.spacing(1),
   },
 }));
 
@@ -48,6 +52,15 @@ export const Player = () => {
             <Grid item className={classes.item}>
               <PersonIcon className={classes.icon} />
               <Typography>{user!.username}</Typography>
+              <Typography>
+                <NumberFormat
+                  className={classes.money}
+                  value={user!.credits}
+                  thousandSeparator=","
+                  displayType="text"
+                  prefix="$"
+                />
+              </Typography>
             </Grid>
             <Grid item>
               <IconButton
