@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
@@ -8,7 +8,8 @@ import { CircularProgress } from "@material-ui/core";
 import { IconButton } from "@material-ui/core";
 import { Grid } from "@material-ui/core";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { newPlayerName } from "../newPlayerName";
+import { playerMachine } from "../machines/playerMachine";
+import { useMachine } from "@xstate/react";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -29,22 +30,24 @@ const useStyles = makeStyles((theme) => ({
 
 export const Player = () => {
   const classes = useStyles();
-  const player = newPlayerName();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [state, send, service] = useMachine(playerMachine);
+
+  const user = state.context.user;
 
   const handleNew = () => {
     console.log("handle new");
-    //dispatch(getToken(newPlayerName()));
   };
 
   return (
     <>
       <Paper className={classes.paper}>
-        {player ? (
+        {user ? (
           <Grid container justify="space-between">
             <Grid item className={classes.item}>
               <PersonIcon className={classes.icon} />
-              <Typography>{player}</Typography>
+              <Typography>{user.username}</Typography>
             </Grid>
             <Grid item>
               <IconButton

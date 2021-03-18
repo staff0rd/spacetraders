@@ -30,7 +30,7 @@ export const timerMachine = createMachine<TimerContext, TimerEvent, TimerState>(
     initial: "running",
     context: {
       elapsed: 0,
-      duration: 5,
+      duration: 60,
       interval: 1,
     },
     states: {
@@ -38,7 +38,6 @@ export const timerMachine = createMachine<TimerContext, TimerEvent, TimerState>(
         invoke: {
           src: (context) => (cb) => {
             const interval = setInterval(() => {
-              console.log(context.elapsed);
               cb("TICK");
             }, 1000 * context.interval);
 

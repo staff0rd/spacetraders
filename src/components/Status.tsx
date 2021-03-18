@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import DnsIcon from "@material-ui/icons/Dns";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { makeStyles } from "@material-ui/core/styles";
 import { useMachine } from "@xstate/react";
-import { apiPollMachine } from "./apiMachine";
+import { apiPollMachine } from "../machines/apiPollMachine";
 import { getStatus } from "../api";
 
 const statusMachine = apiPollMachine(getStatus);
@@ -25,11 +25,7 @@ const useStyles = makeStyles((theme) => ({
 export const Status = () => {
   const classes = useStyles();
 
-  const [state, send] = useMachine(statusMachine);
-
-  useEffect(() => {
-    send({ type: "FETCH" });
-  }, []);
+  const [state] = useMachine(statusMachine);
 
   return (
     <Paper className={classes.paper}>
