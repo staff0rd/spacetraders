@@ -67,8 +67,19 @@ export const playerMachine = createMachine(
         },
       },
       loaded: {
-        type: "final",
         entry: (c) => console.warn("loaded", c),
+        on: {
+          CLEAR_PLAYER: "clearPlayer",
+        },
+      },
+      clearPlayer: {
+        invoke: {
+          src: "clearPlayer",
+          onDone: {
+            target: "checkStorage",
+            actions: "clearPlayer",
+          },
+        },
       },
     },
   },
@@ -78,6 +89,10 @@ export const playerMachine = createMachine(
       assignPlayer: assign<PlayerContext, ApiResult<GetUserResponse>>({
         user: (c, e) => e.result.user as User,
       }) as any,
+      clearPlayer: assign<PlayerContext>({
+        token: undefined,
+        user: undefined,
+      }) as any,
     },
     services: {
       getUser: (c: PlayerContext) => getUser(c.token!, c.user!.username),
@@ -85,6 +100,10 @@ export const playerMachine = createMachine(
       cachePlayer: async (c: PlayerContext) => {
         console.log("cached player", c);
         localStorage.setItem("player", JSON.stringify((c as any).apiResult));
+      },
+      clearPlayer: async () => {
+        console.warn("Player cleared");
+        localStorage.removeItem("player");
       },
     },
   }

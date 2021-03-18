@@ -37,17 +37,17 @@ export const Player = () => {
   const user = state.context.user;
 
   const handleNew = () => {
-    console.log("handle new");
+    send("CLEAR_PLAYER");
   };
 
   return (
     <>
       <Paper className={classes.paper}>
-        {user ? (
+        {state.matches("loaded") ? (
           <Grid container justify="space-between">
             <Grid item className={classes.item}>
               <PersonIcon className={classes.icon} />
-              <Typography>{user.username}</Typography>
+              <Typography>{user!.username}</Typography>
             </Grid>
             <Grid item>
               <IconButton
