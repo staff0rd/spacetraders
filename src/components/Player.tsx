@@ -47,7 +47,7 @@ export const Player = () => {
   return (
     <>
       <Paper className={classes.paper}>
-        {state.matches("loaded") ? (
+        {state.matches("initialising") || state.matches("ready") ? (
           <Grid container justify="space-between">
             <Grid item className={classes.item}>
               <PersonIcon className={classes.icon} />
@@ -63,13 +63,15 @@ export const Player = () => {
               </Typography>
             </Grid>
             <Grid item>
-              <IconButton
-                size="small"
-                title="New user"
-                onClick={() => setConfirmOpen(true)}
-              >
-                <RefreshIcon />
-              </IconButton>
+              {state.matches("ready") && (
+                <IconButton
+                  size="small"
+                  title="New user"
+                  onClick={() => setConfirmOpen(true)}
+                >
+                  <RefreshIcon />
+                </IconButton>
+              )}
             </Grid>
           </Grid>
         ) : (

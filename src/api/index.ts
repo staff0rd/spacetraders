@@ -120,8 +120,8 @@ export interface GetSystemsResponse {
 export const getSystems = (token: string): Promise<GetSystemsResponse> =>
   getSecure(token, "game/systems");
 
-type GetMarketResponse = {
-  planet: Location;
+export type GetMarketResponse = {
+  location: Location;
 };
 
 export const getMarket = (

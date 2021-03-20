@@ -5,6 +5,9 @@ import { GetUserResponse, getUser, getToken } from "../api";
 import { newPlayerName } from "../newPlayerName";
 import { getLoanMachine } from "./getLoanMachine";
 import { buyShipMachine } from "./buyShipMachine";
+import * as api from "../api";
+import { Location } from "../api/Location";
+import { shipMachine } from "../machines/shipMachine";
 
 type MarketContext = {
   [key: string]: Location;
@@ -68,22 +71,63 @@ export const playerMachine = createMachine(
           src: "getUser",
           onError: "idle",
           onDone: {
-            target: "loaded",
+            target: "initialising",
             actions: assign<PlayerContext, any>({
               user: (c, e) => e.data.user,
             }),
           },
         },
       },
-      loaded: {
-        entry: (c) => console.warn("loaded", c),
-        on: {
-          CLEAR_PLAYER: "clearPlayer",
-        },
+      initialising: {
+        entry: (c) => console.warn("initialising", c),
         always: [
           { target: "getLoan", cond: "noLoans" },
           { target: "buyShip", cond: "noShips" },
+          { target: "getMarket", cond: "shipWithNoMarket" },
+          { target: "ready" },
         ],
+      },
+      ready: {
+        entry: (c) => console.warn("ready", c),
+        on: {
+          CLEAR_PLAYER: "clearPlayer",
+          UPDATE_CREDITS: {
+            actions: assign<PlayerContext>({
+              user: (c: PlayerContext, e: any) =>
+                ({ ...c.user, credits: e.data } as any),
+            }),
+          },
+        },
+        invoke: {
+          src: shipMachine,
+          data: {
+            token: (context: PlayerContext) => context.token,
+            username: (context: PlayerContext) => context.user!.username,
+            ship: (context: PlayerContext) => context.user!.ships[0],
+          },
+          onDone: {
+            actions: () => console.log("ship machine done"),
+          },
+        },
+      },
+      getMarket: {
+        entry: (c) => console.warn("getMarket", c),
+        invoke: {
+          src: (context: PlayerContext) =>
+            api.getMarket(context.token!, context.user!.ships![0].location),
+          onDone: {
+            target: "initialising",
+            actions: assign<PlayerContext>({
+              locations: (c: PlayerContext, e: any) => {
+                const { location } = e.data as api.GetMarketResponse;
+                return {
+                  ...c.locations,
+                  [location.symbol]: location,
+                };
+              },
+            }) as any,
+          },
+        },
       },
       clearPlayer: {
         invoke: {
@@ -103,7 +147,7 @@ export const playerMachine = createMachine(
             username: (context: PlayerContext) => context.user!.username,
           },
           onDone: {
-            target: "loaded",
+            target: "initialising",
             actions: "assignUser",
           },
         },
@@ -117,7 +161,7 @@ export const playerMachine = createMachine(
             username: (context: PlayerContext) => context.user!.username,
           },
           onDone: {
-            target: "loaded",
+            target: "initialising",
             actions: "assignUser",
           },
         },
@@ -153,6 +197,8 @@ export const playerMachine = createMachine(
     guards: {
       noLoans: (c) => c.user?.loans.length === 0,
       noShips: (c) => c.user?.ships.length === 0,
+      shipWithNoMarket: (c) =>
+        c.locations[c.user!.ships![0].location] === undefined,
     },
   }
 );
