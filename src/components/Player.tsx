@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
@@ -11,6 +11,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { playerMachine } from "../machines/playerMachine";
 import { useMachine } from "@xstate/react";
 import NumberFormat from "react-number-format";
+import Ship from "./Ship";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -43,6 +44,15 @@ export const Player = () => {
   const handleNew = () => {
     send("CLEAR_PLAYER");
   };
+
+  useEffect(() => {
+    const subscription = service.subscribe((state) => {
+      // simple state logging
+      console.log(state);
+    });
+
+    return subscription.unsubscribe;
+  }, [service]); // note: service should never change
 
   return (
     <>
@@ -85,6 +95,13 @@ export const Player = () => {
         open={confirmOpen}
         action={handleNew}
       />
+      {(state.context.user?.ships || []).map((ship, ix) => (
+        <Ship
+          key={ix}
+          ship={ship}
+          flightPlans={state.context.flightPlans || []}
+        />
+      ))}
     </>
   );
 };

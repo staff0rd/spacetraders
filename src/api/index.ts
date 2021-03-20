@@ -7,8 +7,10 @@ import { System } from "./System";
 import { User } from "./User";
 import Bottleneck from "bottleneck";
 import { Location } from "./Location";
+import { FlightPlan } from "./FlightPlan";
 
-const getUrl = (segment: string) => `https://api.spacetraders.io/${segment}`;
+export const getUrl = (segment: string) =>
+  `https://api.spacetraders.io/${segment}`;
 
 const limiter = new Bottleneck({
   maxConcurrent: 2,
@@ -173,7 +175,10 @@ export const sellOrder = (
     quantity,
   });
 
-export const getFlightPlans = (token: string, symbol: string): Promise<any> =>
+export const getFlightPlans = (
+  token: string,
+  symbol: string
+): Promise<{ flightPlans: FlightPlan[] }> =>
   getSecure(token, `game/systems/${symbol}/flight-plans`);
 
 export const newFlightPlan = (
@@ -181,7 +186,7 @@ export const newFlightPlan = (
   username: string,
   shipId: string,
   destination: string
-): Promise<any> =>
+): Promise<{ flightPlan: FlightPlan }> =>
   postSecure(token, `users/${username}/flight-plans`, { shipId, destination });
 
 export type GetUserResponse = {
