@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
@@ -12,6 +12,7 @@ import { playerMachine } from "../machines/playerMachine";
 import { useMachine } from "@xstate/react";
 import NumberFormat from "react-number-format";
 import Ship from "./Ship";
+import { Locations } from "./Locations";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -45,17 +46,19 @@ export const Player = () => {
     send("CLEAR_PLAYER");
   };
 
-  useEffect(() => {
-    const subscription = service.subscribe((state) => {
-      // simple state logging
-      console.log(state);
-    });
+  // useEffect(() => {
+  //   const subscription = shipService?.subscribe((state) => {
+  //     if (state.value === "ready") {
+  //     }
+  //     console.log(state);
+  //   });
 
-    return subscription.unsubscribe;
-  }, [service]); // note: service should never change
+  //   return subscription?.unsubscribe;
+  // }, [shipState]); // note: service should never change
 
   return (
     <>
+      <Locations locations={state.context.locations || {}} />
       <Paper className={classes.paper}>
         {state.matches("initialising") || state.matches("ready") ? (
           <Grid container justify="space-between">

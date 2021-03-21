@@ -10,10 +10,7 @@ import { Location } from "../api/Location";
 import { shipMachine } from "../machines/shipMachine";
 import { FlightPlan } from "../api/FlightPlan";
 import { DateTime } from "luxon";
-
-type MarketContext = {
-  [key: string]: Location;
-};
+import { MarketContext } from "./MarketContext";
 
 type PlayerContext = {
   token?: string;
@@ -164,12 +161,14 @@ export const playerMachine = createMachine(
               locations: (c, e: any) => {
                 const locations = c.locations!;
                 locations[(e.data as Location).symbol] = e.data;
+                localStorage.setItem("locations", JSON.stringify(locations));
                 return locations;
               },
             }),
           },
         },
         invoke: {
+          id: "ship",
           src: shipMachine,
           data: {
             token: (context: PlayerContext) => context.token,

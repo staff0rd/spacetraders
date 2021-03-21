@@ -1,5 +1,5 @@
 import { ShipBase } from "./ShipBase";
-type Cargo = {
+export type Cargo = {
   good: string;
   quantity: number;
   totalVolume: number;

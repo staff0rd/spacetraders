@@ -149,13 +149,18 @@ export const buyShip = (
 ): Promise<GetUserResponse> =>
   postSecure(token, `users/${username}/ships`, { location, type });
 
+export type PurchaseOrderResponse = {
+  ship: Ship;
+  credits: number;
+};
+
 export const purchaseOrder = (
   token: string,
   username: string,
   shipId: string,
   good: string,
   quantity: number
-): Promise<any> =>
+): Promise<PurchaseOrderResponse> =>
   postSecure(token, `users/${username}/purchase-orders`, {
     shipId,
     good,
@@ -168,7 +173,7 @@ export const sellOrder = (
   shipId: string,
   good: string,
   quantity: number
-): Promise<any> =>
+): Promise<PurchaseOrderResponse> =>
   postSecure(token, `users/${username}/sell-orders`, {
     shipId,
     good,

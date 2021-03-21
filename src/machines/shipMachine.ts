@@ -5,8 +5,14 @@ import { Location } from "../api/Location";
 import { getDistance } from "./getDistance";
 import { FlightPlan } from "../api/FlightPlan";
 import { DateTime } from "luxon";
+import { MarketContext } from "./MarketContext";
 
-type LocationWithDistance = Location & { distance: number };
+export type LocationWithDistance = Location & { distance: number };
+
+type ShouldBuy = {
+  good: string;
+  quantity: number;
+};
 
 type Context = {
   token: string;
@@ -15,6 +21,7 @@ type Context = {
   location?: Location;
   locations: LocationWithDistance[];
   destination?: string;
+  shouldBuy?: ShouldBuy;
   flightPlan?: FlightPlan;
 };
 
@@ -27,7 +34,7 @@ const sleep = (ms: number) => {
 
 export const shipMachine = createMachine<Context, any, any>(
   {
-    id: "buyShip",
+    id: "ship",
     initial: "idle",
     context: {
       token: "",
@@ -38,13 +45,57 @@ export const shipMachine = createMachine<Context, any, any>(
     states: {
       idle: {
         entry: (c) => console.log("ship: idle", c),
-        always: [
-          { target: "inFlight", cond: "hasFlightPlan" },
-          { target: "getMarket", cond: "noLocation" },
-          { target: "buyFuel", cond: "needFuel" },
-          { target: "determineDestination", cond: "noDestination" },
-          { target: "createFlightPlan", cond: "noFlightPlan" },
-        ],
+        after: {
+          1: [
+            { target: "inFlight", cond: "hasFlightPlan" },
+            { target: "getMarket", cond: "noLocation" },
+            {
+              target: "buyGood",
+              cond: "needFuel",
+              actions: "assignNeededFuel",
+            },
+            { target: "determineDestination", cond: "noDestination" },
+            { target: "determineCargo", cond: "shouldDetermineCargo" },
+            { target: "buyGood", cond: "shouldBuyCargo" },
+            { target: "createFlightPlan", cond: "noFlightPlan" },
+          ],
+        },
+      },
+      buyCargo: {
+        entry: (c) => console.log("ship: buyCargo"),
+      },
+      determineCargo: {
+        entry: (c) => console.log("ship: determineCargo", c),
+        invoke: {
+          src: async (c): Promise<ShouldBuy> => {
+            const market: MarketContext = JSON.parse(
+              localStorage.getItem("locations")!
+            );
+            const from = market[c.ship.location].marketplace;
+            const to = market[c.destination!].marketplace;
+            if (!to) return { good: "NONE", quantity: 0 };
+            const goods = from
+              .map((x) => ({
+                good: x.symbol,
+                profit:
+                  (to.find((t) => t.symbol === x.symbol)?.pricePerUnit || 0) -
+                  x.pricePerUnit,
+                size: x.volumePerUnit,
+              }))
+              .sort((a, b) => a.profit - b.profit);
+            console.log(goods);
+            const first = goods[0];
+            const result: ShouldBuy = {
+              good: first.good,
+              quantity: Math.floor(c.ship.spaceAvailable / first.size),
+            };
+            return Promise.resolve(result);
+          },
+          onDone: {
+            target: "idle",
+            actions: assign({ shouldBuy: (c, e: any) => e.data }),
+          },
+        },
       },
       inFlight: {
         invoke: {
@@ -106,6 +157,7 @@ export const shipMachine = createMachine<Context, any, any>(
           onDone: {
             target: "idle",
             actions: [
+              () => console.log("getMarket done"),
               assign({
                 location: (c, e: any) =>
                   (e.data as api.GetMarketResponse).location,
@@ -118,17 +170,16 @@ export const shipMachine = createMachine<Context, any, any>(
           },
         },
       },
-      buyFuel: {
-        entry: (c) => console.log("ship: buyFuel", c),
+      buyGood: {
+        entry: (c) => console.log("ship: buyGood", c),
         invoke: {
           src: (context: Context) => {
-            const fuelToBuy = fuelAmountNeeded(context.ship);
             return api.purchaseOrder(
               context.token,
               context.username,
               context.ship.id,
-              "FUEL",
-              fuelToBuy
+              context.shouldBuy!.good,
+              context.shouldBuy!.quantity
             );
           },
           onDone: {
@@ -147,6 +198,12 @@ export const shipMachine = createMachine<Context, any, any>(
   },
   {
     actions: {
+      assignNeededFuel: assign({
+        shouldBuy: (c) => ({
+          good: "FUEL",
+          quantity: fuelAmountNeeded(c.ship),
+        }),
+      }),
       determineDestination: assign({
         destination: (c) => {
           const ordered = c.locations
@@ -171,6 +228,11 @@ export const shipMachine = createMachine<Context, any, any>(
       noDestination: (c) => !c.destination,
       noFlightPlan: (c) => !c.flightPlan,
       hasFlightPlan: (c) => !!c.flightPlan,
+      shouldDetermineCargo: (c) => !c.shouldBuy || c.shouldBuy.good === "FUEL",
+      shouldBuyCargo: (c) =>
+        c.shouldBuy !== undefined &&
+        c.shouldBuy.good !== "NONE" &&
+        c.ship.spaceAvailable > 0,
     },
   }
 );
