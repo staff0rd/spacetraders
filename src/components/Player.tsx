@@ -97,14 +97,14 @@ export const Player = () => {
         open={confirmOpen}
         action={handleNew}
       />
-      {(state.context.user?.ships || []).map((ship, ix) => (
+      {state.context.ships.map((ship, ix) => (
         <Ship
           key={ix}
           ship={ship}
           flightPlans={state.context.flightPlans || []}
         />
       ))}
-      <Locations locations={state.context.locations || {}} />
+      {false && <Locations locations={state.context.locations || {}} />}
     </>
   );
 };

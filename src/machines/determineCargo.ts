@@ -24,7 +24,7 @@ const getProfit = (
 };
 
 export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
-  const buyMarket = getLocation(c.ship.location)!.marketplace;
+  const buyMarket = getLocation(c.ship.location!)!.marketplace;
   const sellMarket = getLocation(c.destination!)?.marketplace;
   const nothing = { good: "NONE", quantity: 0 };
   if (!sellMarket) {

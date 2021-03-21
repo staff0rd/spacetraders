@@ -85,6 +85,7 @@ export const playerMachine = createMachine(
             target: "initialising",
             actions: assign<Context, any>({
               user: (c, e) => e.data.user,
+              ships: (c, e) => e.data.user.ships,
             }),
           },
         },
@@ -137,9 +138,15 @@ export const playerMachine = createMachine(
           },
           SHIP_UPDATE: {
             actions: assign<Context>({
-              ships: (c, e: any) => [
-                ...c.ships.map((s: Ship) => (s.id === e.data.id ? e.data : s)),
-              ],
+              ships: (c, e: any) => {
+                console.log("SHIP_UPDATE", e.data);
+                const result = [
+                  ...c.ships.filter((ship) => ship.id !== e.data.id),
+                  e.data,
+                ];
+                console.log("after merge", result);
+                return result;
+              },
             }) as any,
           },
           SHIP_ARRIVED: {

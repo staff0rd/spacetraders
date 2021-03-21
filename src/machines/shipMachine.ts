@@ -97,7 +97,7 @@ export const shipMachine = createMachine<Context, any, any>(
               }) as any,
               sendParent((c: Context, e) => ({
                 type: "SHIP_UPDATE",
-                data: e.data.ship,
+                data: c.ship,
               })),
               sendParent((context, event) => ({
                 type: "UPDATE_CREDITS",
@@ -118,6 +118,7 @@ export const shipMachine = createMachine<Context, any, any>(
         },
       },
       inFlight: {
+        entry: (c) => console.log("ship: inFlight", c),
         invoke: {
           src: async (c) => {
             await sleep(
@@ -175,7 +176,7 @@ export const shipMachine = createMachine<Context, any, any>(
               }),
               sendParent((c, e: any) => ({
                 type: "NEW_FLIGHTPLAN",
-                data: e.data.flightPlan,
+                data: c.flightPlan,
               })),
             ],
           },
@@ -229,7 +230,7 @@ export const shipMachine = createMachine<Context, any, any>(
               })),
               sendParent((c: Context, e) => ({
                 type: "SHIP_UPDATE",
-                data: e.data.ship,
+                data: c.ship,
               })),
             ],
           },
