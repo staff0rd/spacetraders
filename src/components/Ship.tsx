@@ -3,6 +3,7 @@ import React from "react";
 import { Ship } from "../api/Ship";
 import { FlightPlan as FlightPlanSchema } from "../api/FlightPlan";
 import { FlightPlan } from "./FlightPlan";
+import Cargo from "./Cargo";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -25,6 +26,7 @@ export const ShipComponent = ({ ship, flightPlans }: Props) => {
   return (
     <Paper className={classes.paper}>
       <Typography>{ship.type}</Typography>
+      <Cargo ship={ship} />
       <FlightPlan shipId={ship.id} flightPlans={flightPlans} />
     </Paper>
   );

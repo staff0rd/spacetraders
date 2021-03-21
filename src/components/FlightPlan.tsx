@@ -9,7 +9,6 @@ type Props = {
 };
 
 export const FlightPlan = ({ shipId, flightPlans }: Props) => {
-  console.warn("flightPlans", flightPlans, "shipId", shipId);
   const flightPlan = flightPlans.find((fp) => fp.shipId === shipId);
   if (flightPlan)
     return (

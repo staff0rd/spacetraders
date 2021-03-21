@@ -1,5 +1,5 @@
 import { Marketplace } from "../api/Location";
-import { MarketContext } from "./MarketContext";
+import { getLocation } from "./locationCache";
 import { Context, ShouldBuy } from "./shipMachine";
 
 const getProfit = (
@@ -14,11 +14,13 @@ const getProfit = (
 };
 
 export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
-  const market: MarketContext = JSON.parse(localStorage.getItem("locations")!);
-  const buyMarket = market[c.ship.location].marketplace;
-  const sellMarket = market[c.destination!].marketplace;
+  const buyMarket = getLocation(c.ship.location)!.marketplace;
+  const sellMarket = getLocation(c.destination!)?.marketplace;
   const nothing = { good: "NONE", quantity: 0 };
-  if (!sellMarket) return nothing;
+  if (!sellMarket) {
+    console.warn("No sell market data");
+    return nothing;
+  }
 
   const goods = buyMarket
     .filter((buy) => sellMarket.find((sell) => sell.symbol === buy.symbol))
@@ -27,10 +29,14 @@ export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
       profit: getProfit(x, sellMarket, c.ship.spaceAvailable),
       size: x.volumePerUnit,
     }))
+    .filter((x) => x.profit > 0)
     .sort((a, b) => b.profit - a.profit);
-  console.log(goods);
-  if (!goods.length || goods[0].profit === 0) return nothing;
 
+  if (!goods.length) {
+    console.warn("no profitable goods");
+    return nothing;
+  }
+  console.log("profitable goods", goods);
   const result: ShouldBuy = {
     good: goods[0].good,
     quantity: Math.floor(c.ship.spaceAvailable / goods[0].size),

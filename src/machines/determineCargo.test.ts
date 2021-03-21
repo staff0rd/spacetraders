@@ -59,6 +59,20 @@ describe("determineCargo", () => {
 
     expect(result.good).toBe("NONE");
   });
+  it("should buy nothing if negative profit", async () => {
+    jest.spyOn(Storage.prototype, "getItem").mockReturnValue(
+      JSON.stringify({
+        FROM: { ...fromLocation, marketplace: [testGood("A", 2)] },
+        TO: {
+          ...toLocation,
+          marketplace: [testGood("A")],
+        },
+      } as MarketContext)
+    );
+    const result = await determineCargo(context());
+
+    expect(result.good).toBe("NONE");
+  });
 
   it("should fill space available", async () => {
     jest.spyOn(Storage.prototype, "getItem").mockReturnValue(

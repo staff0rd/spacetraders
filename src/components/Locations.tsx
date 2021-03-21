@@ -61,7 +61,9 @@ export const Locations = ({ locations }: Props) => {
             onChange={handleChange}
           >
             {Object.values(locations).map((lo, ix) => (
-              <MenuItem value={lo.symbol}>{lo.symbol}</MenuItem>
+              <MenuItem key={ix} value={lo.symbol}>
+                {lo.symbol}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>

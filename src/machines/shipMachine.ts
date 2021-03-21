@@ -90,10 +90,13 @@ export const shipMachine = createMachine<Context, any, any>(
                 data: c.ship.id,
               })),
               assign({
-                ship: (c: Context, e) => ({
-                  ...c.ship,
-                  location: c.flightPlan!.to,
-                }),
+                ship: (c: Context, e) => {
+                  console.log("setting ship location to ", c.flightPlan);
+                  return {
+                    ...c.ship,
+                    location: c.flightPlan!.to,
+                  };
+                },
                 destination: undefined,
                 flightPlan: undefined,
                 location: undefined,

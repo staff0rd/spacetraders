@@ -11,6 +11,7 @@ import { shipMachine } from "../machines/shipMachine";
 import { FlightPlan } from "../api/FlightPlan";
 import { DateTime } from "luxon";
 import { MarketContext } from "./MarketContext";
+import { cacheLocation } from "./locationCache";
 
 type PlayerContext = {
   token?: string;
@@ -34,7 +35,7 @@ export const playerMachine = createMachine(
     } as PlayerContext,
     states: {
       checkStorage: {
-        entry: ["assignCachedPlayer", (c) => console.warn("checkStorage", c)],
+        entry: ["assignCachedPlayer"],
         always: "idle",
       },
       idle: {
@@ -45,7 +46,6 @@ export const playerMachine = createMachine(
         ],
       },
       initialising: {
-        entry: (c) => console.warn("initialising", c),
         always: [
           { target: "getSystems", cond: "noLocations" },
           { target: "getLoan", cond: "noLoans" },
@@ -55,7 +55,6 @@ export const playerMachine = createMachine(
         ],
       },
       getToken: {
-        entry: () => console.warn("getToken"),
         invoke: {
           src: "getToken",
           onError: "idle",
@@ -159,10 +158,8 @@ export const playerMachine = createMachine(
           UPDATE_LOCATION: {
             actions: assign<PlayerContext>({
               locations: (c, e: any) => {
-                const locations = c.locations!;
-                locations[(e.data as Location).symbol] = e.data;
-                localStorage.setItem("locations", JSON.stringify(locations));
-                return locations;
+                cacheLocation(e.data);
+                return { ...c.locations, [e.data.symbol]: e.data };
               },
             }),
           },

@@ -58,7 +58,6 @@ export const Player = () => {
 
   return (
     <>
-      <Locations locations={state.context.locations || {}} />
       <Paper className={classes.paper}>
         {state.matches("initialising") || state.matches("ready") ? (
           <Grid container justify="space-between">
@@ -105,6 +104,7 @@ export const Player = () => {
           flightPlans={state.context.flightPlans || []}
         />
       ))}
+      <Locations locations={state.context.locations || {}} />
     </>
   );
 };
