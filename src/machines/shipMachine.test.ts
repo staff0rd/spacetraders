@@ -1,70 +1,16 @@
 import * as xstate from "xstate";
-import { LocationWithDistance, shipMachine } from "./shipMachine";
+import { shipMachine } from "./shipMachine";
 import * as api from "../api";
-import { FlightPlan } from "../api/FlightPlan";
-import { DateTime } from "luxon";
 import { Cargo } from "../api/Ship";
-
-const testShip = {
-  id: "shipId",
-  location: "ABC",
-  x: 0,
-  y: 0,
-  type: "type",
-  class: "class",
-  maxCargo: 10,
-  speed: 1,
-  manufacturer: "manufacturer",
-  plating: 1,
-  weapons: 1,
-  spaceAvailable: 10,
-  cargo: [],
-};
-
-const testFlightPlan: { flightPlan: FlightPlan } = {
-  flightPlan: {
-    arrivesAt: DateTime.now().toISO(),
-    createdAt: DateTime.now().toISO(),
-    from: "ABC",
-    to: "ABC",
-    id: "id",
-    shipId: "shipId",
-    shipType: "shipType",
-    username: "username",
-  },
-};
-
-const testLocation: LocationWithDistance = {
-  symbol: "ABC",
-  distance: 10,
-  x: 0,
-  y: 0,
-  type: "type",
-  name: "name",
-  ships: [],
-  anomaly: "AB",
-  marketplace: [
-    {
-      symbol: "GOOD_A",
-      pricePerUnit: 10,
-      quantityAvailable: 100,
-      volumePerUnit: 1,
-    },
-  ],
-};
-
-const testMarketResponse = {
-  location: {
-    marketplace: [
-      {
-        pricePerUnit: 1,
-        quantityAvailable: 500,
-        symbol: "FUEL",
-        volumePerUnit: 1,
-      },
-    ],
-  },
-} as api.GetMarketResponse;
+import { MarketContext } from "./MarketContext";
+import {
+  fromLocation,
+  toLocation,
+  testMarketResponse,
+  testFlightPlan,
+  testShip,
+  testGood,
+} from "./objectMother";
 
 const waitFor = (
   machine: any,
@@ -91,32 +37,21 @@ const waitFor = (
     service.start();
   });
 
-function getMachine(cargo: Cargo[]) {
+function getMachine(
+  cargo: Cargo[],
+  market: MarketContext = {
+    FROM: { ...fromLocation, marketplace: [testGood("A")] },
+    TO: { ...toLocation, marketplace: [testGood("A", 2)] },
+  }
+) {
   jest.spyOn(api, "getMarket").mockResolvedValue(testMarketResponse);
   jest.spyOn(api, "newFlightPlan").mockResolvedValue(testFlightPlan);
   jest
     .spyOn(Storage.prototype, "getItem")
-    .mockReturnValue(JSON.stringify({ ABC: testLocation }));
+    .mockReturnValue(JSON.stringify(market));
   const purchaseOrderSpy = jest
     .spyOn(api, "purchaseOrder")
-    .mockResolvedValueOnce({
-      ship: {
-        ...testShip,
-        cargo: [{ good: "FUEL", quantity: 10, totalVolume: 10 }],
-      },
-      credits: 10,
-    })
-    .mockResolvedValueOnce({
-      ship: {
-        ...testShip,
-        cargo: [
-          { good: "FUEL", quantity: 10, totalVolume: 10 },
-          { good: "GOOD_A", quantity: 10, totalVolume: 10 },
-        ],
-        spaceAvailable: 0,
-      },
-      credits: 10,
-    });
+    .mockImplementation();
 
   const machine = shipMachine.withContext({
     token: "123",
@@ -125,18 +60,29 @@ function getMachine(cargo: Cargo[]) {
       ...testShip,
       cargo,
     },
-    locations: [testLocation],
+    locations: [fromLocation, toLocation],
   });
   return { machine, purchaseOrderSpy };
 }
 
 describe("shipMachine", () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    //jest.spyOn(console, "log").mockImplementation();
+  });
   it("should buy fuel if less than 10", async () => {
     const { machine, purchaseOrderSpy } = getMachine([
       { good: "FUEL", quantity: 5, totalVolume: 5 },
     ]);
-
-    await waitFor(machine, "createFlightPlan");
+    purchaseOrderSpy.mockResolvedValueOnce({
+      ship: {
+        ...testShip,
+        cargo: [{ good: "FUEL", quantity: 10, totalVolume: 10 }],
+        spaceAvailable: 0,
+      },
+      credits: 10,
+    });
+    await waitFor(machine, "inFlight");
 
     expect(purchaseOrderSpy).toHaveBeenCalledWith(
       "123",
@@ -148,14 +94,78 @@ describe("shipMachine", () => {
   });
   it("should buy fuel if no fuel", async () => {
     const { machine, purchaseOrderSpy } = getMachine([]);
+    purchaseOrderSpy.mockResolvedValueOnce({
+      ship: {
+        ...testShip,
+        cargo: [{ good: "FUEL", quantity: 10, totalVolume: 10 }],
+        spaceAvailable: 0,
+      },
+      credits: 10,
+    });
 
-    await waitFor(machine, "createFlightPlan");
+    await waitFor(machine, "inFlight");
 
     expect(purchaseOrderSpy).toHaveBeenCalledWith(
       "123",
       "username",
       "shipId",
       "FUEL",
+      10
+    );
+  });
+
+  it("should not buy fuel if full", async () => {
+    const { machine, purchaseOrderSpy } = getMachine([
+      { good: "FUEL", quantity: 10, totalVolume: 10 },
+    ]);
+
+    purchaseOrderSpy.mockResolvedValueOnce({
+      ship: {
+        ...testShip,
+        cargo: [
+          { good: "FUEL", quantity: 10, totalVolume: 10 },
+          { good: "A", quantity: 10, totalVolume: 10 },
+        ],
+        spaceAvailable: 0,
+      },
+      credits: 10,
+    });
+
+    await waitFor(machine, "inFlight");
+
+    expect(purchaseOrderSpy).not.toHaveBeenCalledWith(
+      "123",
+      "username",
+      "shipId",
+      "FUEL",
+      expect.any(Number)
+    );
+  });
+
+  it("should purchase cargo", async () => {
+    const { machine, purchaseOrderSpy } = getMachine([
+      { good: "FUEL", quantity: 10, totalVolume: 10 },
+    ]);
+    purchaseOrderSpy.mockResolvedValueOnce({
+      ship: {
+        ...testShip,
+        cargo: [
+          { good: "FUEL", quantity: 10, totalVolume: 10 },
+          { good: "A", quantity: 10, totalVolume: 10 },
+        ],
+        spaceAvailable: 0,
+      },
+      credits: 10,
+    });
+
+    await waitFor(machine, "inFlight");
+
+    expect(purchaseOrderSpy).toHaveBeenCalledTimes(1);
+    expect(purchaseOrderSpy).toHaveBeenCalledWith(
+      "123",
+      "username",
+      "shipId",
+      "A",
       10
     );
   });

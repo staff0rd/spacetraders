@@ -5,16 +5,16 @@ import { Location } from "../api/Location";
 import { getDistance } from "./getDistance";
 import { FlightPlan } from "../api/FlightPlan";
 import { DateTime } from "luxon";
-import { MarketContext } from "./MarketContext";
+import { determineCargo } from "./determineCargo";
 
 export type LocationWithDistance = Location & { distance: number };
 
-type ShouldBuy = {
+export type ShouldBuy = {
   good: string;
   quantity: number;
 };
 
-type Context = {
+export type Context = {
   token: string;
   username: string;
   ship: Ship;
@@ -67,30 +67,7 @@ export const shipMachine = createMachine<Context, any, any>(
       determineCargo: {
         entry: (c) => console.log("ship: determineCargo", c),
         invoke: {
-          src: async (c): Promise<ShouldBuy> => {
-            const market: MarketContext = JSON.parse(
-              localStorage.getItem("locations")!
-            );
-            const from = market[c.ship.location].marketplace;
-            const to = market[c.destination!].marketplace;
-            if (!to) return { good: "NONE", quantity: 0 };
-            const goods = from
-              .map((x) => ({
-                good: x.symbol,
-                profit:
-                  (to.find((t) => t.symbol === x.symbol)?.pricePerUnit || 0) -
-                  x.pricePerUnit,
-                size: x.volumePerUnit,
-              }))
-              .sort((a, b) => a.profit - b.profit);
-            console.log(goods);
-            const first = goods[0];
-            const result: ShouldBuy = {
-              good: first.good,
-              quantity: Math.floor(c.ship.spaceAvailable / first.size),
-            };
-            return Promise.resolve(result);
-          },
+          src: determineCargo,
           onDone: {
             target: "idle",
             actions: assign({ shouldBuy: (c, e: any) => e.data }),
@@ -206,19 +183,19 @@ export const shipMachine = createMachine<Context, any, any>(
       }),
       determineDestination: assign({
         destination: (c) => {
-          const ordered = c.locations
+          const locationsByDistance = c.locations
             .map((lo) => ({
               ...lo,
               distance: getDistance(c.location!.x, c.location!.y, lo.x, lo.y),
             }))
             .sort((a, b) => a.distance - b.distance)
             .filter((p) => p.distance !== 0);
-          ordered.forEach((dest) =>
+          locationsByDistance.forEach((dest) =>
             console.log(
               `${c.location!.symbol} -> ${dest.symbol}: ${dest.distance}`
             )
           );
-          return ordered[0].symbol;
+          return locationsByDistance[0].symbol;
         },
       }),
     },
