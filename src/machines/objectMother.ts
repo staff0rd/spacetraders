@@ -30,16 +30,18 @@ export const testShip = {
   spaceAvailable: 10,
   cargo: [],
 };
-export const testFlightPlan: { flightPlan: FlightPlan } = {
+export const testFlightPlan: { flightPlan: api.NewFlightPlan } = {
   flightPlan: {
-    arrivesAt: DateTime.now().toISO(),
-    createdAt: DateTime.now().toISO(),
-    from: "FROM",
-    to: "TO",
+    arrivesAt: DateTime.now().plus({ seconds: 2 }).toISO(),
+    departure: "FROM",
+    destination: "TO",
     id: "id",
-    shipId: "shipId",
-    shipType: "shipType",
-    username: "username",
+    ship: "shipId",
+    terminatedAt: null,
+    fuelConsumed: 2,
+    fuelRemaining: 8,
+    distance: 4,
+    timeRemainingInSeconds: 2,
   },
 };
 export const fromLocation: LocationWithDistance = {

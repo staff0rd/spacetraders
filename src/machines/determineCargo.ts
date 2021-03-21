@@ -15,7 +15,6 @@ const getProfit = (
   const hasSpaceFor = Math.floor(spaceAvailable / from.volumePerUnit);
   const hasCreditsFor = Math.floor(credits / from.pricePerUnit);
   const quantity = Math.min(hasSpaceFor, hasCreditsFor, from.quantityAvailable);
-  console.warn(from.symbol, "space", hasSpaceFor, "credits", hasCreditsFor);
   const sell = destination.find((p) => p.symbol === from.symbol);
   if (!sell) return { profit: -from.pricePerUnit, quantity };
   return {
@@ -43,7 +42,6 @@ export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
     .sort((a, b) => b.profit - a.profit);
 
   if (!goods.length) {
-    console.warn("no profitable goods");
     return nothing;
   }
   console.log("profitable goods", goods);

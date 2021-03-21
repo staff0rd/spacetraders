@@ -24,6 +24,7 @@ export type Context = {
   shouldBuy?: ShouldBuy;
   flightPlan?: FlightPlan;
   credits: number;
+  hasSold?: boolean;
 };
 
 const fuelAmountNeeded = (s: Ship) =>
@@ -51,6 +52,7 @@ export const shipMachine = createMachine<Context, any, any>(
           1: [
             { target: "inFlight", cond: "hasFlightPlan" },
             { target: "getMarket", cond: "noLocation" },
+            { target: "sellCargo", cond: "shouldSell" },
             {
               target: "buyGood",
               cond: "needFuel",
@@ -63,8 +65,47 @@ export const shipMachine = createMachine<Context, any, any>(
           ],
         },
       },
-      buyCargo: {
-        entry: (c) => console.log("ship: buyCargo"),
+      sellCargo: {
+        entry: (c) => console.log("ship: sellCargo"),
+        invoke: {
+          src: async (c) => {
+            let lastResult: api.PurchaseOrderResponse = {
+              ship: c.ship,
+              credits: c.credits,
+            };
+            const sellableCargo = c.ship.cargo.filter(
+              (cargo) => cargo.good !== "FUEL"
+            );
+            for (const good of sellableCargo) {
+              lastResult = await api.sellOrder(
+                c.token,
+                c.username,
+                c.ship.id,
+                good.good,
+                good.quantity
+              );
+            }
+            return lastResult;
+          },
+          onDone: {
+            target: "idle",
+            actions: [
+              assign({
+                credits: (c, e: any) => e.data.credits,
+                ship: (c, e: any) => e.data.ship,
+                hasSold: true,
+              }) as any,
+              sendParent((c: Context, e) => ({
+                type: "SHIP_UPDATE",
+                data: e.data.ship,
+              })),
+              sendParent((context, event) => ({
+                type: "UPDATE_CREDITS",
+                data: event.data.credits,
+              })),
+            ],
+          },
+        },
       },
       determineCargo: {
         entry: (c) => console.log("ship: determineCargo", c),
@@ -102,6 +143,7 @@ export const shipMachine = createMachine<Context, any, any>(
                 destination: undefined,
                 flightPlan: undefined,
                 location: undefined,
+                hasSold: false,
               }) as any,
             ],
           },
@@ -122,7 +164,15 @@ export const shipMachine = createMachine<Context, any, any>(
           onDone: {
             target: "inFlight",
             actions: [
-              assign({ flightPlan: (c, e: any) => e.data.flightPlan }),
+              assign({
+                flightPlan: (c, e: any) => ({
+                  ...e.data.flightPlan,
+                  shipId: e.data.flightPlan.ship,
+                  createdAt: DateTime.now().toISO(),
+                  from: e.data.flightPlan.departure,
+                  to: e.data.flightPlan.destination,
+                }),
+              }),
               sendParent((c, e: any) => ({
                 type: "NEW_FLIGHTPLAN",
                 data: e.data.flightPlan,
@@ -135,7 +185,7 @@ export const shipMachine = createMachine<Context, any, any>(
         entry: (c) => console.log("ship: getMarket", c),
         invoke: {
           src: (context: Context) =>
-            api.getMarket(context.token, context.ship.location),
+            api.getMarket(context.token, context.ship.location!),
           onDone: {
             target: "idle",
             actions: [
@@ -143,7 +193,8 @@ export const shipMachine = createMachine<Context, any, any>(
               assign({
                 location: (c, e: any) =>
                   (e.data as api.GetMarketResponse).location,
-              }),
+                hasSold: false,
+              }) as any,
               sendParent((c, e: any) => ({
                 type: "UPDATE_LOCATION",
                 data: (e.data as api.GetMarketResponse).location,
@@ -168,12 +219,17 @@ export const shipMachine = createMachine<Context, any, any>(
             target: "idle",
             actions: [
               assign({
-                ship: (c, e) => e.data.ship,
-                credits: (c, e) => e.data.credits,
-              }),
+                ship: (c, e: any) => e.data.ship,
+                credits: (c, e: any) => e.data.credits,
+                shouldBuy: undefined,
+              }) as any,
               sendParent((context, event) => ({
                 type: "UPDATE_CREDITS",
                 data: event.data.credits,
+              })),
+              sendParent((c: Context, e) => ({
+                type: "SHIP_UPDATE",
+                data: e.data.ship,
               })),
             ],
           },
@@ -218,6 +274,7 @@ export const shipMachine = createMachine<Context, any, any>(
         c.shouldBuy !== undefined &&
         c.shouldBuy.good !== "NONE" &&
         c.ship.spaceAvailable > 0,
+      shouldSell: (c) => !c.hasSold,
     },
   }
 );

@@ -9,21 +9,22 @@ import * as api from "../api";
 import { Location } from "../api/Location";
 import { shipMachine } from "../machines/shipMachine";
 import { FlightPlan } from "../api/FlightPlan";
-import { DateTime } from "luxon";
 import { MarketContext } from "./MarketContext";
 import { cacheLocation } from "./locationCache";
+import { Ship } from "../api/Ship";
 
-type PlayerContext = {
+type Context = {
   token?: string;
   user?: User;
   locations?: MarketContext;
   flightPlans?: FlightPlan[];
+  ships: Ship[];
 };
 
-const getCachedPlayer = (): PlayerContext => {
+const getCachedPlayer = (): Context => {
   const player = localStorage.getItem("player");
   if (player) return JSON.parse(player);
-  else return { locations: {} };
+  else return { locations: {}, ships: [] };
 };
 
 export const playerMachine = createMachine(
@@ -32,7 +33,8 @@ export const playerMachine = createMachine(
     initial: "checkStorage",
     context: {
       locations: {},
-    } as PlayerContext,
+      ships: [],
+    } as Context,
     states: {
       checkStorage: {
         entry: ["assignCachedPlayer"],
@@ -81,7 +83,7 @@ export const playerMachine = createMachine(
           onError: "idle",
           onDone: {
             target: "initialising",
-            actions: assign<PlayerContext, any>({
+            actions: assign<Context, any>({
               user: (c, e) => e.data.user,
             }),
           },
@@ -111,8 +113,8 @@ export const playerMachine = createMachine(
           src: (c) => api.getFlightPlans(c.token!, "OE"),
           onDone: {
             target: "initialising",
-            actions: assign({
-              flightPlans: (c: PlayerContext, e: any) => {
+            actions: assign<Context>({
+              flightPlans: (c: Context, e: any) => {
                 const filtered = (e.data
                   .flightPlans as FlightPlan[]).filter((fp) =>
                   c.user!.ships.find((ship) => ship.id === fp.shipId)
@@ -129,34 +131,32 @@ export const playerMachine = createMachine(
         on: {
           CLEAR_PLAYER: "clearPlayer",
           NEW_FLIGHTPLAN: {
-            actions: assign({
-              flightPlans: (c: PlayerContext, e: any) => [
-                ...c.flightPlans!,
-                {
-                  ...e.data,
-                  shipId: e.data.ship,
-                  createdAt: DateTime.now().toISO(),
-                  from: e.data.departure,
-                  to: e.data.destination,
-                },
+            actions: assign<Context>({
+              flightPlans: (c: Context, e: any) => [...c.flightPlans!, e.data],
+            }) as any,
+          },
+          SHIP_UPDATE: {
+            actions: assign<Context>({
+              ships: (c, e: any) => [
+                ...c.ships.map((s: Ship) => (s.id === e.data.id ? e.data : s)),
               ],
             }) as any,
           },
           SHIP_ARRIVED: {
-            actions: assign({
-              flightPlans: (c: PlayerContext, e: any) => [
+            actions: assign<Context>({
+              flightPlans: (c: Context, e: any) => [
                 ...c.flightPlans!.filter((p) => p.shipId !== e.data),
               ],
             }) as any,
           },
           UPDATE_CREDITS: {
-            actions: assign<PlayerContext>({
-              user: (c: PlayerContext, e: any) =>
+            actions: assign<Context>({
+              user: (c: Context, e: any) =>
                 ({ ...c.user, credits: e.data } as any),
             }),
           },
           UPDATE_LOCATION: {
-            actions: assign<PlayerContext>({
+            actions: assign<Context>({
               locations: (c, e: any) => {
                 cacheLocation(e.data);
                 return { ...c.locations, [e.data.symbol]: e.data };
@@ -168,15 +168,15 @@ export const playerMachine = createMachine(
           id: "ship",
           src: shipMachine,
           data: {
-            token: (context: PlayerContext) => context.token,
-            username: (context: PlayerContext) => context.user!.username,
-            ship: (context: PlayerContext) => context.user!.ships[0],
-            credits: (context: PlayerContext) => context.user!.credits,
-            locations: (context: PlayerContext) =>
+            token: (context: Context) => context.token,
+            username: (context: Context) => context.user!.username,
+            ship: (context: Context) => context.user!.ships[0],
+            credits: (context: Context) => context.user!.credits,
+            locations: (context: Context) =>
               Object.keys(context.locations!).map(
                 (symbol) => context.locations![symbol]
               ),
-            flightPlan: (context: PlayerContext) =>
+            flightPlan: (context: Context) =>
               context.flightPlans?.find(
                 (fp) => fp.shipId === context.user!.ships[0].id
               ),
@@ -200,8 +200,8 @@ export const playerMachine = createMachine(
         invoke: {
           src: getLoanMachine,
           data: {
-            token: (context: PlayerContext) => context.token,
-            username: (context: PlayerContext) => context.user!.username,
+            token: (context: Context) => context.token,
+            username: (context: Context) => context.user!.username,
           },
           onDone: {
             target: "initialising",
@@ -214,8 +214,8 @@ export const playerMachine = createMachine(
         invoke: {
           src: buyShipMachine,
           data: {
-            token: (context: PlayerContext) => context.token,
-            username: (context: PlayerContext) => context.user!.username,
+            token: (context: Context) => context.token,
+            username: (context: Context) => context.user!.username,
           },
           onDone: {
             target: "initialising",
@@ -227,23 +227,23 @@ export const playerMachine = createMachine(
   },
   {
     actions: {
-      assignCachedPlayer: assign<PlayerContext>(() => getCachedPlayer()) as any,
-      assignPlayer: assign<PlayerContext, ApiResult<GetUserResponse>>({
+      assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,
+      assignPlayer: assign<Context, ApiResult<GetUserResponse>>({
         user: (c, e) => e.result.user as User,
       }) as any,
-      clearPlayer: assign<PlayerContext>({
+      clearPlayer: assign<Context>({
         token: undefined,
         user: undefined,
       }) as any,
-      assignUser: assign<PlayerContext>({
-        user: (c: PlayerContext, e: any) => e.data.response.user,
+      assignUser: assign<Context>({
+        user: (c: Context, e: any) => e.data.response.user,
       }) as any,
     },
     services: {
-      getUser: (c: PlayerContext) => getUser(c.token!, c.user!.username),
-      getSystems: (c: PlayerContext) => api.getSystems(c.token!),
+      getUser: (c: Context) => getUser(c.token!, c.user!.username),
+      getSystems: (c: Context) => api.getSystems(c.token!),
       getToken: () => apiMachine(() => getToken(newPlayerName())),
-      cachePlayer: async (c: PlayerContext) => {
+      cachePlayer: async (c: Context) => {
         console.log("cached player", c);
         localStorage.setItem("player", JSON.stringify((c as any).apiResult));
       },

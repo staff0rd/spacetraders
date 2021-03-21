@@ -1,5 +1,5 @@
 import * as xstate from "xstate";
-import { shipMachine } from "./shipMachine";
+import { shipMachine, Context as ShipContext } from "./shipMachine";
 import * as api from "../api";
 import { Cargo } from "../api/Ship";
 import { MarketContext } from "./MarketContext";
@@ -37,8 +37,19 @@ const waitFor = (
     service.start();
   });
 
+const context = (cargo: Cargo[]): ShipContext => ({
+  token: "123",
+  username: "username",
+  ship: {
+    ...testShip,
+    cargo,
+  },
+  locations: [fromLocation, toLocation],
+  credits: 100000,
+});
+
 function getMachine(
-  cargo: Cargo[],
+  shipContext: ShipContext,
   market: MarketContext = {
     FROM: { ...fromLocation, marketplace: [testGood("A")] },
     TO: { ...toLocation, marketplace: [testGood("A", 2)] },
@@ -53,16 +64,7 @@ function getMachine(
     .spyOn(api, "purchaseOrder")
     .mockImplementation();
 
-  const machine = shipMachine.withContext({
-    token: "123",
-    username: "username",
-    ship: {
-      ...testShip,
-      cargo,
-    },
-    locations: [fromLocation, toLocation],
-    credits: 100000,
-  });
+  const machine = shipMachine.withContext(shipContext);
   return { machine, purchaseOrderSpy };
 }
 
@@ -71,10 +73,24 @@ describe("shipMachine", () => {
     jest.restoreAllMocks();
     jest.spyOn(console, "log").mockImplementation();
   });
+  it("should know location at end of flight", async () => {
+    const { machine } = getMachine({
+      ...context([{ good: "FUEL", quantity: 100, totalVolume: 100 }]),
+      location: fromLocation,
+      hasSold: true,
+      destination: "TO",
+      shouldBuy: { good: "NONE", quantity: 0 },
+    });
+
+    const service = await waitFor(machine, "getMarket");
+
+    expect(service.state.context!.ship.location).toBe("TO");
+  });
+
   it("should buy fuel if less than 10", async () => {
-    const { machine, purchaseOrderSpy } = getMachine([
-      { good: "FUEL", quantity: 5, totalVolume: 5 },
-    ]);
+    const { machine, purchaseOrderSpy } = getMachine(
+      context([{ good: "FUEL", quantity: 5, totalVolume: 5 }])
+    );
     purchaseOrderSpy.mockResolvedValueOnce({
       ship: {
         ...testShip,
@@ -94,7 +110,7 @@ describe("shipMachine", () => {
     );
   });
   it("should buy fuel if no fuel", async () => {
-    const { machine, purchaseOrderSpy } = getMachine([]);
+    const { machine, purchaseOrderSpy } = getMachine(context([]));
     purchaseOrderSpy.mockResolvedValueOnce({
       ship: {
         ...testShip,
@@ -116,9 +132,9 @@ describe("shipMachine", () => {
   });
 
   it("should not buy fuel if full", async () => {
-    const { machine, purchaseOrderSpy } = getMachine([
-      { good: "FUEL", quantity: 10, totalVolume: 10 },
-    ]);
+    const { machine, purchaseOrderSpy } = getMachine(
+      context([{ good: "FUEL", quantity: 10, totalVolume: 10 }])
+    );
 
     purchaseOrderSpy.mockResolvedValueOnce({
       ship: {
@@ -144,9 +160,9 @@ describe("shipMachine", () => {
   });
 
   it("should purchase cargo", async () => {
-    const { machine, purchaseOrderSpy } = getMachine([
-      { good: "FUEL", quantity: 10, totalVolume: 10 },
-    ]);
+    const { machine, purchaseOrderSpy } = getMachine(
+      context([{ good: "FUEL", quantity: 10, totalVolume: 10 }])
+    );
     purchaseOrderSpy.mockResolvedValueOnce({
       ship: {
         ...testShip,

@@ -7,7 +7,7 @@ export type Cargo = {
 
 export type Ship = ShipBase & {
   id: string;
-  location: string;
+  location?: string;
   x: number;
   y: number;
   cargo: Cargo[];

@@ -186,12 +186,24 @@ export const getFlightPlans = (
 ): Promise<{ flightPlans: FlightPlan[] }> =>
   getSecure(token, `game/systems/${symbol}/flight-plans`);
 
+export type NewFlightPlan = {
+  arrivesAt: string;
+  departure: string;
+  destination: string;
+  distance: number;
+  fuelConsumed: number;
+  fuelRemaining: number;
+  id: string;
+  ship: string;
+  terminatedAt: string | null;
+  timeRemainingInSeconds: number;
+};
 export const newFlightPlan = (
   token: string,
   username: string,
   shipId: string,
   destination: string
-): Promise<{ flightPlan: FlightPlan }> =>
+): Promise<{ flightPlan: NewFlightPlan }> =>
   postSecure(token, `users/${username}/flight-plans`, { shipId, destination });
 
 export type GetUserResponse = {
