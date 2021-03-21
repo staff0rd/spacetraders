@@ -171,6 +171,7 @@ export const playerMachine = createMachine(
             token: (context: PlayerContext) => context.token,
             username: (context: PlayerContext) => context.user!.username,
             ship: (context: PlayerContext) => context.user!.ships[0],
+            credits: (context: PlayerContext) => context.user!.credits,
             locations: (context: PlayerContext) =>
               Object.keys(context.locations!).map(
                 (symbol) => context.locations![symbol]

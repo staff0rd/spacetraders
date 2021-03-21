@@ -2,15 +2,26 @@ import { Marketplace } from "../api/Location";
 import { getLocation } from "./locationCache";
 import { Context, ShouldBuy } from "./shipMachine";
 
+type BestBuy = {
+  profit: number;
+  quantity: number;
+};
 const getProfit = (
   from: Marketplace,
   destination: Marketplace[],
-  spaceAvailable: number
-) => {
+  spaceAvailable: number,
+  credits: number
+): BestBuy => {
   const hasSpaceFor = Math.floor(spaceAvailable / from.volumePerUnit);
+  const hasCreditsFor = Math.floor(credits / from.pricePerUnit);
+  const quantity = Math.min(hasSpaceFor, hasCreditsFor, from.quantityAvailable);
+  console.warn(from.symbol, "space", hasSpaceFor, "credits", hasCreditsFor);
   const sell = destination.find((p) => p.symbol === from.symbol);
-  if (!sell) return -from.pricePerUnit;
-  return (sell.pricePerUnit - from.pricePerUnit) * hasSpaceFor;
+  if (!sell) return { profit: -from.pricePerUnit, quantity };
+  return {
+    profit: (sell.pricePerUnit - from.pricePerUnit) * quantity,
+    quantity,
+  };
 };
 
 export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
@@ -26,8 +37,7 @@ export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
     .filter((buy) => sellMarket.find((sell) => sell.symbol === buy.symbol))
     .map((x) => ({
       good: x.symbol,
-      profit: getProfit(x, sellMarket, c.ship.spaceAvailable),
-      size: x.volumePerUnit,
+      ...getProfit(x, sellMarket, c.ship.spaceAvailable, c.credits),
     }))
     .filter((x) => x.profit > 0)
     .sort((a, b) => b.profit - a.profit);
@@ -39,7 +49,7 @@ export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
   console.log("profitable goods", goods);
   const result: ShouldBuy = {
     good: goods[0].good,
-    quantity: Math.floor(c.ship.spaceAvailable / goods[0].size),
+    quantity: goods[0].quantity,
   };
   return Promise.resolve(result);
 };

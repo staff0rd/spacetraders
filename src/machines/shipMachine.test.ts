@@ -61,6 +61,7 @@ function getMachine(
       cargo,
     },
     locations: [fromLocation, toLocation],
+    credits: 100000,
   });
   return { machine, purchaseOrderSpy };
 }
@@ -68,7 +69,7 @@ function getMachine(
 describe("shipMachine", () => {
   beforeEach(() => {
     jest.restoreAllMocks();
-    //jest.spyOn(console, "log").mockImplementation();
+    jest.spyOn(console, "log").mockImplementation();
   });
   it("should buy fuel if less than 10", async () => {
     const { machine, purchaseOrderSpy } = getMachine([

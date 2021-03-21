@@ -8,9 +8,11 @@ const context = () => ({
   ship: {
     ...testShip,
     cargo: [],
+    spaceAvailable: 100,
   },
   locations: [fromLocation, toLocation],
   destination: "TO",
+  credits: 100,
 });
 
 describe("determineCargo", () => {
@@ -88,7 +90,7 @@ describe("determineCargo", () => {
     const result = await determineCargo(context());
 
     expect(result.good).toBe("A");
-    expect(result.quantity).toBe(10);
+    expect(result.quantity).toBe(100);
   });
 
   it("should buy for best profit", async () => {
@@ -129,5 +131,41 @@ describe("determineCargo", () => {
     const result = await determineCargo(context());
 
     expect(result.good).toBe("C");
+  });
+
+  it("should not buy more than credits available", async () => {
+    jest.spyOn(Storage.prototype, "getItem").mockReturnValue(
+      JSON.stringify({
+        FROM: {
+          ...fromLocation,
+          marketplace: [testGood("A", 50, 200, 1)],
+        },
+        TO: {
+          ...toLocation,
+          marketplace: [testGood("A", 100)],
+        },
+      } as MarketContext)
+    );
+    const result = await determineCargo(context());
+
+    expect(result.quantity).toBe(2);
+  });
+
+  it("should not buy more than quantity available", async () => {
+    jest.spyOn(Storage.prototype, "getItem").mockReturnValue(
+      JSON.stringify({
+        FROM: {
+          ...fromLocation,
+          marketplace: [testGood("A", 1, 50, 1)],
+        },
+        TO: {
+          ...toLocation,
+          marketplace: [testGood("A", 2)],
+        },
+      } as MarketContext)
+    );
+    const result = await determineCargo(context());
+
+    expect(result.quantity).toBe(50);
   });
 });

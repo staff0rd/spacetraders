@@ -23,6 +23,7 @@ export type Context = {
   destination?: string;
   shouldBuy?: ShouldBuy;
   flightPlan?: FlightPlan;
+  credits: number;
 };
 
 const fuelAmountNeeded = (s: Ship) =>
@@ -41,6 +42,7 @@ export const shipMachine = createMachine<Context, any, any>(
       username: "",
       ship: {} as Ship,
       locations: [],
+      credits: 0,
     },
     states: {
       idle: {
@@ -165,7 +167,10 @@ export const shipMachine = createMachine<Context, any, any>(
           onDone: {
             target: "idle",
             actions: [
-              assign({ ship: (c, e) => e.data.ship }),
+              assign({
+                ship: (c, e) => e.data.ship,
+                credits: (c, e) => e.data.credits,
+              }),
               sendParent((context, event) => ({
                 type: "UPDATE_CREDITS",
                 data: event.data.credits,
