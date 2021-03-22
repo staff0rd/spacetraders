@@ -95,10 +95,7 @@ export const shipMachine = createMachine<Context, any, any>(
                 ship: (c, e: any) => e.data.ship,
                 hasSold: true,
               }) as any,
-              sendParent((c: Context, e) => ({
-                type: "SHIP_UPDATE",
-                data: c.ship,
-              })),
+              "shipUpdate",
               sendParent((context, event) => ({
                 type: "UPDATE_CREDITS",
                 data: event.data.credits,
@@ -168,12 +165,27 @@ export const shipMachine = createMachine<Context, any, any>(
               assign({
                 flightPlan: (c, e: any) => ({
                   ...e.data.flightPlan,
-                  shipId: e.data.flightPlan.ship,
+                  shipId: (e.data.flightPlan as api.NewFlightPlan).ship,
                   createdAt: DateTime.now().toISO(),
-                  from: e.data.flightPlan.departure,
-                  to: e.data.flightPlan.destination,
+                  from: (e.data.flightPlan as api.NewFlightPlan).departure,
+                  to: (e.data.flightPlan as api.NewFlightPlan).destination,
+                }),
+                ship: (c, e: any) => ({
+                  ...c.ship,
+                  cargo: [
+                    ...c.ship.cargo.map((c) =>
+                      c.good !== "FUEL"
+                        ? c
+                        : {
+                            ...c,
+                            quantity: (e.data.flightPlan as api.NewFlightPlan)
+                              .fuelRemaining,
+                          }
+                    ),
+                  ],
                 }),
               }),
+              "shipUpdate",
               sendParent((c, e: any) => ({
                 type: "NEW_FLIGHTPLAN",
                 data: c.flightPlan,
@@ -228,10 +240,7 @@ export const shipMachine = createMachine<Context, any, any>(
                 type: "UPDATE_CREDITS",
                 data: event.data.credits,
               })),
-              sendParent((c: Context, e) => ({
-                type: "SHIP_UPDATE",
-                data: c.ship,
-              })),
+              "shipUpdate",
             ],
           },
         },
@@ -246,6 +255,10 @@ export const shipMachine = createMachine<Context, any, any>(
           quantity: fuelAmountNeeded(c.ship),
         }),
       }),
+      shipUpdate: sendParent((c: Context) => ({
+        type: "SHIP_UPDATE",
+        data: c.ship,
+      })),
       determineDestination: assign({
         destination: (c) => {
           const locationsByDistance = c.locations
@@ -255,11 +268,7 @@ export const shipMachine = createMachine<Context, any, any>(
             }))
             .sort((a, b) => a.distance - b.distance)
             .filter((p) => p.distance !== 0);
-          locationsByDistance.forEach((dest) =>
-            console.log(
-              `${c.location!.symbol} -> ${dest.symbol}: ${dest.distance}`
-            )
-          );
+
           return locationsByDistance[0].symbol;
         },
       }),

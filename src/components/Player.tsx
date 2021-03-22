@@ -41,20 +41,13 @@ export const Player = () => {
   const [state, send, service] = useMachine(playerMachine);
 
   const user = state.context.user;
+  const netWorth = state.context.netWorth
+    .map((v) => v.value)
+    .reduce((a, b) => a + b, 0);
 
   const handleNew = () => {
     send("CLEAR_PLAYER");
   };
-
-  // useEffect(() => {
-  //   const subscription = shipService?.subscribe((state) => {
-  //     if (state.value === "ready") {
-  //     }
-  //     console.log(state);
-  //   });
-
-  //   return subscription?.unsubscribe;
-  // }, [shipState]); // note: service should never change
 
   return (
     <>
@@ -68,6 +61,14 @@ export const Player = () => {
                 <NumberFormat
                   className={classes.money}
                   value={user!.credits}
+                  thousandSeparator=","
+                  displayType="text"
+                  prefix="$"
+                />
+
+                <NumberFormat
+                  className={classes.money}
+                  value={netWorth}
                   thousandSeparator=","
                   displayType="text"
                   prefix="$"

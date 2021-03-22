@@ -11,7 +11,7 @@ type Context = {
 
 export const buyShipMachine = createMachine<Context, any, any>({
   id: "buyShip",
-  initial: "getAvailableShips",
+  initial: "buyShip",
   context: {
     token: "",
     username: "",
@@ -19,17 +19,6 @@ export const buyShipMachine = createMachine<Context, any, any>({
     response: undefined,
   },
   states: {
-    getAvailableShips: {
-      invoke: {
-        src: (context) => api.getAvailableShips(context.token),
-        onDone: {
-          target: "buyShip",
-          actions: assign<Context>({
-            availableShips: (c: Context, e: any) => e.data.ships,
-          }) as any,
-        },
-      },
-    },
     buyShip: {
       invoke: {
         src: (context) => {

@@ -49,5 +49,6 @@ export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
     good: goods[0].good,
     quantity: goods[0].quantity,
   };
+  console.warn(`Buying ${result.good} for $${goods[0].profit} profit`);
   return Promise.resolve(result);
 };

@@ -12,19 +12,23 @@ import { FlightPlan } from "../api/FlightPlan";
 import { MarketContext } from "./MarketContext";
 import { cacheLocation } from "./locationCache";
 import { Ship } from "../api/Ship";
+import { AvailableShip } from "../api/AvailableShip";
+import { calculateNetWorth, LineItem } from "./calculateNetWorth";
 
 type Context = {
   token?: string;
   user?: User;
   locations?: MarketContext;
   flightPlans?: FlightPlan[];
+  availableShips: AvailableShip[];
   ships: Ship[];
+  netWorth: LineItem[];
 };
 
 const getCachedPlayer = (): Context => {
   const player = localStorage.getItem("player");
   if (player) return JSON.parse(player);
-  else return { locations: {}, ships: [] };
+  else return { locations: {}, ships: [], availableShips: [], netWorth: [] };
 };
 
 export const playerMachine = createMachine(
@@ -34,6 +38,8 @@ export const playerMachine = createMachine(
     context: {
       locations: {},
       ships: [],
+      availableShips: [],
+      netWorth: [],
     } as Context,
     states: {
       checkStorage: {
@@ -41,7 +47,7 @@ export const playerMachine = createMachine(
         always: "idle",
       },
       idle: {
-        entry: [() => console.warn("idle")],
+        entry: [() => console.log("player: idle")],
         always: [
           { target: "getToken", cond: (context) => !context.token },
           { target: "getUser", cond: (context) => !!context.token },
@@ -50,9 +56,10 @@ export const playerMachine = createMachine(
       initialising: {
         always: [
           { target: "getSystems", cond: "noLocations" },
+          { target: "getAvailableShips", cond: "noAvailableShips" },
           { target: "getLoan", cond: "noLoans" },
-          { target: "getFlightPlans", cond: "noFlightPlans" },
           { target: "buyShip", cond: "noShips" },
+          { target: "getFlightPlans", cond: "noFlightPlans" },
           { target: "ready" },
         ],
       },
@@ -91,7 +98,7 @@ export const playerMachine = createMachine(
         },
       },
       getSystems: {
-        entry: (c) => console.warn("getSystems", c),
+        entry: (c) => console.log("player: getSystems", c),
         invoke: {
           src: "getSystems",
           onDone: {
@@ -109,7 +116,7 @@ export const playerMachine = createMachine(
         },
       },
       getFlightPlans: {
-        entry: (c) => console.warn("getFlightPlans", c),
+        entry: (c) => console.log("player: getFlightPlans", c),
         invoke: {
           src: (c) => api.getFlightPlans(c.token!, "OE"),
           onDone: {
@@ -128,39 +135,53 @@ export const playerMachine = createMachine(
         },
       },
       ready: {
-        entry: (c) => console.warn("ready", c),
+        entry: ["netWorth", (c) => console.warn("ready", c)],
         on: {
           CLEAR_PLAYER: "clearPlayer",
           NEW_FLIGHTPLAN: {
-            actions: assign<Context>({
-              flightPlans: (c: Context, e: any) => [...c.flightPlans!, e.data],
-            }) as any,
+            actions: [
+              assign<Context>({
+                flightPlans: (c: Context, e: any) => [
+                  ...c.flightPlans!,
+                  e.data,
+                ],
+              }) as any,
+              "netWorth",
+            ],
           },
           SHIP_UPDATE: {
-            actions: assign<Context>({
-              ships: (c, e: any) => {
-                console.log("SHIP_UPDATE", e.data);
-                const result = [
-                  ...c.ships.filter((ship) => ship.id !== e.data.id),
-                  e.data,
-                ];
-                console.log("after merge", result);
-                return result;
-              },
-            }) as any,
+            actions: [
+              assign<Context>({
+                ships: (c, e: any) => {
+                  console.log("SHIP_UPDATE", e.data);
+                  const result = [
+                    ...c.ships.filter((ship) => ship.id !== e.data.id),
+                    e.data,
+                  ];
+                  return result;
+                },
+              }) as any,
+              "netWorth",
+            ],
           },
           SHIP_ARRIVED: {
-            actions: assign<Context>({
-              flightPlans: (c: Context, e: any) => [
-                ...c.flightPlans!.filter((p) => p.shipId !== e.data),
-              ],
-            }) as any,
+            actions: [
+              assign<Context>({
+                flightPlans: (c: Context, e: any) => [
+                  ...c.flightPlans!.filter((p) => p.shipId !== e.data),
+                ],
+              }) as any,
+              "netWorth",
+            ],
           },
           UPDATE_CREDITS: {
-            actions: assign<Context>({
-              user: (c: Context, e: any) =>
-                ({ ...c.user, credits: e.data } as any),
-            }),
+            actions: [
+              assign<Context>({
+                user: (c: Context, e: any) =>
+                  ({ ...c.user, credits: e.data } as any),
+              }),
+              "netWorth",
+            ],
           },
           UPDATE_LOCATION: {
             actions: assign<Context>({
@@ -216,6 +237,17 @@ export const playerMachine = createMachine(
           },
         },
       },
+      getAvailableShips: {
+        invoke: {
+          src: (context) => api.getAvailableShips(context.token!),
+          onDone: {
+            target: "initialising",
+            actions: assign<Context>({
+              availableShips: (c: Context, e: any) => e.data.ships,
+            }) as any,
+          },
+        },
+      },
       buyShip: {
         entry: () => console.warn("buyShip"),
         invoke: {
@@ -223,6 +255,7 @@ export const playerMachine = createMachine(
           data: {
             token: (context: Context) => context.token,
             username: (context: Context) => context.user!.username,
+            availableShips: (context: Context) => context.availableShips,
           },
           onDone: {
             target: "initialising",
@@ -245,6 +278,16 @@ export const playerMachine = createMachine(
       assignUser: assign<Context>({
         user: (c: Context, e: any) => e.data.response.user,
       }) as any,
+      netWorth: assign<Context>({
+        netWorth: (c: Context) =>
+          calculateNetWorth(
+            c.user!.credits,
+            c.ships,
+            c.availableShips,
+            c.locations!,
+            c.flightPlans!
+          ) as any,
+      }),
     },
     services: {
       getUser: (c: Context) => getUser(c.token!, c.user!.username),
@@ -264,10 +307,10 @@ export const playerMachine = createMachine(
       noShips: (c) => c.user?.ships.length === 0,
       noLocations: (c) => {
         const hasLocations = Object.entries(c.locations || {}).length > 0;
-        console.log(c.locations);
         return !hasLocations;
       },
       noFlightPlans: (c) => !c.flightPlans,
+      noAvailableShips: (c) => !c.availableShips.length,
     },
   }
 );
