@@ -9,9 +9,9 @@ export const getLocation = (symbol: string): Location => {
 };
 
 export const cacheLocation = (location: Location) => {
-  const locations: MarketContext = JSON.parse(
-    localStorage.getItem("locations")!
-  );
+  const locations: MarketContext =
+    JSON.parse(localStorage.getItem("locations")!) || {};
+
   const existing = locations[location.symbol];
   if (existing && existing.marketplace && !location.marketplace) {
     location.marketplace = existing.marketplace;

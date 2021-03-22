@@ -14,6 +14,6 @@ export interface Location {
   x: number;
   y: number;
   ships: Ship[];
-  anomaly: string;
+  anomaly?: string;
   marketplace: Marketplace[];
 }
