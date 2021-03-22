@@ -23,14 +23,14 @@ const useStyles = makeStyles((theme) => ({
     width: 450,
   },
   item: {
-    display: "flex",
-    paddingTop: theme.spacing(0.5),
+    // display: "flex",
+    // paddingTop: theme.spacing(0.5),
   },
   icon: {
-    marginRight: theme.spacing(1),
+    //marginRight: theme.spacing(1),
   },
   money: {
-    marginLeft: theme.spacing(1),
+    //marginLeft: theme.spacing(1),
   },
 }));
 
@@ -53,29 +53,15 @@ export const Player = () => {
     <>
       <Paper className={classes.paper}>
         {state.matches("initialising") || state.matches("ready") ? (
-          <Grid container justify="space-between">
-            <Grid item className={classes.item}>
+          <Grid container>
+            <Grid item xs={1}>
               <PersonIcon className={classes.icon} />
-              <Typography>{user!.username}</Typography>
-              <Typography>
-                <NumberFormat
-                  className={classes.money}
-                  value={user!.credits}
-                  thousandSeparator=","
-                  displayType="text"
-                  prefix="$"
-                />
-
-                <NumberFormat
-                  className={classes.money}
-                  value={netWorth}
-                  thousandSeparator=","
-                  displayType="text"
-                  prefix="$"
-                />
-              </Typography>
             </Grid>
-            <Grid item>
+            <Grid item xs={10} className={classes.item}>
+              <Typography>{user!.username}</Typography>
+              <Typography></Typography>
+            </Grid>
+            <Grid item xs={1}>
               {state.matches("ready") && (
                 <IconButton
                   size="small"
@@ -85,6 +71,31 @@ export const Player = () => {
                   <RefreshIcon />
                 </IconButton>
               )}
+            </Grid>
+            <Grid item xs={1}></Grid>
+            <Grid item xs={3}>
+              <Typography>Credits</Typography>
+              <Typography>
+                <NumberFormat
+                  className={classes.money}
+                  value={user!.credits}
+                  thousandSeparator=","
+                  displayType="text"
+                  prefix="$"
+                />
+              </Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography>Net Worth</Typography>
+              <Typography>
+                <NumberFormat
+                  className={classes.money}
+                  value={netWorth}
+                  thousandSeparator=","
+                  displayType="text"
+                  prefix="$"
+                />
+              </Typography>
             </Grid>
           </Grid>
         ) : (

@@ -3,7 +3,9 @@ import React from "react";
 import { Ship } from "../api/Ship";
 import { FlightPlan as FlightPlanSchema } from "../api/FlightPlan";
 import { FlightPlan } from "./FlightPlan";
+import { Grid } from "@material-ui/core";
 import Cargo from "./Cargo";
+import FlightIcon from "@material-ui/icons/Flight";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -13,6 +15,9 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "row",
     justifyContent: "space-between",
     width: 450,
+  },
+  flightIcon: {
+    rotation: "90deg",
   },
 }));
 
@@ -25,9 +30,19 @@ export const ShipComponent = ({ ship, flightPlans }: Props) => {
   const classes = useStyles();
   return (
     <Paper className={classes.paper}>
-      <Typography>{ship.type}</Typography>
-      <Cargo ship={ship} />
-      <FlightPlan shipId={ship.id} flightPlans={flightPlans} />
+      <Grid container>
+        <Grid item xs={1}>
+          <FlightIcon className={classes.flightIcon} />
+        </Grid>
+        <Grid item xs={6}>
+          <Typography>{ship.type}</Typography>
+          <Cargo ship={ship} />
+        </Grid>
+        <Grid item xs={5}>
+          <FlightPlan shipId={ship.id} flightPlans={flightPlans} />
+        </Grid>
+        <Grid item xs={1}></Grid>
+      </Grid>
     </Paper>
   );
 };

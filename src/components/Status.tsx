@@ -2,6 +2,7 @@ import React from "react";
 import DnsIcon from "@material-ui/icons/Dns";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
+import Grid from "@material-ui/core/Grid";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { makeStyles } from "@material-ui/core/styles";
 import { useMachine } from "@xstate/react";
@@ -17,9 +18,6 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "row",
     width: 450,
   },
-  icon: {
-    marginRight: theme.spacing(1),
-  },
 }));
 
 export const Status = () => {
@@ -30,10 +28,14 @@ export const Status = () => {
   return (
     <Paper className={classes.paper}>
       {state.matches("success") ? (
-        <>
-          <DnsIcon className={classes.icon} />{" "}
-          <Typography>{state.context.result.status}</Typography>
-        </>
+        <Grid container>
+          <Grid item xs={1}>
+            <DnsIcon />
+          </Grid>
+          <Grid item xs={11}>
+            <Typography>{state.context.result.status}</Typography>
+          </Grid>
+        </Grid>
       ) : (
         <CircularProgress size={24} />
       )}

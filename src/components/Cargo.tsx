@@ -1,20 +1,23 @@
 import { Ship } from "../api/Ship";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
+import Typography from "@material-ui/core/Typography";
+
+// const useStyles = makeStyles((theme) => ({
+//   list: {},
+// }));
 
 type Props = {
   ship: Ship;
 };
+
 const CargoComponent = ({ ship }: Props) => {
   return (
-    <List aria-label="cargo">
+    <>
       {ship.cargo.map((cargo, ix) => (
-        <ListItem key={ix}>
-          <ListItemText primary={`${cargo.quantity}x ${cargo.good}`} />
-        </ListItem>
+        <Typography key={ix}>
+          {cargo.quantity}x {cargo.good}
+        </Typography>
       ))}
-    </List>
+    </>
   );
 };
 export default CargoComponent;
