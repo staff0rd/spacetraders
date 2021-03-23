@@ -208,6 +208,9 @@ export const shipMachine = createMachine<Context, any, any>(
         invoke: {
           src: (context: Context) =>
             api.getMarket(context.token, context.ship.location!),
+          onError: {
+            actions: "printError",
+          },
           onDone: {
             target: "idle",
             actions: [
@@ -238,7 +241,7 @@ export const shipMachine = createMachine<Context, any, any>(
             );
           },
           onError: {
-            actions: (c, e) => console.warn("caught an error", e),
+            actions: "printError",
           },
           onDone: {
             target: "idle",
@@ -261,6 +264,7 @@ export const shipMachine = createMachine<Context, any, any>(
   },
   {
     actions: {
+      printError: (_, e: any) => console.warn("caught an error", e),
       assignNeededFuel: assign({
         shouldBuy: (c) => ({
           good: "FUEL",
