@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Box,
   makeStyles,
   Table,
   TableBody,
@@ -8,7 +7,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
   Paper,
 } from "@material-ui/core";
 import { Location as LocationSchema } from "../api/Location";

@@ -1,11 +1,15 @@
-import { makeStyles, Paper, Typography } from "@material-ui/core";
+import {
+  CircularProgress,
+  makeStyles,
+  Paper,
+  Typography,
+} from "@material-ui/core";
 import React from "react";
-import { Ship } from "../api/Ship";
-import { FlightPlan as FlightPlanSchema } from "../api/FlightPlan";
 import { FlightPlan } from "./FlightPlan";
 import { Grid } from "@material-ui/core";
 import Cargo from "./Cargo";
 import FlightIcon from "@material-ui/icons/Flight";
+import { ShipActor } from "../machines/shipMachine";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -19,30 +23,46 @@ const useStyles = makeStyles((theme) => ({
   flightIcon: {
     rotation: "90deg",
   },
+  state: {
+    textAlign: "right",
+  },
 }));
 
 type Props = {
-  ship: Ship;
-  flightPlans: FlightPlanSchema[];
+  ship: ShipActor;
 };
 
-export const ShipComponent = ({ ship, flightPlans }: Props) => {
+export const ShipComponent = ({ ship: actor }: Props) => {
   const classes = useStyles();
+
   return (
     <Paper className={classes.paper}>
-      <Grid container>
-        <Grid item xs={1}>
-          <FlightIcon className={classes.flightIcon} />
+      {actor.state ? (
+        <Grid container>
+          <Grid item xs={1}>
+            <FlightIcon className={classes.flightIcon} />
+          </Grid>
+          <Grid item xs={6}>
+            <Typography>{actor.state.context.ship.type}</Typography>
+            <Cargo ship={actor.state.context.ship} />
+          </Grid>
+          <Grid item xs={5}>
+            {actor.state.value === "inFlight" ? (
+              <FlightPlan flightPlan={actor.state.context.flightPlan!} />
+            ) : (
+              <Typography className={classes.state}>
+                {actor.state.value}
+              </Typography>
+            )}
+          </Grid>
+          <Grid item xs={1}></Grid>
         </Grid>
-        <Grid item xs={6}>
-          <Typography>{ship.type}</Typography>
-          <Cargo ship={ship} />
-        </Grid>
-        <Grid item xs={5}>
-          <FlightPlan shipId={ship.id} flightPlans={flightPlans} />
-        </Grid>
-        <Grid item xs={1}></Grid>
-      </Grid>
+      ) : (
+        <div>
+          {actor.id}
+          <CircularProgress size={24} />
+        </div>
+      )}
     </Paper>
   );
 };

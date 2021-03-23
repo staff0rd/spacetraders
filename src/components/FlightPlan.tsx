@@ -17,15 +17,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type Props = {
-  shipId: string;
-  flightPlans: FlightPlanType[];
+  flightPlan: FlightPlanType;
 };
 
 const symbolOrName = (symbol: string) => getLocation(symbol)?.name || symbol;
 
-export const FlightPlan = ({ shipId, flightPlans }: Props) => {
+export const FlightPlan = ({ flightPlan }: Props) => {
   const classes = useStyles();
-  const flightPlan = flightPlans.find((fp) => fp.shipId === shipId);
   if (flightPlan)
     return (
       <Box className={classes.root}>
@@ -38,9 +36,6 @@ export const FlightPlan = ({ shipId, flightPlans }: Props) => {
       </Box>
     );
   else {
-    flightPlans.forEach((fp) =>
-      console.warn("no match", shipId, fp.shipId, JSON.stringify(fp))
-    );
     return <></>;
   }
 };

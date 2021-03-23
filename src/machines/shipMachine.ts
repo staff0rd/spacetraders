@@ -1,4 +1,11 @@
-import { assign, createMachine, sendParent } from "xstate";
+import {
+  ActorRefFrom,
+  assign,
+  createMachine,
+  EventObject,
+  sendParent,
+  StateMachine,
+} from "xstate";
 import * as api from "../api";
 import { Ship } from "../api/Ship";
 import { Location } from "../api/Location";
@@ -26,6 +33,8 @@ export type Context = {
   credits: number;
   hasSold?: boolean;
 };
+
+export type ShipActor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
 const fuelAmountNeeded = (s: Ship) =>
   10 - (s.cargo.find((c) => c.good === "FUEL")?.quantity || 0);
@@ -152,7 +161,7 @@ export const shipMachine = createMachine<Context, any, any>(
           (c) => console.log("ship: determineDestination", c),
           "determineDestination",
         ],
-        always: "idle",
+        after: { 1: "idle" },
       },
       createFlightPlan: {
         entry: (c) => console.log("ship: createFlightPlan", c),
@@ -227,6 +236,9 @@ export const shipMachine = createMachine<Context, any, any>(
               context.shouldBuy!.good,
               context.shouldBuy!.quantity
             );
+          },
+          onError: {
+            actions: (c, e) => console.warn("caught an error", e),
           },
           onDone: {
             target: "idle",
