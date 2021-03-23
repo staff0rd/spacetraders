@@ -242,7 +242,7 @@ export const shipMachine = createMachine<Context, any, any>(
           },
           onError: {
             actions: ["printError", "clearShouldBuy"],
-            target: "idle",
+            target: "getMarket",
           },
           onDone: {
             target: "idle",
