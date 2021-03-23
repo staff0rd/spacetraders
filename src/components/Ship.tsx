@@ -43,7 +43,12 @@ export const ShipComponent = ({ ship: actor }: Props) => {
             <FlightIcon className={classes.flightIcon} />
           </Grid>
           <Grid item xs={6}>
-            <Typography>{actor.state.context.ship.type}</Typography>
+            <Typography>
+              {actor.state.context.ship.type} (
+              {actor.state.context.ship.maxCargo -
+                actor.state.context.ship.spaceAvailable}
+              /{actor.state.context.ship.maxCargo})
+            </Typography>
             <Cargo ship={actor.state.context.ship} />
           </Grid>
           <Grid item xs={5}>
