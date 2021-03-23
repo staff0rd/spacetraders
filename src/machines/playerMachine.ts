@@ -70,8 +70,8 @@ export const playerMachine = createMachine(
           { target: "getSystems", cond: "noLocations" },
           { target: "getAvailableShips", cond: "noAvailableShips" },
           { target: "getLoan", cond: "noLoans" },
-          { target: "buyShip", cond: "noPurchasedShips" },
           { target: "getFlightPlans", cond: "noShipActors" },
+          { target: "buyShip", cond: "noPurchasedShips" },
           { target: "ready" },
         ],
       },
@@ -157,6 +157,12 @@ export const playerMachine = createMachine(
       },
       ready: {
         entry: ["netWorth", (c) => console.warn("ready", c)],
+        after: {
+          5000: {
+            target: "buyShip",
+            cond: "isRich",
+          },
+        },
         on: {
           CLEAR_PLAYER: "clearPlayer",
           SHIP_UPDATE: {
@@ -224,8 +230,12 @@ export const playerMachine = createMachine(
             username: (context: Context) => context.user!.username,
             availableShips: (context: Context) => context.availableShips,
           },
+          onError: {
+            target: "ready",
+            actions: (c, e) => console.error(e),
+          },
           onDone: {
-            target: "initialising",
+            target: "ready",
             actions: "assignUser",
           },
         },
@@ -296,6 +306,7 @@ export const playerMachine = createMachine(
       },
       noAvailableShips: (c) => !c.availableShips.length,
       noShipActors: (c) => !c.ships.length,
+      isRich: (c) => (c.user?.credits || 0) > 200000,
     },
   }
 );
