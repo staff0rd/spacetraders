@@ -9,6 +9,14 @@ import Bottleneck from "bottleneck";
 import { Location } from "./Location";
 import { FlightPlan } from "./FlightPlan";
 
+class ApiError extends Error {
+  code: number;
+  constructor(message: string, code: number) {
+    super(message);
+    this.code = code;
+  }
+}
+
 export const getUrl = (segment: string) =>
   `https://api.spacetraders.io/${segment}`;
 
@@ -44,7 +52,7 @@ const makeRequest = async (
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.error.message);
+    throw new ApiError(result.error.message, result.error.code);
   }
   return result;
 };
@@ -82,6 +90,17 @@ const getSecure = async (token: string, urlSegment: string) => {
     Authorization: `Bearer ${token}`,
   });
 };
+
+type GetFlightPlanResponse = {
+  flightPlan: NewFlightPlan;
+};
+
+export const getFlightPlan = (
+  token: string,
+  username: string,
+  flightPlanId: string
+): Promise<GetFlightPlanResponse> =>
+  getSecure(token, `users/${username}/flight-plans/${flightPlanId}`);
 
 export interface GetAvailableLoansResponse {
   loans: AvailableLoan[];
