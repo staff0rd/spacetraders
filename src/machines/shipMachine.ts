@@ -56,7 +56,6 @@ export const shipMachine = createMachine<Context, any, any>(
     },
     states: {
       idle: {
-        entry: (c) => console.log("ship: idle", c),
         after: {
           1: [
             { target: "inFlight", cond: "hasFlightPlan" },
@@ -75,7 +74,6 @@ export const shipMachine = createMachine<Context, any, any>(
         },
       },
       sellCargo: {
-        entry: (c) => console.log("ship: sellCargo"),
         invoke: {
           src: async (c) => {
             let lastResult: api.PurchaseOrderResponse = {
@@ -114,7 +112,6 @@ export const shipMachine = createMachine<Context, any, any>(
         },
       },
       determineCargo: {
-        entry: (c) => console.log("ship: determineCargo", c),
         invoke: {
           src: determineCargo,
           onDone: {
@@ -124,7 +121,6 @@ export const shipMachine = createMachine<Context, any, any>(
         },
       },
       inFlight: {
-        entry: (c) => console.log("ship: inFlight", c),
         invoke: {
           src: async (c) => {
             await sleep(
@@ -141,7 +137,6 @@ export const shipMachine = createMachine<Context, any, any>(
               })),
               assign({
                 ship: (c: Context, e) => {
-                  console.log("setting ship location to ", c.flightPlan);
                   return {
                     ...c.ship,
                     location: c.flightPlan!.to,
@@ -157,14 +152,10 @@ export const shipMachine = createMachine<Context, any, any>(
         },
       },
       determineDestination: {
-        entry: [
-          (c) => console.log("ship: determineDestination", c),
-          "determineDestination",
-        ],
+        entry: ["determineDestination"],
         after: { 1: "idle" },
       },
       createFlightPlan: {
-        entry: (c) => console.log("ship: createFlightPlan", c),
         invoke: {
           src: (c) =>
             api.newFlightPlan(c.token, c.username, c.ship.id, c.destination!),
@@ -204,7 +195,6 @@ export const shipMachine = createMachine<Context, any, any>(
         },
       },
       getMarket: {
-        entry: (c) => console.log("ship: getMarket", c),
         invoke: {
           src: (context: Context) =>
             api.getMarket(context.token, context.ship.location!),
@@ -214,7 +204,6 @@ export const shipMachine = createMachine<Context, any, any>(
           onDone: {
             target: "idle",
             actions: [
-              () => console.log("getMarket done"),
               assign({
                 location: (c, e: any) =>
                   (e.data as api.GetMarketResponse).location,
@@ -229,7 +218,6 @@ export const shipMachine = createMachine<Context, any, any>(
         },
       },
       buyGood: {
-        entry: (c) => console.log("ship: buyGood", c),
         invoke: {
           src: (context: Context) => {
             return api.purchaseOrder(
