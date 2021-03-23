@@ -236,7 +236,7 @@ export const playerMachine = createMachine(
           },
           onDone: {
             target: "ready",
-            actions: "assignUser",
+            actions: ["spawnShips", "assignUser"],
           },
         },
       },
@@ -246,22 +246,28 @@ export const playerMachine = createMachine(
     actions: {
       spawnShips: assign<Context>({
         ships: (c, e: any) =>
-          e.data.ships.map(
-            (ship: Ship) =>
-              spawn(
-                shipMachine.withContext({
-                  token: c.token!,
-                  username: c.user!.username,
-                  ship: ship,
-                  credits: c.user!.credits,
-                  locations: Object.keys(c.locations!).map(
-                    (symbol) => c.locations![symbol] as LocationWithDistance
-                  ),
-                  flightPlan: c.flightPlans.find((fp) => fp.shipId === ship.id),
-                }),
-                { name: `ship-${ship.id}`, sync: true }
-              ) as any
-          ),
+          e.data.ships
+            .filter(
+              (s: Ship) => !c.ships.find((existing) => existing.id === s.id)
+            )
+            .map(
+              (ship: Ship) =>
+                spawn(
+                  shipMachine.withContext({
+                    token: c.token!,
+                    username: c.user!.username,
+                    ship: ship,
+                    credits: c.user!.credits,
+                    locations: Object.keys(c.locations!).map(
+                      (symbol) => c.locations![symbol] as LocationWithDistance
+                    ),
+                    flightPlan: c.flightPlans.find(
+                      (fp) => fp.shipId === ship.id
+                    ),
+                  }),
+                  { name: `ship-${ship.id}`, sync: true }
+                ) as any
+            ),
       }),
       assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,
       assignPlayer: assign<Context, ApiResult<GetUserResponse>>({
