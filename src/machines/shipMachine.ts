@@ -241,7 +241,8 @@ export const shipMachine = createMachine<Context, any, any>(
             );
           },
           onError: {
-            actions: "printError",
+            actions: ["printError", "clearShouldBuy"],
+            target: "idle",
           },
           onDone: {
             target: "idle",
@@ -249,8 +250,8 @@ export const shipMachine = createMachine<Context, any, any>(
               assign({
                 ship: (c, e: any) => e.data.ship,
                 credits: (c, e: any) => e.data.credits,
-                shouldBuy: undefined,
               }) as any,
+              "clearShouldBuy",
               sendParent((context, event) => ({
                 type: "UPDATE_CREDITS",
                 data: event.data.credits,
@@ -264,6 +265,7 @@ export const shipMachine = createMachine<Context, any, any>(
   },
   {
     actions: {
+      clearShouldBuy: assign<Context>({ shouldBuy: undefined }),
       printError: (_, e: any) => console.warn("caught an error", e),
       assignNeededFuel: assign({
         shouldBuy: (c) => ({
