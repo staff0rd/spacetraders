@@ -229,6 +229,8 @@ export const shipMachine = createMachine<Context, any, any>(
             );
           },
           onError: {
+            //{code: 2004, message: "User has insufficient credits for transaction."},
+            //{code: 2006, message: "Good quantity is not available on planet." },
             actions: ["printError", "clearShouldBuy"],
             target: "getMarket",
           },
