@@ -70,8 +70,8 @@ export const playerMachine = createMachine(
           { target: "getSystems", cond: "noLocations" },
           { target: "getAvailableShips", cond: "noAvailableShips" },
           { target: "getLoan", cond: "noLoans" },
-          { target: "getFlightPlans", cond: "noShipActors" },
           { target: "buyShip", cond: "noPurchasedShips" },
+          { target: "getFlightPlans", cond: "noShipActors" },
           { target: "ready" },
         ],
       },
@@ -99,7 +99,21 @@ export const playerMachine = createMachine(
       getUser: {
         invoke: {
           src: "getUser",
-          onError: "idle",
+          onError: [
+            {
+              //"message": "Token was invalid or missing from the request. Did you confirm sending the token as a query parameter or authorization header?",
+              //"code": 40101
+              target: "idle",
+              cond: (c, e) => e.data.code === 40101,
+              actions: [
+                () => console.warn("Token expired, removing..."),
+                "clearPlayer",
+              ],
+            },
+            {
+              target: "idle",
+            },
+          ],
           onDone: {
             target: "initialising",
             actions: assign<Context, any>({
@@ -158,7 +172,7 @@ export const playerMachine = createMachine(
       ready: {
         entry: ["netWorth", (c) => console.warn("ready", c)],
         after: {
-          5000: {
+          15000: {
             target: "buyShip",
             cond: "isRich",
           },
@@ -245,8 +259,10 @@ export const playerMachine = createMachine(
   {
     actions: {
       spawnShips: assign<Context>({
-        ships: (c, e: any) =>
-          e.data.ships
+        ships: (c, e: any) => {
+          const buyShip = e.data.response?.user?.ships;
+          const getShip = e.data.ships;
+          return (buyShip || getShip)
             .filter(
               (s: Ship) => !c.ships.find((existing) => existing.id === s.id)
             )
@@ -267,7 +283,8 @@ export const playerMachine = createMachine(
                   }),
                   { name: `ship-${ship.id}`, sync: true }
                 ) as any
-            ),
+            );
+        },
       }),
       assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,
       assignPlayer: assign<Context, ApiResult<GetUserResponse>>({
