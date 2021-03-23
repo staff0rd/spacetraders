@@ -1,7 +1,6 @@
 import { MarketContext } from "./MarketContext";
-import { Ship } from "../api/Ship";
 import { AvailableShip } from "../api/AvailableShip";
-import { FlightPlan } from "../api/FlightPlan";
+import { Context as ShipContext } from "./shipMachine";
 
 type Category = "asset" | "debt";
 export type LineItem = {
@@ -12,38 +11,32 @@ export type LineItem = {
 
 export const calculateNetWorth = (
   credits: number,
-  ships: Ship[],
+  scs: ShipContext[],
   availableShips: AvailableShip[],
-  markets: MarketContext,
-  flightPlans: FlightPlan[]
+  markets: MarketContext
 ): LineItem[] => [
   { category: "asset", value: credits, description: "Credits" },
-  ...ships.map((ship) => ({
+  ...scs.map((sc) => ({
     value:
-      (availableShips.find((av) => av.type === ship.type)?.purchaseLocations[0]
-        .price || 0) * 0.25,
+      (availableShips.find((av) => av.type === sc.ship.type)
+        ?.purchaseLocations[0].price || 0) * 0.25,
     category: "asset" as Category,
-    description: ship.type,
+    description: sc.ship.type,
   })),
-  ...ships.map((s) => calculateCargoWorth(s, markets, flightPlans)).flat(),
+  ...scs.map((s) => calculateCargoWorth(s, markets)).flat(),
 ];
 
 const calculateCargoWorth = (
-  ship: Ship,
-  markets: MarketContext,
-  flightPlans: FlightPlan[]
+  sc: ShipContext,
+  markets: MarketContext
 ): LineItem[] => {
   const market =
-    markets[
-      ship.location ||
-        flightPlans.find((fp) => fp.shipId === ship.id)?.from ||
-        ""
-    ]?.marketplace;
+    markets[sc.ship.location || sc.flightPlan?.from || ""]?.marketplace;
   if (!market) return [];
-  return ship.cargo.map((c) => ({
+  return sc.ship.cargo.map((c) => ({
     value:
       c.quantity * (market.find((m) => m.symbol === c.good)?.pricePerUnit || 0),
     category: "asset",
-    description: `${ship.type} ${c.good}`,
+    description: `${sc.ship.type} ${c.good}`,
   }));
 };
