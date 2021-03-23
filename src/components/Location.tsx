@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  makeStyles,
   Table,
   TableBody,
   TableCell,
@@ -12,17 +11,10 @@ import {
 import { Location as LocationSchema } from "../api/Location";
 import NumberFormat from "react-number-format";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: "flex",
-  },
-}));
-
 type Props = {
   location: LocationSchema;
 };
 export const Location = ({ location }: Props) => {
-  const classes = useStyles();
   return (
     <>
       {location.marketplace && (
