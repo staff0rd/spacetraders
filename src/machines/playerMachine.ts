@@ -1,7 +1,6 @@
 import { assign, createMachine, spawn } from "xstate";
 import { User } from "../api/User";
-import { apiMachine, ApiResult } from "./apiMachine";
-import { GetUserResponse, getUser, getToken } from "../api";
+import { getUser, getToken } from "../api";
 import { newPlayerName } from "../newPlayerName";
 import { getLoanMachine } from "./getLoanMachine";
 import { buyShipMachine } from "./buyShipMachine";
@@ -19,7 +18,34 @@ import { calculateNetWorth, LineItem } from "./calculateNetWorth";
 import { Ship } from "../api/Ship";
 import { FlightPlan } from "../api/FlightPlan";
 
-type Context = {
+export enum States {
+  CheckStorage = "checkStorage",
+  Idle = "idle",
+  Initialising = "initialising",
+  GetToken = "getToken",
+  GetUser = "getUser",
+  GetSystems = "getSystems",
+  GetFlightPlans = "getFlightPlans",
+  GetShips = "getShips",
+  Ready = "ready",
+  ClearPlayer = "clearPlayer",
+  GetLoan = "getLoan",
+  GetAvailableShips = "getAvailableShips",
+  BuyShip = "buyShip",
+}
+
+export type Schema = {
+  value: typeof States[keyof typeof States];
+  context: Context;
+};
+
+type Event =
+  | { type: "CLEAR_PLAYER" }
+  | { type: "SHIP_UPDATE" }
+  | { type: "UPDATE_CREDITS"; data: number }
+  | { type: "UPDATE_LOCATION" };
+
+export type Context = {
   token?: string;
   user?: User;
   locations?: MarketContext;
@@ -42,10 +68,10 @@ const getCachedPlayer = (): Context => {
     };
 };
 
-export const playerMachine = createMachine(
+export const playerMachine = createMachine<Context, Event, Schema>(
   {
     id: "player",
-    initial: "checkStorage",
+    initial: States.CheckStorage,
     context: {
       locations: {},
       availableShips: [],
@@ -54,56 +80,41 @@ export const playerMachine = createMachine(
       ships: [],
     } as Context,
     states: {
-      checkStorage: {
-        entry: ["assignCachedPlayer"],
-        always: "idle",
+      [States.CheckStorage]: {
+        entry: "assignCachedPlayer",
+        always: States.Idle,
       },
-      idle: {
+      [States.Idle]: {
         entry: [() => console.log("player: idle")],
         always: [
           { target: "getToken", cond: (context) => !context.token },
           { target: "getUser", cond: (context) => !!context.token },
         ],
       },
-      initialising: {
+      [States.Initialising]: {
         always: [
-          { target: "getSystems", cond: "noLocations" },
-          { target: "getAvailableShips", cond: "noAvailableShips" },
-          { target: "getLoan", cond: "noLoans" },
-          { target: "buyShip", cond: "noPurchasedShips" },
-          { target: "getFlightPlans", cond: "noShipActors" },
-          { target: "ready" },
+          { target: States.GetSystems, cond: "noLocations" },
+          { target: States.GetAvailableShips, cond: "noAvailableShips" },
+          { target: States.GetLoan, cond: "noLoans" },
+          { target: States.BuyShip, cond: "noPurchasedShips" },
+          { target: States.GetFlightPlans, cond: "noShipActors" },
+          { target: States.Ready },
         ],
       },
-      getToken: {
+      [States.GetToken]: {
         invoke: {
           src: "getToken",
-          onError: "idle",
-        },
-        on: {
-          API_RESULT: {
-            target: "cachePlayer",
-            actions: [
-              assign({ apiResult: (c, e: any) => e.result }),
-              (c: any) => console.log("after cache", c),
-            ],
-          } as any,
+          onError: States.Idle,
         },
       },
-      cachePlayer: {
-        invoke: {
-          src: "cachePlayer",
-          onDone: "checkStorage",
-        },
-      },
-      getUser: {
+      [States.GetUser]: {
         invoke: {
           src: "getUser",
           onError: [
             {
               //"message": "Token was invalid or missing from the request. Did you confirm sending the token as a query parameter or authorization header?",
               //"code": 40101
-              target: "idle",
+              target: States.Idle,
               cond: (c, e) => e.data.code === 40101,
               actions: [
                 () => console.warn("Token expired, removing..."),
@@ -111,23 +122,23 @@ export const playerMachine = createMachine(
               ],
             },
             {
-              target: "idle",
+              target: States.Idle,
             },
           ],
           onDone: {
-            target: "initialising",
+            target: States.Initialising,
             actions: assign<Context, any>({
               user: (c, e) => e.data.user,
             }),
           },
         },
       },
-      getSystems: {
+      [States.GetSystems]: {
         entry: (c) => console.log("player: getSystems", c),
         invoke: {
           src: "getSystems",
           onDone: {
-            target: "initialising",
+            target: States.Initialising,
             actions: assign({
               locations: (c, e: any) => {
                 const locations = {} as MarketContext;
@@ -140,12 +151,12 @@ export const playerMachine = createMachine(
           },
         },
       },
-      getFlightPlans: {
+      [States.GetFlightPlans]: {
         entry: (c) => console.log("player: getFlightPlans", c),
         invoke: {
           src: (c) => api.getFlightPlans(c.token!, "OE"),
           onDone: {
-            target: "getShips",
+            target: States.GetShips,
             actions: assign<Context>({
               flightPlans: (c: Context, e: any) => {
                 const filtered = (e.data
@@ -159,26 +170,26 @@ export const playerMachine = createMachine(
           },
         },
       },
-      getShips: {
+      [States.GetShips]: {
         entry: (c) => console.log("player: getShips", c),
         invoke: {
           src: (c) => api.getShips(c.token!, c.user!.username),
           onDone: {
-            target: "ready",
+            target: States.Ready,
             actions: "spawnShips",
           },
         },
       },
-      ready: {
+      [States.Ready]: {
         entry: ["netWorth", (c) => console.warn("ready", c)],
         after: {
           5000: {
-            target: "buyShip",
+            target: States.BuyShip,
             cond: "shouldBuyShip",
           },
         },
         on: {
-          CLEAR_PLAYER: "clearPlayer",
+          CLEAR_PLAYER: States.ClearPlayer,
           SHIP_UPDATE: {
             actions: ["netWorth"],
           },
@@ -201,7 +212,7 @@ export const playerMachine = createMachine(
           },
         },
       },
-      clearPlayer: {
+      [States.ClearPlayer]: {
         invoke: {
           src: "clearPlayer",
           onDone: {
@@ -210,7 +221,7 @@ export const playerMachine = createMachine(
           },
         },
       },
-      getLoan: {
+      [States.GetLoan]: {
         entry: () => console.warn("getLoan"),
         invoke: {
           src: getLoanMachine,
@@ -219,23 +230,23 @@ export const playerMachine = createMachine(
             username: (context: Context) => context.user!.username,
           },
           onDone: {
-            target: "initialising",
+            target: States.Initialising,
             actions: "assignUser",
           },
         },
       },
-      getAvailableShips: {
+      [States.GetAvailableShips]: {
         invoke: {
           src: (context) => api.getAvailableShips(context.token!),
           onDone: {
-            target: "initialising",
+            target: States.Initialising,
             actions: assign<Context>({
               availableShips: (c: Context, e: any) => e.data.ships,
             }) as any,
           },
         },
       },
-      buyShip: {
+      [States.BuyShip]: {
         entry: () => console.warn("buyShip"),
         invoke: {
           src: buyShipMachine,
@@ -287,9 +298,6 @@ export const playerMachine = createMachine(
         },
       }),
       assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,
-      assignPlayer: assign<Context, ApiResult<GetUserResponse>>({
-        user: (c, e) => e.result.user as User,
-      }) as any,
       clearPlayer: assign<Context>({
         token: undefined,
         user: undefined,
@@ -310,10 +318,9 @@ export const playerMachine = createMachine(
     services: {
       getUser: (c: Context) => getUser(c.token!, c.user!.username),
       getSystems: (c: Context) => api.getSystems(c.token!),
-      getToken: () => apiMachine(() => getToken(newPlayerName())),
-      cachePlayer: async (c: Context) => {
-        console.log("cached player", c);
-        localStorage.setItem("player", JSON.stringify((c as any).apiResult));
+      getToken: async () => {
+        const result = await getToken(newPlayerName());
+        localStorage.setItem("player", JSON.stringify(result));
       },
       clearPlayer: async () => {
         console.warn("Player cleared");
