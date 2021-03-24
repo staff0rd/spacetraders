@@ -7,20 +7,24 @@ import {
 import React from "react";
 import { FlightPlan } from "./FlightPlan";
 import { Grid } from "@material-ui/core";
+import { Box } from "@material-ui/core";
 import Cargo from "./Cargo";
-import FlightIcon from "@material-ui/icons/Flight";
+import { SpaceshipIcon } from "./SpaceshipIcon";
 import { ShipActor } from "../machines/shipMachine";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
     padding: theme.spacing(2),
-    marginTop: theme.spacing(1),
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    width: 450,
   },
-  flightIcon: {},
+  name: {
+    display: "flex",
+  },
+  icon: {
+    marginRight: theme.spacing(1),
+  },
   state: {
     textAlign: "right",
   },
@@ -37,19 +41,13 @@ export const ShipComponent = ({ ship: actor }: Props) => {
     <Paper className={classes.paper}>
       {actor.state ? (
         <Grid container>
-          <Grid item xs={1}>
-            <FlightIcon className={classes.flightIcon} />
+          <Grid item xs={6}>
+            <Box className={classes.name}>
+              <SpaceshipIcon className={classes.icon} fontSize="small" />
+              <Typography>{actor.state.context.ship.type}</Typography>
+            </Box>
           </Grid>
           <Grid item xs={6}>
-            <Typography>
-              {actor.state.context.ship.type} (
-              {actor.state.context.ship.maxCargo -
-                actor.state.context.ship.spaceAvailable}
-              /{actor.state.context.ship.maxCargo})
-            </Typography>
-            <Cargo ship={actor.state.context.ship} />
-          </Grid>
-          <Grid item xs={5}>
             {actor.state.value === "inFlight" ? (
               <FlightPlan flightPlan={actor.state.context.flightPlan!} />
             ) : (
@@ -58,7 +56,9 @@ export const ShipComponent = ({ ship: actor }: Props) => {
               </Typography>
             )}
           </Grid>
-          <Grid item xs={1}></Grid>
+          <Grid item xs={12}>
+            <Cargo ship={actor.state.context.ship} />
+          </Grid>
         </Grid>
       ) : (
         <div>

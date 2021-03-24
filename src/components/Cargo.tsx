@@ -11,13 +11,12 @@ type Props = {
 
 const CargoComponent = ({ ship }: Props) => {
   return (
-    <>
-      {ship.cargo.map((cargo, ix) => (
-        <Typography key={ix}>
-          {cargo.quantity}x {cargo.good}
-        </Typography>
-      ))}
-    </>
+    <Typography>
+      {ship.maxCargo - ship.spaceAvailable}/{ship.maxCargo}:{` `}
+      {ship.cargo
+        .map((cargo, ix) => `${cargo.quantity}x ${cargo.good}`)
+        .join(", ")}
+    </Typography>
   );
 };
 export default CargoComponent;

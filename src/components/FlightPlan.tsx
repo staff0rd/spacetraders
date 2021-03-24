@@ -27,12 +27,12 @@ export const FlightPlan = ({ flightPlan }: Props) => {
   if (flightPlan)
     return (
       <Box className={classes.root}>
+        <CircularProgressWithLabel flightPlan={flightPlan} />
         <Typography>
           {symbolOrName(flightPlan.from)}{" "}
           <ForwardIcon className={classes.forwardIcon} />{" "}
           {symbolOrName(flightPlan.to)}
         </Typography>
-        <CircularProgressWithLabel flightPlan={flightPlan} />
       </Box>
     );
   else {
