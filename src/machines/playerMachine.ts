@@ -247,7 +247,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
         },
       },
       [States.BuyShip]: {
-        entry: () => console.warn("buyShip"),
+        entry: () => console.warn("Buying ship!"),
         invoke: {
           src: buyShipMachine,
           data: {

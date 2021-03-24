@@ -94,6 +94,10 @@ export const shipMachine = createMachine<Context, any, any>(
             }
             return lastResult;
           },
+          onError: {
+            actions: "printError",
+            target: "idle",
+          },
           onDone: {
             target: "idle",
             actions: [
@@ -200,6 +204,7 @@ export const shipMachine = createMachine<Context, any, any>(
             api.getMarket(context.token, context.ship.location!),
           onError: {
             actions: "printError",
+            target: "idle",
           },
           onDone: {
             target: "idle",
