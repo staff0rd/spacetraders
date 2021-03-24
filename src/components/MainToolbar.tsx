@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Box from "@material-ui/core/Box";
 import Toolbar from "@material-ui/core/Toolbar";
-import { CircularProgress, Tooltip } from "@material-ui/core";
+import { Tooltip, Typography } from "@material-ui/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import { Status } from "./Status";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -15,7 +15,6 @@ import { IconAndValue } from "./IconAndValue";
 import { SpaceshipIcon } from "./SpaceshipIcon";
 import NumberFormat from "react-number-format";
 import GitHubIcon from "@material-ui/icons/GitHub";
-import { Button } from "@material-ui/core";
 import CreditsIcon from "@material-ui/icons/AttachMoney";
 import NetWorthIcon from "@material-ui/icons/TrendingUp";
 
@@ -60,15 +59,28 @@ export default function ButtonAppBar({
     confirmClearPlayerDialogOpen,
     setConfirmClearPlayerDialogOpen,
   ] = useState(false);
+  const [queued, setQueued] = useState(0);
 
-  //   <CircularProgress size={24} />
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setQueued((window as any).limiter.queued());
+    }, 500);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className={classes.root}>
       <AppBar position="static">
         <Toolbar>
           <Status />
-          <Box className={classes.title}></Box>
+          <Box className={classes.title}>
+            {queued > 2 && (
+              <Tooltip title="Number of api requests queued">
+                <Typography>{queued}</Typography>
+              </Tooltip>
+            )}
+          </Box>
 
           <IconAndValue
             icon={<CreditsIcon className={classes.creditsIcon} />}
