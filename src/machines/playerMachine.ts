@@ -172,9 +172,9 @@ export const playerMachine = createMachine(
       ready: {
         entry: ["netWorth", (c) => console.warn("ready", c)],
         after: {
-          15000: {
+          5000: {
             target: "buyShip",
-            cond: "isRich",
+            cond: "shouldBuyShip",
           },
         },
         on: {
@@ -329,7 +329,8 @@ export const playerMachine = createMachine(
       },
       noAvailableShips: (c) => !c.availableShips.length,
       noShipActors: (c) => !c.ships.length,
-      isRich: (c) => (c.user?.credits || 0) > 200000,
+      shouldBuyShip: (c) =>
+        (c.user?.credits || 0) > 200000 && c.user!.ships.length < 10,
     },
   }
 );

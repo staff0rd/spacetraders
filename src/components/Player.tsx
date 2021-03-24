@@ -29,9 +29,6 @@ const useStyles = makeStyles((theme) => ({
   icon: {
     //marginRight: theme.spacing(1),
   },
-  money: {
-    //marginLeft: theme.spacing(1),
-  },
 }));
 
 export const Player = () => {
@@ -44,6 +41,7 @@ export const Player = () => {
   const netWorth = state.context.netWorth
     .map((v) => v.value)
     .reduce((a, b) => a + b, 0);
+  const shipCount = state.context.user?.ships?.length || 0;
 
   const handleNew = () => {
     send("CLEAR_PLAYER");
@@ -77,7 +75,6 @@ export const Player = () => {
               <Typography>Credits</Typography>
               <Typography>
                 <NumberFormat
-                  className={classes.money}
                   value={user!.credits}
                   thousandSeparator=","
                   displayType="text"
@@ -89,11 +86,20 @@ export const Player = () => {
               <Typography>Net Worth</Typography>
               <Typography>
                 <NumberFormat
-                  className={classes.money}
                   value={netWorth}
                   thousandSeparator=","
                   displayType="text"
                   prefix="$"
+                />
+              </Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography>Ships</Typography>
+              <Typography>
+                <NumberFormat
+                  value={shipCount}
+                  thousandSeparator=","
+                  displayType="text"
                 />
               </Typography>
             </Grid>

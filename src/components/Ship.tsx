@@ -20,9 +20,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "space-between",
     width: 450,
   },
-  flightIcon: {
-    rotation: "90deg",
-  },
+  flightIcon: {},
   state: {
     textAlign: "right",
   },
