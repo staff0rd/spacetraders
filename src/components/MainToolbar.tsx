@@ -3,7 +3,7 @@ import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Box from "@material-ui/core/Box";
 import Toolbar from "@material-ui/core/Toolbar";
-import { Tooltip, Typography } from "@material-ui/core";
+import { Tooltip } from "@material-ui/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import { Status } from "./Status";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -17,6 +17,8 @@ import NumberFormat from "react-number-format";
 import GitHubIcon from "@material-ui/icons/GitHub";
 import CreditsIcon from "@material-ui/icons/AttachMoney";
 import NetWorthIcon from "@material-ui/icons/TrendingUp";
+import WarningIcon from "@material-ui/icons/Warning";
+import yellow from "@material-ui/core/colors/yellow";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -33,6 +35,9 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     creditsIcon: {
       marginRight: theme.spacing(-1),
+    },
+    warningIcon: {
+      fill: `${yellow[500]} !important`,
     },
   })
 );
@@ -76,9 +81,11 @@ export default function ButtonAppBar({
           <Status />
           <Box className={classes.title}>
             {queued > 2 && (
-              <Tooltip title="Number of api requests queued">
-                <Typography>{queued}</Typography>
-              </Tooltip>
+              <IconAndValue
+                icon={<WarningIcon className={classes.warningIcon} />}
+                tooltip="Number of api requests queued"
+                value={queued}
+              />
             )}
           </Box>
 
