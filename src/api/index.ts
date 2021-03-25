@@ -8,6 +8,7 @@ import { User } from "./User";
 import Bottleneck from "bottleneck";
 import { Location } from "./Location";
 import { FlightPlan } from "./FlightPlan";
+import db from "../data/";
 
 class ApiError extends Error {
   code: number;
@@ -17,8 +18,7 @@ class ApiError extends Error {
   }
 }
 
-export const getUrl = (segment: string) =>
-  `https://api.spacetraders.io/${segment}`;
+export const getUrl = (path: string) => `https://api.spacetraders.io/${path}`;
 
 const limiter = new Bottleneck({
   maxConcurrent: 2,
@@ -37,38 +37,42 @@ export const getStatus = async () => {
 };
 
 const makeRequest = async (
-  url: string,
+  path: string,
   method: "GET" | "POST",
   headers: any,
-  data: any = undefined,
-  retry = 0
+  data: any = undefined
 ) => {
-  const response = await fetch(url, {
+  const body = data ? JSON.stringify(data) : undefined;
+  const response = await fetch(getUrl(path), {
     method,
     headers: {
       "Content-Type": "application/json",
       ...headers,
     },
-    body: data ? JSON.stringify(data) : undefined,
+    body: body,
   });
   const result = await response.json();
 
   if (!response.ok) {
+    db.apiErrors
+      .put({
+        code: result.error.code,
+        message: result.error.message,
+        path,
+        data,
+      })
+      .catch((reason) => console.error("Cound not save error: ", reason));
     throw new ApiError(result.error.message, result.error.code);
   }
   return result;
 };
 
-const get = (urlSegment: string, headers = {}) => {
-  return limiter.schedule(() =>
-    makeRequest(getUrl(urlSegment), "GET", headers)
-  );
+const get = (path: string, headers = {}) => {
+  return limiter.schedule(() => makeRequest(path, "GET", headers));
 };
 
-const post = (urlSegment: string, data?: any, headers = {}) => {
-  return limiter.schedule(() =>
-    makeRequest(getUrl(urlSegment), "POST", headers, data)
-  );
+const post = (path: string, data?: any, headers = {}) => {
+  return limiter.schedule(() => makeRequest(path, "POST", headers, data));
 };
 
 export interface GetTokenResponse {
@@ -170,9 +174,17 @@ export const buyShip = (
 ): Promise<GetUserResponse> =>
   postSecure(token, `users/${username}/ships`, { location, type });
 
+type Order = {
+  good: string;
+  pricePerUnit: number;
+  quantity: number;
+  total: number;
+};
+
 export type PurchaseOrderResponse = {
   ship: Ship;
   credits: number;
+  order: Order;
 };
 
 export const purchaseOrder = (

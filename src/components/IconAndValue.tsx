@@ -8,7 +8,12 @@ const useStyles = makeStyles((theme: Theme) =>
     iconAndValue: {
       display: "inline-flex",
     },
-    iconValue: {
+    valueSquished: {
+      cursor: "default",
+      // marginLeft: theme.spacing(1),
+      marginRight: theme.spacing(2),
+    },
+    value: {
       cursor: "default",
       marginLeft: theme.spacing(1),
       marginRight: theme.spacing(2),
@@ -20,15 +25,20 @@ type Props = {
   tooltip: string;
   icon: React.ReactNode;
   value: React.ReactNode;
+  squished?: boolean;
 };
 
-export const IconAndValue = ({ icon, tooltip, value }: Props) => {
+export const IconAndValue = ({ icon, tooltip, value, squished }: Props) => {
   const classes = useStyles();
   return (
     <Tooltip title={tooltip}>
       <Box className={classes.iconAndValue}>
         {icon}
-        <Typography className={classes.iconValue}>{value}</Typography>
+        <Typography
+          className={squished ? classes.valueSquished : classes.value}
+        >
+          {value}
+        </Typography>
       </Box>
     </Tooltip>
   );

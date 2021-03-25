@@ -13,13 +13,21 @@ import { getDistance } from "./getDistance";
 import { FlightPlan } from "../api/FlightPlan";
 import { DateTime } from "luxon";
 import { determineCargo } from "./determineCargo";
+import db from "../data";
+import { TradeType } from "../data/ITrade";
 
 export type LocationWithDistance = Location & { distance: number };
 
 export type ShouldBuy = {
   good: string;
   quantity: number;
+  profit: number;
+  sellTo?: string;
 };
+
+enum States {
+  BuyGoods = "buyGoods",
+}
 
 export type Context = {
   token: string;
@@ -62,13 +70,13 @@ export const shipMachine = createMachine<Context, any, any>(
             { target: "getMarket", cond: "noLocation" },
             { target: "sellCargo", cond: "shouldSell" },
             {
-              target: "buyGood",
+              target: States.BuyGoods,
               cond: "needFuel",
               actions: "assignNeededFuel",
             },
             { target: "determineDestination", cond: "noDestination" },
             { target: "determineCargo", cond: "shouldDetermineCargo" },
-            { target: "buyGood", cond: "shouldBuyCargo" },
+            { target: States.BuyGoods, cond: "shouldBuyCargo" },
             { target: "createFlightPlan", cond: "noFlightPlan" },
           ],
         },
@@ -76,7 +84,7 @@ export const shipMachine = createMachine<Context, any, any>(
       sellCargo: {
         invoke: {
           src: async (c) => {
-            let lastResult: api.PurchaseOrderResponse = {
+            let lastResult: Partial<api.PurchaseOrderResponse> = {
               ship: c.ship,
               credits: c.credits,
             };
@@ -222,16 +230,28 @@ export const shipMachine = createMachine<Context, any, any>(
           },
         },
       },
-      buyGood: {
+      [States.BuyGoods]: {
         invoke: {
-          src: (context: Context) => {
-            return api.purchaseOrder(
+          src: async (context: Context) => {
+            const { good, quantity, profit, sellTo } = context.shouldBuy!;
+            const result = await api.purchaseOrder(
               context.token,
               context.username,
               context.ship.id,
-              context.shouldBuy!.good,
-              context.shouldBuy!.quantity
+              good,
+              quantity
             );
+            db.trades.put({
+              cost: result.order.total,
+              type: TradeType.Buy,
+              good,
+              quantity,
+              location: sellTo,
+              shipId: context.ship.id,
+              timestamp: DateTime.now().toISO(),
+              profit,
+            });
+            return result;
           },
           onError: {
             //{code: 2004, message: "User has insufficient credits for transaction."},
@@ -266,6 +286,7 @@ export const shipMachine = createMachine<Context, any, any>(
         shouldBuy: (c) => ({
           good: "FUEL",
           quantity: fuelAmountNeeded(c.ship),
+          profit: 0,
         }),
       }),
       shipUpdate: sendParent((c: Context) => ({

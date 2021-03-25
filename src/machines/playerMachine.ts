@@ -296,7 +296,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
                 ) as any
             );
         },
-      }),
+      }) as any,
       assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,
       clearPlayer: assign<Context>({
         token: undefined,

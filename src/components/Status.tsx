@@ -21,6 +21,9 @@ const useStyles = makeStyles((theme) => ({
   connected: {
     backgroundColor: green[500],
   },
+  icon: {
+    fill: "rgba(0, 0, 0, 0.54)",
+  },
 }));
 
 const goodStatus = "spacetraders is currently online and available to play";
@@ -40,9 +43,9 @@ export const Status = () => {
           variant="dot"
           overlap="circle"
         >
-          <DnsIcon />
+          <DnsIcon className={classes.icon} />
         </Badge>
       </Tooltip>
     );
-  return <CircularProgress color="secondary" size={24} />;
+  return <CircularProgress color="primary" size={24} />;
 };

@@ -26,7 +26,12 @@ const getProfit = (
 export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
   const buyMarket = getLocation(c.ship.location!)!.marketplace;
   const sellMarket = getLocation(c.destination!)?.marketplace;
-  const nothing = { good: "NONE", quantity: 0 };
+  const nothing: ShouldBuy = {
+    good: "NONE",
+    quantity: 0,
+    profit: 0,
+    sellTo: c.destination,
+  };
   if (!sellMarket) {
     console.warn("No sell market data");
     return nothing;
@@ -44,11 +49,13 @@ export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
   if (!goods.length) {
     return nothing;
   }
-  console.log("profitable goods", goods);
+
   const result: ShouldBuy = {
     good: goods[0].good,
     quantity: goods[0].quantity,
+    sellTo: c.destination,
+    profit: goods[0].profit,
   };
-  console.warn(`Buying ${result.good} for $${goods[0].profit} profit`);
+
   return Promise.resolve(result);
 };
