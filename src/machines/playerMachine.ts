@@ -198,7 +198,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
               assign<Context>({
                 user: (c: Context, e: any) =>
                   ({ ...c.user, credits: e.data } as any),
-              }),
+              }) as any, // why does this type error not appear in vscode?
               "netWorth",
             ],
           },
