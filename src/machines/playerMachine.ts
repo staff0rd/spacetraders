@@ -208,7 +208,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
                 cacheLocation(e.data);
                 return { ...c.locations, [e.data.symbol]: e.data };
               },
-            }),
+            }) as any,
           },
         },
       },
