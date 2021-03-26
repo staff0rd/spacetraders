@@ -1,15 +1,9 @@
-import { useState, useEffect } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import { Tooltip } from "@material-ui/core";
-import RefreshIcon from "@material-ui/icons/Refresh";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { States } from "../machines/playerMachine";
-import { IconButton } from "@material-ui/core";
 import { StateValue } from "xstate";
 import PersonIcon from "@material-ui/icons/Person";
 import { IconAndValue } from "./IconAndValue";
 import NumberFormat from "react-number-format";
-
 import CreditsIcon from "@material-ui/icons/AttachMoney";
 import NetWorthIcon from "@material-ui/icons/TrendingUp";
 import yellow from "@material-ui/core/colors/yellow";
@@ -30,25 +24,13 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 type Props = {
-  rootState: StateValue;
-  handleClearPlayer: () => void;
   userName: string;
   credits: number;
   netWorth: number;
 };
 
-export default function ButtonAppBar({
-  rootState,
-  handleClearPlayer,
-  userName,
-  credits,
-  netWorth,
-}: Props) {
+export default function ButtonAppBar({ userName, credits, netWorth }: Props) {
   const classes = useStyles();
-  const [
-    confirmClearPlayerDialogOpen,
-    setConfirmClearPlayerDialogOpen,
-  ] = useState(false);
 
   return (
     <>
@@ -81,23 +63,6 @@ export default function ButtonAppBar({
           <PersonIcon />
         </Tooltip>
       )}
-      {rootState === States.Ready && (
-        <IconButton
-          size="small"
-          title="New user"
-          onClick={() => setConfirmClearPlayerDialogOpen(true)}
-        >
-          <RefreshIcon />
-        </IconButton>
-      )}
-
-      <ConfirmDialog
-        header="Create new user?"
-        content="API key will be lost!"
-        setOpen={setConfirmClearPlayerDialogOpen}
-        open={confirmClearPlayerDialogOpen}
-        action={handleClearPlayer}
-      />
     </>
   );
 }

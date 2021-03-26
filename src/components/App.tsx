@@ -36,8 +36,10 @@ import { Ships } from "./Ships";
 import { Trades } from "./Trades";
 import { Markets } from "./Markets";
 import { Errors } from "./Errors";
+import { Settings } from "./Settings";
 import ErrorIcon from "@material-ui/icons/Error";
 import MarketsIcon from "@material-ui/icons/Timeline";
+import SettingsIcon from "@material-ui/icons/Settings";
 
 const drawerWidth = 180;
 
@@ -162,11 +164,11 @@ export function App() {
     setDrawerOpen(false);
   };
 
-  const [state, send] = useMachine(playerMachine);
+  const [state] = useMachine(playerMachine);
 
-  const handleClearPlayer = () => {
-    send("CLEAR_PLAYER");
-  };
+  // const handleClearPlayer = () => {
+  //   send("CLEAR_PLAYER");
+  // };
 
   const shipCount = state.context.user?.ships?.length || 0;
   const credits = state.context.user?.credits || 0;
@@ -202,6 +204,12 @@ export function App() {
       title: "Errors",
       to: "/errors",
       component: <Errors />,
+    },
+    {
+      icon: <SettingsIcon />,
+      title: "Settings",
+      to: "/settings",
+      component: <Settings />,
     },
   ];
 
@@ -246,9 +254,6 @@ export function App() {
               <MenuIcon />
             </IconButton>
             <MainToolbar
-              handleClearPlayer={handleClearPlayer}
-              rootState={state.value}
-              shipCount={shipCount}
               userName={state.context.user?.username || ""}
               credits={credits}
               netWorth={netWorth}

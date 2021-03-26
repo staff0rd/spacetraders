@@ -6,20 +6,20 @@ import { IMarket } from "./IMarket";
 class Database extends Dexie {
   apiErrors: Dexie.Table<IApiError, number>; // number = type of the primkey
   trades: Dexie.Table<ITrade, number>;
-  market: Dexie.Table<IMarket, number>;
+  markets: Dexie.Table<IMarket, number>;
 
   constructor() {
     super("Database");
-    this.version(4).stores({
+    this.version(5).stores({
       apiErrors: "++id, code",
       trades: "++id, good, shipId, location, type",
-      market: "++id,location",
+      market: "++id,location,good",
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
     this.apiErrors = this.table("apiErrors");
     this.trades = this.table("trades");
-    this.market = this.table("market");
+    this.markets = this.table("market");
   }
 }
 

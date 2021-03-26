@@ -171,11 +171,17 @@ export const getMarket = (
       token,
       `game/locations/${location}/marketplace`
     );
-    db.market.put({
-      created: DateTime.now().toISO(),
-      location,
-      market: result.location.marketplace,
-    });
+    result.location.marketplace.map((m) =>
+      db.markets.put({
+        created: DateTime.now().toISO(),
+        location,
+        pricePerUnit: m.pricePerUnit,
+        quantityAvailable: m.quantityAvailable,
+        volumePerUnit: m.volumePerUnit,
+        good: m.symbol,
+      })
+    );
+
     return result;
   });
 

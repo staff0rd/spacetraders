@@ -33,9 +33,6 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
     minWidth: 120,
   },
-  selectEmpty: {
-    marginTop: theme.spacing(2),
-  },
 }));
 
 export const Trades = () => {
@@ -51,8 +48,7 @@ export const Trades = () => {
           (good ? p.good === good : p.good !== "FUEL") &&
           (type !== "" ? type === p.type : true)
       )
-
-      .limit(20)
+      .limit(50)
       .toArray();
   }, [good, type]);
 
