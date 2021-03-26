@@ -84,23 +84,47 @@ export const shipMachine = createMachine<Context, any, any>(
       sellCargo: {
         invoke: {
           src: async (c) => {
-            let lastResult: Partial<api.PurchaseOrderResponse> = {
+            let result: Partial<api.PurchaseOrderResponse> = {
               ship: c.ship,
               credits: c.credits,
             };
             const sellableCargo = c.ship.cargo.filter(
               (cargo) => cargo.good !== "FUEL"
             );
-            for (const good of sellableCargo) {
-              lastResult = await api.sellOrder(
+            for (const sellOrder of sellableCargo) {
+              const quantity = Math.min(1000, sellOrder.quantity);
+              result = await api.sellOrder(
                 c.token,
                 c.username,
                 c.ship.id,
-                good.good,
-                Math.min(1000, good.quantity)
+                sellOrder.good,
+                quantity
               );
+              const lastBuy = await db.trades
+                .reverse()
+                .filter(
+                  (p) =>
+                    p.good === sellOrder.good &&
+                    p.shipId === c.ship.id &&
+                    p.type === TradeType.Buy
+                )
+                .last();
+              db.trades.put({
+                cost: result!.order!.total,
+                type: TradeType.Sell,
+                good: sellOrder.good,
+                quantity,
+                location: c.location!.symbol,
+                shipId: c.ship.id,
+                timestamp: DateTime.now().toISO(),
+                profit: lastBuy
+                  ? (result!.order!.pricePerUnit -
+                      lastBuy.cost / lastBuy.quantity) *
+                    quantity
+                  : undefined,
+              });
             }
-            return lastResult;
+            return result;
           },
           onError: {
             actions: "printError",

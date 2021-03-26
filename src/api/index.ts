@@ -153,11 +153,22 @@ export type GetMarketResponse = {
   location: Location;
 };
 
+const marketLimits: { [key: string]: Bottleneck } = {};
+
+const scheduleMarket = (symbol: string, request: () => Promise<any>) => {
+  if (!(symbol in marketLimits)) {
+    marketLimits[symbol] = new Bottleneck({ maxConcurrent: 1, minTime: 5000 });
+  }
+  return marketLimits[symbol].schedule(request);
+};
+
 export const getMarket = (
   token: string,
   symbol: string
 ): Promise<GetMarketResponse> =>
-  getSecure(token, `game/locations/${symbol}/marketplace`);
+  scheduleMarket(symbol, () =>
+    getSecure(token, `game/locations/${symbol}/marketplace`)
+  );
 
 interface GetShipsResponse {
   ships: Ship[];
