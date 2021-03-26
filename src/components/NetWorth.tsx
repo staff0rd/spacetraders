@@ -26,14 +26,20 @@ export const NetWorth = ({ lines }: Props) => {
   const grouped: NetWorthLineItem[] = [];
   lines.reduce(function (res: any, value: NetWorthLineItem) {
     if (!res[value.description]) {
-      res[value.description] = { description: value.description, value: 0 };
+      res[value.description] = {
+        description: value.description,
+        value: 0,
+        quantity: 0,
+      };
       grouped.push(res[value.description]);
     }
     res[value.description].value += value.value;
     res[value.description].category = value.category;
+    res[value.description].quantity += value.quantity;
     return res;
   }, {});
 
+  console.log(grouped);
   return (
     <>
       <TableContainer component={Paper}>
@@ -42,6 +48,7 @@ export const NetWorth = ({ lines }: Props) => {
             <TableRow>
               <TableCell>Category</TableCell>
               <TableCell>Description</TableCell>
+              <TableCell align="right">Quantity</TableCell>
               <TableCell align="right">Value</TableCell>
             </TableRow>
           </TableHead>
@@ -52,6 +59,13 @@ export const NetWorth = ({ lines }: Props) => {
                   {line.category}
                 </TableCell>
                 <TableCell>{line.description}</TableCell>
+                <TableCell align="right">
+                  <NumberFormat
+                    value={line.quantity}
+                    thousandSeparator=","
+                    displayType="text"
+                  />
+                </TableCell>
                 <TableCell align="right">
                   <NumberFormat
                     value={line.value}

@@ -9,7 +9,7 @@ import {
   makeStyles,
   useTheme,
 } from "@material-ui/core/styles";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { Switch, Route, Link, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import Drawer from "@material-ui/core/Drawer";
 import AppBar from "@material-ui/core/AppBar";
@@ -178,6 +178,8 @@ export function App() {
     .map((v) => v.value)
     .reduce((a, b) => a + b, 0);
 
+  const { pathname } = useLocation() as any;
+
   const menu = [
     {
       icon: (
@@ -240,121 +242,115 @@ export function App() {
   }, []);
 
   return (
-    <Router>
-      <div className={classes.root}>
-        <CssBaseline />
-        <AppBar
-          position="fixed"
-          className={clsx(classes.appBar, {
-            [classes.appBarShift]: drawerOpen,
-          })}
-        >
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleDrawerOpen}
-              edge="start"
-              className={clsx(classes.menuButton, {
-                [classes.hide]: drawerOpen,
-              })}
-            >
-              <MenuIcon />
-            </IconButton>
-            <MainToolbar
-              userName={state.context.user?.username || ""}
-              credits={credits}
-              netWorth={netWorth}
-            />
-          </Toolbar>
-        </AppBar>
-        <Drawer
-          variant="permanent"
-          className={clsx(classes.drawer, {
-            [classes.drawerOpen]: drawerOpen,
-            [classes.drawerClose]: !drawerOpen,
-          })}
-          classes={{
-            paper: clsx({
-              [classes.drawerOpen]: drawerOpen,
-              [classes.drawerClose]: !drawerOpen,
-            }),
-          }}
-        >
-          <div className={classes.toolbar}>
-            <IconButton onClick={handleDrawerClose}>
-              {theme.direction === "rtl" ? (
-                <ChevronRightIcon />
-              ) : (
-                <ChevronLeftIcon />
-              )}
-            </IconButton>
-          </div>
-          <div className={classes.drawerContainer}>
-            <List>
-              {menu.map((item) => (
-                <MenuItem
-                  component={Link as any}
-                  to={item.to}
-                  button
-                  key={item.title}
-                >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.title} />
-                </MenuItem>
-              ))}
-            </List>
-            <Divider />
-            <List>
-              {bottomMenu.map((item) => (
-                <MenuItem
-                  button
-                  key={item.title}
-                  component="a"
-                  href={item.href}
-                >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.title} />
-                </MenuItem>
-              ))}
-            </List>
-          </div>
-          <div
-            className={clsx(classes.footer, {
-              [classes.footerOpen]: drawerOpen,
-              [classes.footerClosed]: !drawerOpen,
+    <div className={classes.root}>
+      <CssBaseline />
+      <AppBar
+        position="fixed"
+        className={clsx(classes.appBar, {
+          [classes.appBarShift]: drawerOpen,
+        })}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            onClick={handleDrawerOpen}
+            edge="start"
+            className={clsx(classes.menuButton, {
+              [classes.hide]: drawerOpen,
             })}
           >
-            {queued > 2 && (
-              <IconAndValue
-                icon={<WarningIcon className={classes.warningIcon} />}
-                tooltip="Number of api requests queued"
-                value={queued}
-                squished={!drawerOpen}
-              />
+            <MenuIcon />
+          </IconButton>
+          <MainToolbar
+            userName={state.context.user?.username || ""}
+            credits={credits}
+            netWorth={netWorth}
+          />
+        </Toolbar>
+      </AppBar>
+      <Drawer
+        variant="permanent"
+        className={clsx(classes.drawer, {
+          [classes.drawerOpen]: drawerOpen,
+          [classes.drawerClose]: !drawerOpen,
+        })}
+        classes={{
+          paper: clsx({
+            [classes.drawerOpen]: drawerOpen,
+            [classes.drawerClose]: !drawerOpen,
+          }),
+        }}
+      >
+        <div className={classes.toolbar}>
+          <IconButton onClick={handleDrawerClose}>
+            {theme.direction === "rtl" ? (
+              <ChevronRightIcon />
+            ) : (
+              <ChevronLeftIcon />
             )}
-            <div
-              className={clsx({
-                [classes.statusOpen]: drawerOpen,
-                [classes.statusClosed]: !drawerOpen,
-              })}
-            >
-              <Status />
-            </div>
-          </div>
-        </Drawer>
-        <main className={classes.content}>
-          <Toolbar />
-          <Switch>
+          </IconButton>
+        </div>
+        <div className={classes.drawerContainer}>
+          <List>
             {menu.map((item) => (
-              <Route key={item.title} path={item.to}>
-                {item.component}
-              </Route>
+              <MenuItem
+                component={Link as any}
+                to={item.to}
+                button
+                key={item.title}
+                selected={item.to === pathname}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.title} />
+              </MenuItem>
             ))}
-          </Switch>
-        </main>
-      </div>
-    </Router>
+          </List>
+          <Divider />
+          <List>
+            {bottomMenu.map((item) => (
+              <MenuItem button key={item.title} component="a" href={item.href}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.title} />
+              </MenuItem>
+            ))}
+          </List>
+        </div>
+        <div
+          className={clsx(classes.footer, {
+            [classes.footerOpen]: drawerOpen,
+            [classes.footerClosed]: !drawerOpen,
+          })}
+        >
+          {queued > 2 && (
+            <IconAndValue
+              icon={<WarningIcon className={classes.warningIcon} />}
+              tooltip="Number of api requests queued"
+              value={queued}
+              squished={!drawerOpen}
+            />
+          )}
+          <div
+            className={clsx({
+              [classes.statusOpen]: drawerOpen,
+              [classes.statusClosed]: !drawerOpen,
+            })}
+          >
+            <Status />
+          </div>
+        </div>
+      </Drawer>
+      <main className={classes.content}>
+        <Toolbar />
+        <Switch>
+          {menu.map((item) => (
+            <Route key={item.title} path={item.to}>
+              {item.component}
+            </Route>
+          ))}
+        </Switch>
+      </main>
+    </div>
   );
 }
 
