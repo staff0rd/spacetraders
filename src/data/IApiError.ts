@@ -4,4 +4,5 @@ export interface IApiError {
   message: string;
   path: string;
   data?: string;
+  created: string;
 }

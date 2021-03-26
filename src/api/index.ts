@@ -9,6 +9,7 @@ import Bottleneck from "bottleneck";
 import { Location } from "./Location";
 import { FlightPlan } from "./FlightPlan";
 import db from "../data/";
+import { DateTime } from "luxon";
 
 class ApiError extends Error {
   code: number;
@@ -60,6 +61,7 @@ const makeRequest = async (
         message: result.error.message,
         path,
         data,
+        created: DateTime.now().toISO(),
       })
       .catch((reason) => console.error("Cound not save error: ", reason));
     throw new ApiError(result.error.message, result.error.code);

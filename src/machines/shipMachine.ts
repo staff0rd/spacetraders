@@ -7,7 +7,7 @@ import {
   StateMachine,
 } from "xstate";
 import * as api from "../api";
-import { Ship } from "../api/Ship";
+import { Cargo, Ship } from "../api/Ship";
 import { Location } from "../api/Location";
 import { getDistance } from "./getDistance";
 import { FlightPlan } from "../api/FlightPlan";
@@ -97,7 +97,7 @@ export const shipMachine = createMachine<Context, any, any>(
                 c.username,
                 c.ship.id,
                 good.good,
-                good.quantity
+                Math.min(1000, good.quantity)
               );
             }
             return lastResult;
@@ -112,7 +112,9 @@ export const shipMachine = createMachine<Context, any, any>(
               assign({
                 credits: (c, e: any) => e.data.credits,
                 ship: (c, e: any) => e.data.ship,
-                hasSold: true,
+                hasSold: (c, e: any) =>
+                  e.data.ship.cargo.filter((p: Cargo) => p.good !== "FUEL")
+                    .length === 0,
               }) as any,
               "shipUpdate",
               sendParent((context, event) => ({

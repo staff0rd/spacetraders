@@ -14,7 +14,12 @@ const getProfit = (
 ): BestBuy => {
   const hasSpaceFor = Math.floor(spaceAvailable / from.volumePerUnit);
   const hasCreditsFor = Math.floor(credits / from.pricePerUnit);
-  const quantity = Math.min(hasSpaceFor, hasCreditsFor, from.quantityAvailable);
+  const quantity = Math.min(
+    hasSpaceFor,
+    hasCreditsFor,
+    from.quantityAvailable,
+    1000
+  );
   const sell = destination.find((p) => p.symbol === from.symbol);
   if (!sell) return { profit: -from.pricePerUnit, quantity };
   return {
