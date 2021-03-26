@@ -32,7 +32,6 @@ const useStyles = makeStyles((theme: Theme) =>
 type Props = {
   rootState: StateValue;
   handleClearPlayer: () => void;
-  shipCount: number;
   userName: string;
   credits: number;
   netWorth: number;
@@ -41,7 +40,6 @@ type Props = {
 export default function ButtonAppBar({
   rootState,
   handleClearPlayer,
-  shipCount,
   userName,
   credits,
   netWorth,
@@ -51,15 +49,6 @@ export default function ButtonAppBar({
     confirmClearPlayerDialogOpen,
     setConfirmClearPlayerDialogOpen,
   ] = useState(false);
-  const [queued, setQueued] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setQueued((window as any).limiter.queued());
-    }, 500);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <>
