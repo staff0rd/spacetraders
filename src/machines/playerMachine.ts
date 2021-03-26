@@ -313,7 +313,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             c.availableShips,
             c.locations!
           ) as any,
-      }),
+      }) as any,
     },
     services: {
       getUser: (c: Context) => getUser(c.token!, c.user!.username),

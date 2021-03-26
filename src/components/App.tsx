@@ -34,8 +34,10 @@ import WarningIcon from "@material-ui/icons/Warning";
 import orange from "@material-ui/core/colors/orange";
 import { Ships } from "./Ships";
 import { Trades } from "./Trades";
+import { Markets } from "./Markets";
 import { Errors } from "./Errors";
 import ErrorIcon from "@material-ui/icons/Error";
+import MarketsIcon from "@material-ui/icons/Timeline";
 
 const drawerWidth = 180;
 
@@ -188,6 +190,12 @@ export function App() {
       title: "Trades",
       to: "/trades",
       component: <Trades />,
+    },
+    {
+      icon: <MarketsIcon />,
+      title: "Markets",
+      to: "/markets",
+      component: <Markets />,
     },
     {
       icon: <ErrorIcon />,

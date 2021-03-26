@@ -93,7 +93,7 @@ const postSecure = async (token: string, urlSegment: string, data?: any) => {
   });
 };
 
-const getSecure = async (token: string, urlSegment: string) => {
+const getSecure = async <T>(token: string, urlSegment: string): Promise<T> => {
   return get(urlSegment, {
     Authorization: `Bearer ${token}`,
   });
@@ -164,11 +164,20 @@ const scheduleMarket = (symbol: string, request: () => Promise<any>) => {
 
 export const getMarket = (
   token: string,
-  symbol: string
+  location: string
 ): Promise<GetMarketResponse> =>
-  scheduleMarket(symbol, () =>
-    getSecure(token, `game/locations/${symbol}/marketplace`)
-  );
+  scheduleMarket(location, async () => {
+    const result = await getSecure<GetMarketResponse>(
+      token,
+      `game/locations/${location}/marketplace`
+    );
+    db.market.put({
+      created: DateTime.now().toISO(),
+      location,
+      market: result.location.marketplace,
+    });
+    return result;
+  });
 
 interface GetShipsResponse {
   ships: Ship[];
