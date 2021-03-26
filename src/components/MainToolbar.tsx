@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Box from "@material-ui/core/Box";
 import { Tooltip } from "@material-ui/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -9,12 +8,10 @@ import { IconButton } from "@material-ui/core";
 import { StateValue } from "xstate";
 import PersonIcon from "@material-ui/icons/Person";
 import { IconAndValue } from "./IconAndValue";
-import { SpaceshipIcon } from "./SpaceshipIcon";
 import NumberFormat from "react-number-format";
 
 import CreditsIcon from "@material-ui/icons/AttachMoney";
 import NetWorthIcon from "@material-ui/icons/TrendingUp";
-import WarningIcon from "@material-ui/icons/Warning";
 import yellow from "@material-ui/core/colors/yellow";
 
 const useStyles = makeStyles((theme: Theme) =>

@@ -29,19 +29,32 @@ const useStyles = makeStyles((theme) => ({
   sell: {
     backgroundColor: green[100],
   },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+  },
+  selectEmpty: {
+    marginTop: theme.spacing(2),
+  },
 }));
 
 export const Trades = () => {
   const classes = useStyles();
   const [good, setGood] = useState("");
+  const [type, setType] = useState<string | number>("");
 
   const trades = useLiveQuery(() => {
     return db.trades
       .reverse()
-      .filter((p) => (good ? p.good === good : p.good !== "FUEL"))
+      .filter(
+        (p) =>
+          (good ? p.good === good : p.good !== "FUEL") &&
+          (type !== "" ? type === p.type : true)
+      )
+
       .limit(20)
       .toArray();
-  }, [good]);
+  }, [good, type]);
 
   const goods = useLiveQuery(() => db.trades.orderBy("good").uniqueKeys());
 
@@ -49,16 +62,28 @@ export const Trades = () => {
 
   return (
     <>
+      <FormControl className={classes.formControl}>
+        <InputLabel id="select-type-label">Type</InputLabel>
+        <Select
+          labelId="select-type-label"
+          id="select-type"
+          value={type}
+          onChange={(e) => setType(e.target.value as string | number)}
+        >
+          <MenuItem value={""}>All</MenuItem>
+          <MenuItem value={0}>Buy</MenuItem>
+          <MenuItem value={1}>Sell</MenuItem>
+        </Select>
+      </FormControl>
       {goods && (
-        <FormControl>
-          <InputLabel id="filter-by-good-label">Good</InputLabel>
+        <FormControl className={classes.formControl}>
+          <InputLabel id="select-good-label">Good</InputLabel>
           <Select
-            labelId="filter-by-good-label"
-            id="filter-by-good"
-            displayEmpty
+            labelId="select-good-label"
+            id="select-good"
             value={good}
-            variant="filled"
-            onChange={(event) => setGood(event.target.value as string)}
+            placeholder="All"
+            onChange={(e) => setGood(e.target.value as string)}
           >
             <MenuItem value={""}>All</MenuItem>
             {goods!.map((good: any) => (

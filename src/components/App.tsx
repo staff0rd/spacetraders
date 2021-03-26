@@ -16,7 +16,7 @@ import AppBar from "@material-ui/core/AppBar";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Toolbar from "@material-ui/core/Toolbar";
 import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
+import MenuItem from "@material-ui/core/MenuItem";
 import Divider from "@material-ui/core/Divider";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
@@ -280,20 +280,21 @@ export function App() {
           <div className={classes.drawerContainer}>
             <List>
               {menu.map((item) => (
-                <ListItem
-                  component={(props) => <Link {...props} to={item.to} />}
+                <MenuItem
+                  component={Link as any}
+                  to={item.to}
                   button
                   key={item.title}
                 >
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.title} />
-                </ListItem>
+                </MenuItem>
               ))}
             </List>
             <Divider />
             <List>
               {bottomMenu.map((item) => (
-                <ListItem
+                <MenuItem
                   button
                   key={item.title}
                   component="a"
@@ -301,7 +302,7 @@ export function App() {
                 >
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.title} />
-                </ListItem>
+                </MenuItem>
               ))}
             </List>
           </div>
