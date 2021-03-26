@@ -14,7 +14,8 @@ import {
 import { MarketContext } from "./MarketContext";
 import { cacheLocation } from "./locationCache";
 import { AvailableShip } from "../api/AvailableShip";
-import { calculateNetWorth, LineItem } from "./calculateNetWorth";
+import { calculateNetWorth } from "./calculateNetWorth";
+import { NetWorthLineItem } from "./NetWorthLineItem";
 import { Ship } from "../api/Ship";
 import { FlightPlan } from "../api/FlightPlan";
 
@@ -50,7 +51,7 @@ export type Context = {
   user?: User;
   locations?: MarketContext;
   availableShips: AvailableShip[];
-  netWorth: LineItem[];
+  netWorth: NetWorthLineItem[];
   ships: ShipActor[];
   flightPlans: FlightPlan[];
 };

@@ -52,7 +52,7 @@ export const Markets = () => {
     <>
       {locations && (
         <FormControl className={classes.formControl}>
-          <InputLabel id="select-type-label">Type</InputLabel>
+          <InputLabel id="select-type-label">Location</InputLabel>
           <Select
             labelId="select-type-label"
             id="select-type"
@@ -61,7 +61,9 @@ export const Markets = () => {
           >
             <MenuItem value={""}>All</MenuItem>
             {locations.map((location) => (
-              <MenuItem value={location as string}>{location}</MenuItem>
+              <MenuItem key={location as string} value={location as string}>
+                {location}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -78,7 +80,9 @@ export const Markets = () => {
           >
             <MenuItem value={""}>All</MenuItem>
             {goods!.map((good: any) => (
-              <MenuItem value={good}>{good}</MenuItem>
+              <MenuItem key={good} value={good}>
+                {good}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>

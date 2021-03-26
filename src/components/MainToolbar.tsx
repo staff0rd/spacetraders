@@ -1,11 +1,10 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import { Tooltip } from "@material-ui/core";
-import { StateValue } from "xstate";
 import PersonIcon from "@material-ui/icons/Person";
 import { IconAndValue } from "./IconAndValue";
 import NumberFormat from "react-number-format";
 import CreditsIcon from "@material-ui/icons/AttachMoney";
-import NetWorthIcon from "@material-ui/icons/TrendingUp";
+import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import yellow from "@material-ui/core/colors/yellow";
 
 const useStyles = makeStyles((theme: Theme) =>

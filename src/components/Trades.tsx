@@ -24,10 +24,10 @@ import MenuItem from "@material-ui/core/MenuItem";
 
 const useStyles = makeStyles((theme) => ({
   buy: {
-    backgroundColor: blue[100],
+    backgroundColor: blue[50],
   },
   sell: {
-    backgroundColor: green[100],
+    backgroundColor: green[50],
   },
   formControl: {
     margin: theme.spacing(1),

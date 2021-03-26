@@ -37,9 +37,11 @@ import { Trades } from "./Trades";
 import { Markets } from "./Markets";
 import { Errors } from "./Errors";
 import { Settings } from "./Settings";
+import { NetWorth } from "./NetWorth";
 import ErrorIcon from "@material-ui/icons/Error";
 import MarketsIcon from "@material-ui/icons/Timeline";
 import SettingsIcon from "@material-ui/icons/Settings";
+import NetWorthIcon from "@material-ui/icons/AccountBalance";
 
 const drawerWidth = 180;
 
@@ -198,6 +200,12 @@ export function App() {
       title: "Markets",
       to: "/markets",
       component: <Markets />,
+    },
+    {
+      icon: <NetWorthIcon />,
+      title: "Net Worth",
+      to: "/net-worth",
+      component: <NetWorth lines={state.context.netWorth} />,
     },
     {
       icon: <ErrorIcon />,
