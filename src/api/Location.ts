@@ -1,11 +1,5 @@
+import { Marketplace } from "./Marketplace";
 import { Ship } from "./Ship";
-
-export interface Marketplace {
-  symbol: string;
-  volumePerUnit: number;
-  pricePerUnit: number;
-  quantityAvailable: number;
-}
 
 export interface Location {
   symbol: string;

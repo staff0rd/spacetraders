@@ -1,4 +1,4 @@
-import { Marketplace } from "../api/Location";
+import { Marketplace } from "../api/Marketplace";
 import { getLocation } from "./locationCache";
 import { Context, ShouldBuy } from "./shipMachine";
 

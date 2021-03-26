@@ -33,14 +33,15 @@ const useStyles = makeStyles((theme) => ({
 
 export const Trades = () => {
   const classes = useStyles();
-  const trades = useLiveQuery(() =>
-    db.trades
-      .reverse()
-      .filter((p) => p.good !== "FUEL")
-      .limit(20)
-      .toArray()
-  );
   const [good, setGood] = useState("");
+
+  const trades = useLiveQuery(() => {
+    return db.trades
+      .reverse()
+      .filter((p) => (good ? p.good === good : p.good !== "FUEL"))
+      .limit(20)
+      .toArray();
+  }, [good]);
 
   const goods = useLiveQuery(() => db.trades.orderBy("good").uniqueKeys());
 
