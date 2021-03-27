@@ -1,21 +1,7 @@
-import TableContainer from "@material-ui/core/TableContainer";
-import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import TableCell from "@material-ui/core/TableCell";
-import TableBody from "@material-ui/core/TableBody";
-import Paper from "@material-ui/core/Paper";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import NumberFormat from "react-number-format";
-import { makeStyles } from "@material-ui/core";
 import { NetWorthLineItem } from "../machines/NetWorthLineItem";
-
-const useStyles = makeStyles((theme) => ({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-  },
-}));
+import { DataTable } from "./DataTable";
 
 type Props = {
   lines: NetWorthLineItem[];
@@ -39,45 +25,36 @@ export const NetWorth = ({ lines }: Props) => {
     return res;
   }, {});
 
-  return (
-    <>
-      <TableContainer component={Paper}>
-        <Table size="small" aria-label="Trades">
-          <TableHead>
-            <TableRow>
-              <TableCell>Category</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell align="right">Quantity</TableCell>
-              <TableCell align="right">Value</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {grouped.map((line, ix) => (
-              <TableRow key={ix}>
-                <TableCell component="th" scope="row">
-                  {line.category}
-                </TableCell>
-                <TableCell>{line.description}</TableCell>
-                <TableCell align="right">
-                  <NumberFormat
-                    value={line.quantity}
-                    thousandSeparator=","
-                    displayType="text"
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  <NumberFormat
-                    value={line.value}
-                    thousandSeparator=","
-                    displayType="text"
-                    prefix="$"
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </>
-  );
+  const right = (value: React.ReactNode) => ({
+    props: { align: "right" },
+    value,
+  });
+
+  const columns = [
+    "Category",
+    "Description",
+    right("Quantity"),
+    right("Value"),
+  ];
+  const rows: React.ReactNode[][] = grouped.map((row) => [
+    row.category,
+    row.description,
+    right(
+      <NumberFormat
+        value={row.quantity}
+        thousandSeparator=","
+        displayType="text"
+      />
+    ),
+    right(
+      <NumberFormat
+        value={row.value}
+        thousandSeparator=","
+        displayType="text"
+        prefix="$"
+      />
+    ),
+  ]);
+
+  return <DataTable title="Net Worth" columns={columns} rows={rows} />;
 };
