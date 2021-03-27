@@ -7,37 +7,26 @@ import TableBody from "@material-ui/core/TableBody";
 import Paper from "@material-ui/core/Paper";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import NumberFormat from "react-number-format";
-import { makeStyles } from "@material-ui/core";
-import { NetWorthLineItem } from "../machines/NetWorthLineItem";
-
-const useStyles = makeStyles((theme) => ({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-  },
-}));
+import { AvailableShip } from "../api/AvailableShip";
 
 type Props = {
-  lines: NetWorthLineItem[];
+  availableShips: AvailableShip[];
 };
 
-export const NetWorth = ({ lines }: Props) => {
-  if (!lines || !lines.length) return <CircularProgress size={48} />;
-  const grouped: NetWorthLineItem[] = [];
-  lines.reduce(function (res: any, value: NetWorthLineItem) {
-    if (!res[value.description]) {
-      res[value.description] = {
-        description: value.description,
-        value: 0,
-        quantity: 0,
-      };
-      grouped.push(res[value.description]);
-    }
-    res[value.description].value += value.value;
-    res[value.description].category = value.category;
-    res[value.description].quantity += value.quantity;
-    return res;
-  }, {});
+export const AvailableShips = ({ availableShips }: Props) => {
+  if (!availableShips || !availableShips.length)
+    return <CircularProgress size={48} />;
+
+  const ships = availableShips
+    .map((av) =>
+      av.purchaseLocations.map((loc) => ({
+        ...av,
+        purchaseLocations: undefined,
+        ...loc,
+      }))
+    )
+    .flat()
+    .sort((a, b) => a.price - b.price);
 
   return (
     <>
@@ -45,29 +34,37 @@ export const NetWorth = ({ lines }: Props) => {
         <Table size="small" aria-label="Trades">
           <TableHead>
             <TableRow>
-              <TableCell>Category</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell align="right">Quantity</TableCell>
-              <TableCell align="right">Value</TableCell>
+              <TableCell>Manufacturer</TableCell>
+              <TableCell>Class</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Location</TableCell>
+              <TableCell>S/W/P</TableCell>
+              <TableCell align="right">Max Cargo</TableCell>
+              <TableCell align="right">Price</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {grouped.map((line, ix) => (
+            {ships.map((line, ix) => (
               <TableRow key={ix}>
                 <TableCell component="th" scope="row">
-                  {line.category}
+                  {line.manufacturer}
                 </TableCell>
-                <TableCell>{line.description}</TableCell>
+                <TableCell>{line.class}</TableCell>
+                <TableCell>{line.type}</TableCell>
+                <TableCell>{line.location}</TableCell>
+                <TableCell>
+                  {line.speed} / {line.weapons} / {line.plating}
+                </TableCell>
                 <TableCell align="right">
                   <NumberFormat
-                    value={line.quantity}
+                    value={line.maxCargo}
                     thousandSeparator=","
                     displayType="text"
                   />
                 </TableCell>
                 <TableCell align="right">
                   <NumberFormat
-                    value={line.value}
+                    value={line.price}
                     thousandSeparator=","
                     displayType="text"
                     prefix="$"

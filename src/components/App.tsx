@@ -33,6 +33,7 @@ import { Status } from "./Status";
 import WarningIcon from "@material-ui/icons/Warning";
 import orange from "@material-ui/core/colors/orange";
 import { Ships } from "./Ships";
+import { AvailableShips } from "./AvailableShips";
 import { Trades } from "./Trades";
 import { Markets } from "./Markets";
 import { Errors } from "./Errors";
@@ -76,7 +77,6 @@ const useStyles = makeStyles((theme: Theme) =>
     drawer: {
       width: drawerWidth,
       flexShrink: 0,
-      //whiteSpace: "nowrap", // this
     },
     drawerPaper: {
       width: drawerWidth,
@@ -166,11 +166,11 @@ export function App() {
     setDrawerOpen(false);
   };
 
-  const [state] = useMachine(playerMachine);
+  const [state, send] = useMachine(playerMachine);
 
-  // const handleClearPlayer = () => {
-  //   send("CLEAR_PLAYER");
-  // };
+  const handleClearPlayer = () => {
+    send("CLEAR_PLAYER");
+  };
 
   const shipCount = state.context.user?.ships?.length || 0;
   const credits = state.context.user?.credits || 0;
@@ -190,6 +190,21 @@ export function App() {
       title: "Ships",
       to: "/ships",
       component: <Ships ships={state.context.ships} />,
+    },
+    {
+      icon: (
+        <Badge
+          color="primary"
+          badgeContent={state.context.availableShips.length}
+        >
+          <SpaceshipIcon />
+        </Badge>
+      ),
+      title: "Available",
+      to: "/available-ships",
+      component: (
+        <AvailableShips availableShips={state.context.availableShips} />
+      ),
     },
     {
       icon: <TradeIcon />,
@@ -219,7 +234,7 @@ export function App() {
       icon: <SettingsIcon />,
       title: "Settings",
       to: "/settings",
-      component: <Settings />,
+      component: <Settings handleClearPlayer={handleClearPlayer} />,
     },
   ];
 
