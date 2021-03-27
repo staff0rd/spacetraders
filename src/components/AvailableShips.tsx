@@ -1,3 +1,5 @@
+import Typography from "@material-ui/core/Typography";
+import Tooltip from "@material-ui/core/Tooltip";
 import TableContainer from "@material-ui/core/TableContainer";
 import Table from "@material-ui/core/Table";
 import TableHead from "@material-ui/core/TableHead";
@@ -38,7 +40,19 @@ export const AvailableShips = ({ availableShips }: Props) => {
               <TableCell>Class</TableCell>
               <TableCell>Type</TableCell>
               <TableCell>Location</TableCell>
-              <TableCell>S/W/P</TableCell>
+              <TableCell>
+                <Tooltip title="Speed">
+                  <Typography component="span">S</Typography>
+                </Tooltip>{" "}
+                /{" "}
+                <Tooltip title="Weapons">
+                  <Typography component="span">W</Typography>
+                </Tooltip>{" "}
+                /{" "}
+                <Tooltip title="Plating">
+                  <Typography component="span">P</Typography>
+                </Tooltip>
+              </TableCell>
               <TableCell align="right">Max Cargo</TableCell>
               <TableCell align="right">Price</TableCell>
             </TableRow>
