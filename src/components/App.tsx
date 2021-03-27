@@ -10,7 +10,7 @@ import {
   createMuiTheme,
   ThemeProvider,
 } from "@material-ui/core/styles";
-import { Switch, Route, Link, useLocation } from "react-router-dom";
+import { Switch, Route, Link, useLocation, Redirect } from "react-router-dom";
 import clsx from "clsx";
 import Drawer from "@material-ui/core/Drawer";
 import AppBar from "@material-ui/core/AppBar";
@@ -43,7 +43,6 @@ import ErrorIcon from "@material-ui/icons/Error";
 import MarketsIcon from "@material-ui/icons/Timeline";
 import SettingsIcon from "@material-ui/icons/Settings";
 import NetWorthIcon from "@material-ui/icons/AccountBalance";
-import { AsyncLocalStorage } from "node:async_hooks";
 
 const drawerWidth = 180;
 
@@ -394,6 +393,7 @@ export function App() {
                 {item.component}
               </Route>
             ))}
+            <Redirect from="/" to="ships" />
           </Switch>
         </main>
       </div>
