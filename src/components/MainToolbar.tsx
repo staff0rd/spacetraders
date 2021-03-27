@@ -1,11 +1,13 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import { Tooltip } from "@material-ui/core";
+import { Tooltip, IconButton } from "@material-ui/core";
 import PersonIcon from "@material-ui/icons/Person";
 import { IconAndValue } from "./IconAndValue";
 import NumberFormat from "react-number-format";
 import CreditsIcon from "@material-ui/icons/AttachMoney";
 import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import yellow from "@material-ui/core/colors/yellow";
+import DarkIcon from "@material-ui/icons/Brightness4";
+import LightIcon from "@material-ui/icons/Brightness7";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -26,9 +28,17 @@ type Props = {
   userName: string;
   credits: number;
   netWorth: number;
+  toggleTheme: () => void;
+  darkMode: boolean;
 };
 
-export default function ButtonAppBar({ userName, credits, netWorth }: Props) {
+export default function ButtonAppBar({
+  userName,
+  credits,
+  netWorth,
+  darkMode,
+  toggleTheme,
+}: Props) {
   const classes = useStyles();
 
   return (
@@ -57,6 +67,11 @@ export default function ButtonAppBar({ userName, credits, netWorth }: Props) {
           }
         />
       </div>
+
+      <IconButton aria-label="delete" onClick={toggleTheme}>
+        {darkMode ? <LightIcon /> : <DarkIcon />}
+      </IconButton>
+
       {userName && (
         <Tooltip title={userName}>
           <PersonIcon />

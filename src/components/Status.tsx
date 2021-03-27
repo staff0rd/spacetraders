@@ -8,6 +8,7 @@ import { apiPollMachine } from "../machines/apiPollMachine";
 import { getStatus } from "../api";
 import green from "@material-ui/core/colors/green";
 import { Tooltip } from "@material-ui/core";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
 
 const statusMachine = apiPollMachine(getStatus);
 
@@ -22,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: green[500],
   },
   icon: {
-    fill: "rgba(0, 0, 0, 0.54)",
+    minWidth: 0,
   },
 }));
 
@@ -43,7 +44,9 @@ export const Status = () => {
           variant="dot"
           overlap="circle"
         >
-          <DnsIcon className={classes.icon} />
+          <ListItemIcon className={classes.icon}>
+            <DnsIcon />
+          </ListItemIcon>
         </Badge>
       </Tooltip>
     );

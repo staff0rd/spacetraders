@@ -21,13 +21,14 @@ import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
+import { fade } from "@material-ui/core/styles/colorManipulator";
 
 const useStyles = makeStyles((theme) => ({
   buy: {
-    backgroundColor: blue[50],
+    backgroundColor: fade(blue[500], 0.15),
   },
   sell: {
-    backgroundColor: green[50],
+    backgroundColor: fade(green[500], 0.15),
   },
   formControl: {
     margin: theme.spacing(1),
