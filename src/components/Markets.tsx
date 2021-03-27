@@ -95,6 +95,7 @@ export const Markets = () => {
               <TableCell align="right">Location</TableCell>
               <TableCell align="right">Qty</TableCell>
               <TableCell align="right">Good</TableCell>
+              <TableCell align="right">㎥</TableCell>
               <TableCell align="right">Cost</TableCell>
               <TableCell align="right">When</TableCell>
             </TableRow>
@@ -107,6 +108,7 @@ export const Markets = () => {
                 </TableCell>
                 <TableCell align="right">{market.quantityAvailable}</TableCell>
                 <TableCell align="right">{market.good}</TableCell>
+                <TableCell align="right">{market.volumePerUnit}</TableCell>
                 <TableCell align="right">
                   <NumberFormat
                     value={market.pricePerUnit}
