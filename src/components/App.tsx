@@ -24,7 +24,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import IconButton from "@material-ui/core/IconButton";
 import Badge from "@material-ui/core/Badge";
 import MenuIcon from "@material-ui/icons/Menu";
-import { useMediaQuery } from "@material-ui/core";
+import { PaletteType, useMediaQuery } from "@material-ui/core";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { SpaceshipIcon } from "./SpaceshipIcon";
@@ -32,7 +32,6 @@ import GitHubIcon from "@material-ui/icons/GitHub";
 import { IconAndValue } from "./IconAndValue";
 import { Status } from "./Status";
 import WarningIcon from "@material-ui/icons/Warning";
-import orange from "@material-ui/core/colors/orange";
 import { Ships } from "./Ships";
 import { AvailableShips } from "./AvailableShips";
 import { Trades } from "./Trades";
@@ -44,6 +43,7 @@ import ErrorIcon from "@material-ui/icons/Error";
 import MarketsIcon from "@material-ui/icons/Timeline";
 import SettingsIcon from "@material-ui/icons/Settings";
 import NetWorthIcon from "@material-ui/icons/AccountBalance";
+import { AsyncLocalStorage } from "node:async_hooks";
 
 const drawerWidth = 180;
 
@@ -156,13 +156,14 @@ export function App() {
   const [theme, setTheme] = useState(
     createMuiTheme({
       palette: {
-        type: "dark",
+        type: (localStorage.getItem("theme") || "dark") as PaletteType,
       },
     })
   );
 
   const toggleTheme = () => {
     const newPaletteType = theme.palette.type === "light" ? "dark" : "light";
+    localStorage.setItem("theme", newPaletteType);
     setTheme(
       createMuiTheme({
         palette: {
@@ -367,7 +368,7 @@ export function App() {
               [classes.footerClosed]: !drawerOpen,
             })}
           >
-            {queued > -1 && (
+            {queued > 2 && (
               <IconAndValue
                 icon={<WarningIcon className={classes.warningIcon} />}
                 tooltip="Number of api requests queued"
