@@ -6,6 +6,7 @@ import {
   Paper,
   Select,
   Typography,
+  CircularProgress,
 } from "@material-ui/core";
 import React from "react";
 import { Location } from "./Location";
@@ -33,12 +34,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type Props = {
-  locations: MarketContext;
+  locations?: MarketContext;
 };
 
 export const Locations = ({ locations }: Props) => {
   const classes = useStyles();
   const [location, setLocation] = React.useState("OE-PM");
+
+  if (!locations || !locations.length) return <CircularProgress size={48} />;
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setLocation(event.target.value as string);

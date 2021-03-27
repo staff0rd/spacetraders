@@ -40,7 +40,7 @@ export type Schema = {
   context: Context;
 };
 
-type Event =
+export type Event =
   | { type: "CLEAR_PLAYER" }
   | { type: "SHIP_UPDATE" }
   | { type: "UPDATE_CREDITS"; data: number }

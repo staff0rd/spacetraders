@@ -1,7 +1,6 @@
 import MainToolbar from "./MainToolbar";
 import { playerMachine } from "../machines/playerMachine";
 import { useMachine } from "@xstate/react";
-import TradeIcon from "@material-ui/icons/SwapHoriz";
 import React, { useEffect, useState } from "react";
 import {
   createStyles,
@@ -22,27 +21,14 @@ import Divider from "@material-ui/core/Divider";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import IconButton from "@material-ui/core/IconButton";
-import Badge from "@material-ui/core/Badge";
 import MenuIcon from "@material-ui/icons/Menu";
 import { PaletteType, useMediaQuery } from "@material-ui/core";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
-import { SpaceshipIcon } from "./SpaceshipIcon";
-import GitHubIcon from "@material-ui/icons/GitHub";
 import { IconAndValue } from "./IconAndValue";
 import { Status } from "./Status";
 import WarningIcon from "@material-ui/icons/Warning";
-import { Ships } from "./Ships";
-import { AvailableShips } from "./AvailableShips";
-import { Trades } from "./Trades";
-import { Markets } from "./Markets";
-import { Errors } from "./Errors";
-import { Settings } from "./Settings";
-import { NetWorth } from "./NetWorth";
-import ErrorIcon from "@material-ui/icons/Error";
-import MarketsIcon from "@material-ui/icons/Timeline";
-import SettingsIcon from "@material-ui/icons/Settings";
-import NetWorthIcon from "@material-ui/icons/AccountBalance";
+import { getMenus } from "./getMenus";
 
 const drawerWidth = 180;
 
@@ -194,7 +180,6 @@ export function App() {
     send("CLEAR_PLAYER");
   };
 
-  const shipCount = state.context.user?.ships?.length || 0;
   const credits = state.context.user?.credits || 0;
   const netWorth = state.context.netWorth
     .map((v) => v.value)
@@ -202,71 +187,7 @@ export function App() {
 
   const { pathname } = useLocation() as any;
 
-  const menu = [
-    {
-      icon: (
-        <Badge color="primary" badgeContent={shipCount}>
-          <SpaceshipIcon />
-        </Badge>
-      ),
-      title: "Ships",
-      to: "/ships",
-      component: <Ships ships={state.context.ships} />,
-    },
-    {
-      icon: (
-        <Badge
-          color="primary"
-          badgeContent={state.context.availableShips.length}
-        >
-          <SpaceshipIcon />
-        </Badge>
-      ),
-      title: "Available",
-      to: "/available-ships",
-      component: (
-        <AvailableShips availableShips={state.context.availableShips} />
-      ),
-    },
-    {
-      icon: <TradeIcon />,
-      title: "Trades",
-      to: "/trades",
-      component: <Trades />,
-    },
-    {
-      icon: <MarketsIcon />,
-      title: "Markets",
-      to: "/markets",
-      component: <Markets />,
-    },
-    {
-      icon: <NetWorthIcon />,
-      title: "Net Worth",
-      to: "/net-worth",
-      component: <NetWorth lines={state.context.netWorth} />,
-    },
-    {
-      icon: <ErrorIcon />,
-      title: "Errors",
-      to: "/errors",
-      component: <Errors />,
-    },
-    {
-      icon: <SettingsIcon />,
-      title: "Settings",
-      to: "/settings",
-      component: <Settings handleClearPlayer={handleClearPlayer} />,
-    },
-  ];
-
-  const bottomMenu = [
-    {
-      icon: <GitHubIcon />,
-      title: "Source",
-      href: "https://github.com/staff0rd/spacetraders",
-    },
-  ];
+  const { menu, bottomMenu } = getMenus(state, handleClearPlayer);
 
   const [queued, setQueued] = useState(0);
 
