@@ -1,77 +1,29 @@
-import {
-  FormControl,
-  InputLabel,
-  makeStyles,
-  MenuItem,
-  Paper,
-  Select,
-  Typography,
-  CircularProgress,
-} from "@material-ui/core";
+import { CircularProgress } from "@material-ui/core";
 import React from "react";
-import { Location } from "./Location";
 
 import { MarketContext } from "../machines/MarketContext";
-
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    padding: theme.spacing(2),
-    marginTop: theme.spacing(1),
-    display: "flex",
-    flexDirection: "column",
-    //  justifyContent: "space-between",
-    width: 450,
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "baseline",
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    width: 120,
-  },
-}));
+import { DataTable } from "./DataTable";
 
 type Props = {
   locations?: MarketContext;
 };
 
 export const Locations = ({ locations }: Props) => {
-  const classes = useStyles();
-  const [location, setLocation] = React.useState("OE-PM");
+  if (!locations || !Object.keys(locations).length)
+    return <CircularProgress size={48} />;
 
-  if (!locations || !locations.length) return <CircularProgress size={48} />;
+  const columns = ["System", "Name", "Symbol", "Type", "Position"];
+  const rows = Object.keys(locations).map((key) => {
+    const location = locations[key];
+    const system = location.symbol.substr(0, 2);
+    return [
+      system,
+      location.name,
+      location.symbol,
+      location.type,
+      `${location.x},${location.y}`,
+    ];
+  });
 
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setLocation(event.target.value as string);
-  };
-
-  const locationPayload = Object.values(locations).find(
-    (p) => p.symbol === location
-  );
-
-  return (
-    <Paper className={classes.paper}>
-      <div className={classes.header}>
-        <Typography variant="h5">{locationPayload?.name}</Typography>
-        <FormControl className={classes.formControl}>
-          <InputLabel id="location-select-label">Location</InputLabel>
-          <Select
-            labelId="location-select-label"
-            id="location-select"
-            value={location}
-            onChange={handleChange}
-          >
-            {Object.values(locations).map((lo, ix) => (
-              <MenuItem key={ix} value={lo.symbol}>
-                {lo.symbol}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </div>
-      {locationPayload && <Location location={locationPayload} />}
-    </Paper>
-  );
+  return <DataTable title="Locations" columns={columns} rows={rows} />;
 };

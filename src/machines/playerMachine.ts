@@ -18,6 +18,7 @@ import { calculateNetWorth } from "./calculateNetWorth";
 import { NetWorthLineItem } from "./NetWorthLineItem";
 import { Ship } from "../api/Ship";
 import { FlightPlan } from "../api/FlightPlan";
+import { System } from "../api/System";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -143,9 +144,11 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             actions: assign({
               locations: (c, e: any) => {
                 const locations = {} as MarketContext;
-                (e.data.systems[0].locations as Location[]).forEach(
-                  (lo) => (locations[lo.symbol] = lo)
-                );
+                e.data.systems
+                  .map((s: System) => s.locations)
+                  .flat()
+                  .forEach((lo: Location) => (locations[lo.symbol] = lo));
+                console.warn("locations", locations);
                 return locations;
               },
             }) as any,
