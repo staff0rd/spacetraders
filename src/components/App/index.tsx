@@ -1,5 +1,5 @@
 import MainToolbar from "./MainToolbar";
-import { playerMachine } from "../machines/playerMachine";
+import { playerMachine } from "../../machines/playerMachine";
 import { useMachine } from "@xstate/react";
 import React, { useEffect, useState } from "react";
 import {
@@ -26,11 +26,15 @@ import { PaletteType, useMediaQuery } from "@material-ui/core";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { IconAndValue } from "./IconAndValue";
-import { Status } from "./Status";
+import { Status } from "../Status";
 import WarningIcon from "@material-ui/icons/Warning";
 import { getMenus } from "./getMenus";
+import { PaletteColor } from "@material-ui/core/styles/createPalette";
 
 const drawerWidth = 180;
+
+const themeColor = (theme: Theme, color: PaletteColor) =>
+  theme.palette.type === "dark" ? color.dark : color.light;
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -99,6 +103,8 @@ const useStyles = makeStyles((theme: Theme) =>
     content: {
       flexGrow: 1,
       padding: theme.spacing(3),
+      minHeight: "calc(100vh)",
+      maxWidth: "calc(100vw - 72px)",
     },
     loading: {
       marginLeft: theme.spacing(1),
@@ -108,10 +114,7 @@ const useStyles = makeStyles((theme: Theme) =>
       alignItems: "stretch",
     },
     warningIcon: {
-      color:
-        theme.palette.type === "dark"
-          ? theme.palette.warning.dark
-          : theme.palette.warning.light,
+      color: themeColor(theme, theme.palette.warning),
     },
     footer: {
       position: "fixed",

@@ -210,7 +210,9 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             actions: assign<Context>({
               systems: (c, e: any) => {
                 cacheLocation(e.data);
-                return { ...c.systems, [e.data.symbol]: e.data };
+                const symbol = (e.data as Location).symbol.substr(0, 2);
+                c.systems![symbol]![e.data.symbol] = e.data;
+                return { ...c.systems };
               },
             }) as any,
           },

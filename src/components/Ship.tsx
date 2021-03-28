@@ -9,7 +9,7 @@ import { FlightPlan } from "./FlightPlan";
 import { Grid } from "@material-ui/core";
 import { Box } from "@material-ui/core";
 import Cargo from "./Cargo";
-import { SpaceshipIcon } from "./SpaceshipIcon";
+import { SpaceshipIcon } from "./App/SpaceshipIcon";
 import { ShipActor } from "../machines/shipMachine";
 
 const useStyles = makeStyles((theme) => ({

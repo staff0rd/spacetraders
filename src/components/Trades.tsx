@@ -22,6 +22,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import { fade } from "@material-ui/core/styles/colorManipulator";
+import { CustomSelect } from "./CustomSelect";
 
 const useStyles = makeStyles((theme) => ({
   buy: {
@@ -73,21 +74,12 @@ export const Trades = () => {
         </Select>
       </FormControl>
       {goods && (
-        <FormControl className={classes.formControl}>
-          <InputLabel id="select-good-label">Good</InputLabel>
-          <Select
-            labelId="select-good-label"
-            id="select-good"
-            value={good}
-            placeholder="All"
-            onChange={(e) => setGood(e.target.value as string)}
-          >
-            <MenuItem value={""}>All</MenuItem>
-            {goods!.map((good: any) => (
-              <MenuItem value={good}>{good}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <CustomSelect
+          name="Good"
+          setValue={setGood}
+          value={good}
+          values={goods}
+        />
       )}
       <TableContainer component={Paper}>
         <Table size="small" aria-label="Trades">

@@ -2,26 +2,28 @@ import {
   Context as PlayerContext,
   Schema as PlayerSchema,
   Event as PlayerEvent,
-} from "../machines/playerMachine";
+} from "../../machines/playerMachine";
 import { State } from "xstate";
 import TradeIcon from "@material-ui/icons/SwapHoriz";
 import React from "react";
 import Badge from "@material-ui/core/Badge";
 import { SpaceshipIcon } from "./SpaceshipIcon";
 import GitHubIcon from "@material-ui/icons/GitHub";
-import { Ships } from "./Ships";
-import { AvailableShips } from "./AvailableShips";
-import { Trades } from "./Trades";
-import { Markets } from "./Markets";
-import { Errors } from "./Errors";
-import { Locations } from "./Locations";
-import { Settings } from "./Settings";
-import { NetWorth } from "./NetWorth";
+import { Ships } from "../Ships";
+import { AvailableShips } from "../AvailableShips";
+import { Trades } from "../Trades";
+import { Markets } from "../Markets";
+import { Errors } from "../Errors";
+import { Locations } from "../Locations";
+import { Settings } from "../Settings";
+import { NetWorth } from "../NetWorth";
+import { Map } from "../Map";
 import ErrorIcon from "@material-ui/icons/Error";
 import MarketsIcon from "@material-ui/icons/Timeline";
 import SettingsIcon from "@material-ui/icons/Settings";
 import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import LocationsIcon from "@material-ui/icons/Language";
+import MapIcon from "@material-ui/icons/Explore";
 
 export function getMenus(
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema>,
@@ -59,6 +61,12 @@ export function getMenus(
       title: "Locations",
       to: "/locations",
       component: <Locations systems={state.context.systems} />,
+    },
+    {
+      icon: <MapIcon />,
+      title: "Map",
+      to: "/map",
+      component: <Map systems={state.context.systems} />,
     },
     {
       icon: <TradeIcon />,
