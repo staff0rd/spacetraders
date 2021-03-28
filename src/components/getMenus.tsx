@@ -58,7 +58,7 @@ export function getMenus(
       icon: <LocationsIcon />,
       title: "Locations",
       to: "/locations",
-      component: <Locations locations={state.context.locations} />,
+      component: <Locations systems={state.context.systems} />,
     },
     {
       icon: <TradeIcon />,

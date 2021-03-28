@@ -11,7 +11,7 @@ import {
   shipMachine,
   ShipActor,
 } from "../machines/shipMachine";
-import { MarketContext } from "./MarketContext";
+import { MarketContext, SystemContext } from "./MarketContext";
 import { cacheLocation } from "./locationCache";
 import { AvailableShip } from "../api/AvailableShip";
 import { calculateNetWorth } from "./calculateNetWorth";
@@ -50,7 +50,7 @@ export type Event =
 export type Context = {
   token?: string;
   user?: User;
-  locations?: MarketContext;
+  systems?: SystemContext;
   availableShips: AvailableShip[];
   netWorth: NetWorthLineItem[];
   ships: ShipActor[];
@@ -62,7 +62,7 @@ const getCachedPlayer = (): Context => {
   if (player) return JSON.parse(player);
   else
     return {
-      locations: {},
+      systems: {},
       availableShips: [],
       netWorth: [],
       flightPlans: [],
@@ -75,7 +75,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
     id: "player",
     initial: States.CheckStorage,
     context: {
-      locations: {},
+      systems: {},
       availableShips: [],
       netWorth: [],
       flightPlans: [],
@@ -142,14 +142,14 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           onDone: {
             target: States.Initialising,
             actions: assign({
-              locations: (c, e: any) => {
-                const locations = {} as MarketContext;
-                e.data.systems
-                  .map((s: System) => s.locations)
-                  .flat()
-                  .forEach((lo: Location) => (locations[lo.symbol] = lo));
-                console.warn("locations", locations);
-                return locations;
+              systems: (c, e: any) => {
+                const systems = {} as SystemContext;
+                (e.data as api.GetSystemsResponse).systems.forEach((sys) => {
+                  const locations = {} as MarketContext;
+                  sys.locations.forEach((loc) => (locations[loc.symbol] = loc));
+                  return (systems[sys.symbol] = locations);
+                });
+                return systems;
               },
             }) as any,
           },
@@ -208,9 +208,9 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           },
           UPDATE_LOCATION: {
             actions: assign<Context>({
-              locations: (c, e: any) => {
+              systems: (c, e: any) => {
                 cacheLocation(e.data);
-                return { ...c.locations, [e.data.symbol]: e.data };
+                return { ...c.systems, [e.data.symbol]: e.data };
               },
             }) as any,
           },
@@ -281,24 +281,26 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             .filter(
               (s: Ship) => !c.ships.find((existing) => existing.id === s.id)
             )
-            .map(
-              (ship: Ship) =>
-                spawn(
-                  shipMachine.withContext({
-                    token: c.token!,
-                    username: c.user!.username,
-                    ship: ship,
-                    credits: c.user!.credits,
-                    locations: Object.keys(c.locations!).map(
-                      (symbol) => c.locations![symbol] as LocationWithDistance
-                    ),
-                    flightPlan: c.flightPlans.find(
-                      (fp) => fp.shipId === ship.id
-                    ),
-                  }),
-                  { name: `ship-${ship.id}`, sync: true }
-                ) as any
-            );
+            .map((ship: Ship) => {
+              const flightPlan = c.flightPlans.find(
+                (fp) => fp.shipId === ship.id
+              );
+              const system = (ship.location || flightPlan!.to).substring(0, 2);
+              const markets = c.systems![system]!;
+              return spawn(
+                shipMachine.withContext({
+                  token: c.token!,
+                  username: c.user!.username,
+                  ship: ship,
+                  credits: c.user!.credits,
+                  locations: Object.keys(markets).map(
+                    (symbol) => markets[symbol] as LocationWithDistance
+                  ),
+                  flightPlan,
+                }),
+                { name: `ship-${ship.id}`, sync: true }
+              ) as any;
+            });
         },
       }) as any,
       assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,
@@ -315,7 +317,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             c.user!.credits,
             c.ships.map((a) => a.state?.context).filter((p) => p),
             c.availableShips,
-            c.locations!
+            c.systems!
           ) as any,
       }) as any,
     },
@@ -335,7 +337,8 @@ export const playerMachine = createMachine<Context, Event, Schema>(
       noLoans: (c) => c.user?.loans.length === 0,
       noPurchasedShips: (c) => c.user?.ships.length === 0,
       noLocations: (c) => {
-        const hasLocations = Object.entries(c.locations || {}).length > 0;
+        const hasLocations = Object.entries(c.systems || {}).length > 0;
+        console.warn("locations", hasLocations);
         return !hasLocations;
       },
       noAvailableShips: (c) => !c.availableShips.length,

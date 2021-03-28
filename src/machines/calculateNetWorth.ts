@@ -1,4 +1,4 @@
-import { MarketContext } from "./MarketContext";
+import { SystemContext } from "./MarketContext";
 import { AvailableShip } from "../api/AvailableShip";
 import { Context as ShipContext } from "./shipMachine";
 import { NetWorthLineItem, Category } from "./NetWorthLineItem";
@@ -7,7 +7,7 @@ export const calculateNetWorth = (
   credits: number,
   scs: ShipContext[],
   availableShips: AvailableShip[],
-  markets: MarketContext
+  systems: SystemContext
 ): NetWorthLineItem[] => [
   {
     category: "asset",
@@ -23,15 +23,20 @@ export const calculateNetWorth = (
     description: sc.ship.type,
     quantity: 1,
   })),
-  ...scs.map((s) => calculateCargoWorth(s, markets)).flat(),
+  ...scs.map((s) => calculateCargoWorth(s, systems)).flat(),
 ];
 
 const calculateCargoWorth = (
   sc: ShipContext,
-  markets: MarketContext
+  systems: SystemContext
 ): NetWorthLineItem[] => {
-  const market =
-    markets[sc.ship.location || sc.flightPlan?.from || ""]?.marketplace;
+  const locationSymbol = sc.ship.location || sc.flightPlan?.from || "";
+  const systemSymbol = locationSymbol.substr(0, 2);
+  const system = systems[systemSymbol];
+  if (!system) return [];
+  const location = system[locationSymbol];
+  if (!location) return [];
+  const market = location.marketplace;
   if (!market) return [];
   return sc.ship.cargo.map((c) => ({
     value:
