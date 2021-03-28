@@ -37,13 +37,8 @@ export const Map = ({ systems }: Props) => {
 
   const locations = drawMap(
     Object.keys(systems[system]).map((key) => systems[system][key]),
-    (ref.current as any)?.offsetWidth,
-    (ref.current as any)?.offsetHeight
-  );
-
-  console.log(
-    "x",
-    locations.map((l) => l.x)
+    (ref.current as any)?.clientWidth,
+    (ref.current as any)?.clientHeight
   );
 
   return (
@@ -57,7 +52,14 @@ export const Map = ({ systems }: Props) => {
       />
       <div className={classes.root} ref={ref}>
         {locations &&
-          locations.map((l, ix) => <Location key={ix} location={l} />)}
+          locations.map((l, ix) => (
+            <Location
+              key={ix}
+              location={l}
+              parentWidth={(ref.current as any)?.offsetWidth}
+              parentHeight={(ref.current as any)?.offsetHeight}
+            />
+          ))}
       </div>
     </>
   );

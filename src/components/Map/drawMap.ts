@@ -15,8 +15,8 @@ export const drawMap = (
   const distance = (a: number, b: number) => Math.sqrt((b -= a) * b);
   console.log(minX, maxX, distance(minX, maxX));
 
-  const xScale = parentWidth / distance(minX, maxX);
-  const yScale = parentHeight / distance(minY, maxY);
+  const xScale = (parentWidth - 24) / distance(minX, maxX);
+  const yScale = (parentHeight - 24) / distance(minY, maxY);
 
   const convertToWindow = ({
     x,
