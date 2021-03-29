@@ -1,13 +1,7 @@
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import db from "../data";
-import TableContainer from "@material-ui/core/TableContainer";
-import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import TableCell from "@material-ui/core/TableCell";
-import TableBody from "@material-ui/core/TableBody";
-import Paper from "@material-ui/core/Paper";
+import { DataTable, right } from "./DataTable";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { DateTime } from "luxon";
 import NumberFormat from "react-number-format";
@@ -48,6 +42,37 @@ export const Markets = () => {
 
   if (!markets) return <CircularProgress color="primary" size={24} />;
 
+  const columns = [
+    "Location",
+    right("Qty"),
+    "Good",
+    "㎥",
+    right("Cost"),
+    "When",
+  ];
+  const rows = markets.map((market) => [
+    market.location,
+    right(
+      <NumberFormat
+        value={market.quantityAvailable}
+        thousandSeparator=","
+        displayType="text"
+      />
+    ),
+    market.good,
+    market.volumePerUnit,
+
+    right(
+      <NumberFormat
+        value={market.pricePerUnit}
+        thousandSeparator=","
+        displayType="text"
+        prefix="$"
+      />
+    ),
+
+    DateTime.fromISO(market.created).toRelative(),
+  ]);
   return (
     <>
       {locations && (
@@ -87,44 +112,7 @@ export const Markets = () => {
           </Select>
         </FormControl>
       )}
-
-      <TableContainer component={Paper}>
-        <Table size="small" aria-label="Trades">
-          <TableHead>
-            <TableRow>
-              <TableCell align="right">Location</TableCell>
-              <TableCell align="right">Qty</TableCell>
-              <TableCell align="right">Good</TableCell>
-              <TableCell align="right">㎥</TableCell>
-              <TableCell align="right">Cost</TableCell>
-              <TableCell align="right">When</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {markets.map((market) => (
-              <TableRow key={market.id}>
-                <TableCell component="th" scope="row">
-                  {market.location}
-                </TableCell>
-                <TableCell align="right">{market.quantityAvailable}</TableCell>
-                <TableCell align="right">{market.good}</TableCell>
-                <TableCell align="right">{market.volumePerUnit}</TableCell>
-                <TableCell align="right">
-                  <NumberFormat
-                    value={market.pricePerUnit}
-                    thousandSeparator=","
-                    displayType="text"
-                    prefix="$"
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  {DateTime.fromISO(market.created).toRelative()}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <DataTable title="Markets" rows={rows} columns={columns} />
     </>
   );
 };

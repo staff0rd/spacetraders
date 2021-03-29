@@ -39,8 +39,10 @@ export const CustomSelect = ({
         onChange={(e) => setValue(e.target.value as string)}
       >
         {!hideAll && <MenuItem value={""}>All</MenuItem>}
-        {values!.map((v: any) => (
-          <MenuItem value={v}>{v}</MenuItem>
+        {values!.map((v: any, ix) => (
+          <MenuItem key={ix} value={v}>
+            {v}
+          </MenuItem>
         ))}
       </Select>
     </FormControl>
