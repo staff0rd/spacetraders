@@ -28,7 +28,7 @@ export type ShouldBuy = {
 };
 
 enum States {
-  BuyGoods = "buyGoods",
+  BuyCargo = "buyCargo",
   SellCargo = "sellCargo",
   CheckStrategy = "checkStrategy",
   Done = "done",
@@ -76,13 +76,13 @@ export const tradeMachine = createMachine<Context, any, any>(
             { target: States.CheckStrategy, cond: "shouldCheckStrategy" },
             { target: States.Done, cond: "shouldDone" },
             {
-              target: States.BuyGoods,
+              target: States.BuyCargo,
               cond: "needFuel",
               actions: "assignNeededFuel",
             },
             { target: "determineDestination", cond: "noDestination" },
             { target: "determineCargo", cond: "shouldDetermineCargo" },
-            { target: States.BuyGoods, cond: "shouldBuyCargo" },
+            { target: States.BuyCargo, cond: "shouldBuyCargo" },
             { target: "createFlightPlan", cond: "noFlightPlan" },
           ],
         },
@@ -269,7 +269,7 @@ export const tradeMachine = createMachine<Context, any, any>(
           },
         },
       },
-      [States.BuyGoods]: {
+      [States.BuyCargo]: {
         invoke: {
           src: async (context: Context) => {
             const { good, quantity, profit, sellTo } = context.shouldBuy!;
