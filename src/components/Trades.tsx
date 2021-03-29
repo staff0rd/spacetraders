@@ -41,8 +41,8 @@ const useStyles = makeStyles((theme) => ({
 
 export const Trades = () => {
   const classes = useStyles();
-  const [good, setGood] = useState("");
   const [type, setType] = useState<string | number>("");
+  const [good, setGood] = useState("");
 
   const trades = useLiveQuery(() => {
     return db.trades

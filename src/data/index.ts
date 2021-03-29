@@ -3,20 +3,23 @@ import { IApiError } from "./IApiError";
 import { ITrade } from "./ITrade";
 import { IMarket } from "./IMarket";
 import { IShipStrategy } from "./IShipStrategy";
+import { IIntel } from "./IIntel";
 
 class Database extends Dexie {
   apiErrors: Dexie.Table<IApiError, number>; // number = type of the primkey
   trades: Dexie.Table<ITrade, number>;
   markets: Dexie.Table<IMarket, number>;
-  strategies!: Dexie.Table<IShipStrategy, number>;
+  strategies: Dexie.Table<IShipStrategy, number>;
+  intel: Dexie.Table<IIntel, number>;
 
   constructor() {
     super("Database");
-    this.version(15).stores({
+    this.version(18).stores({
       apiErrors: "++id, code",
       trades: "++id, good, shipId, location, type",
       market: "++id,location,good",
       strategies: "&shipId",
+      intel: "&shipId,username",
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -24,6 +27,7 @@ class Database extends Dexie {
     this.trades = this.table("trades");
     this.markets = this.table("market");
     this.strategies = this.table("strategies");
+    this.intel = this.table("intel");
   }
 }
 

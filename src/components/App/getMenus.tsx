@@ -5,10 +5,8 @@ import {
 } from "../../machines/playerMachine";
 import { State } from "xstate";
 import TradeIcon from "@material-ui/icons/SwapHoriz";
-import React from "react";
 import Badge from "@material-ui/core/Badge";
 import { SpaceshipIcon } from "./SpaceshipIcon";
-import GitHubIcon from "@material-ui/icons/GitHub";
 import { Ships } from "../Ships";
 import { AvailableShips } from "../AvailableShips";
 import { Trades } from "../Trades";
@@ -19,6 +17,7 @@ import { Settings } from "../Settings";
 import { NetWorth } from "../NetWorth";
 import { Strategy } from "../Strategy";
 import { Map } from "../Map";
+import { Intel } from "../Intel";
 import ErrorIcon from "@material-ui/icons/Error";
 import MarketsIcon from "@material-ui/icons/Timeline";
 import SettingsIcon from "@material-ui/icons/Settings";
@@ -26,6 +25,7 @@ import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import LocationsIcon from "@material-ui/icons/Language";
 import MapIcon from "@material-ui/icons/Explore";
 import StrategyIcon from "@material-ui/icons/Directions";
+import IntelIcon from "@material-ui/icons/BubbleChart";
 
 export function getMenus(
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema>
@@ -94,6 +94,12 @@ export function getMenus(
       component: <NetWorth lines={state.context.netWorth} />,
     },
     {
+      icon: <IntelIcon />,
+      title: "Intel",
+      to: "/intel",
+      component: <Intel />,
+    },
+    {
       icon: <ErrorIcon />,
       title: "Errors",
       to: "/errors",
@@ -106,13 +112,5 @@ export function getMenus(
       component: <Settings />,
     },
   ];
-
-  const bottomMenu = [
-    {
-      icon: <GitHubIcon />,
-      title: "Source",
-      href: "https://github.com/staff0rd/spacetraders",
-    },
-  ];
-  return { menu, bottomMenu };
+  return menu;
 }

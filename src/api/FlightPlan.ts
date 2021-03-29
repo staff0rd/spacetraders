@@ -10,4 +10,6 @@ export type FlightPlan = {
   shipId: string;
   terminatedAt: string | null;
   timeRemainingInSeconds: number;
+  shipType?: string;
+  username?: string;
 };

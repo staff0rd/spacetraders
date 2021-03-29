@@ -240,11 +240,26 @@ export const sellOrder = (
     quantity,
   });
 
-export const getFlightPlans = (
+export const getFlightPlans = async (
   token: string,
   symbol: string
-): Promise<GetFlightPlansResponse> =>
-  getSecure(token, `game/systems/${symbol}/flight-plans`);
+): Promise<GetFlightPlansResponse> => {
+  const result = await getSecure<GetFlightPlansResponse>(
+    token,
+    `game/systems/${symbol}/flight-plans`
+  );
+  result.flightPlans.map((fp) =>
+    db.intel.put({
+      shipId: fp.shipId,
+      destination: fp.destination,
+      departure: fp.departure,
+      lastSeen: DateTime.now().toISO(),
+      shipType: fp.shipType!,
+      username: fp.username!,
+    })
+  );
+  return result;
+};
 
 export const newFlightPlan = (
   token: string,

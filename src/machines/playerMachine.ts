@@ -24,6 +24,7 @@ export enum States {
   GetUser = "getUser",
   GetSystems = "getSystems",
   GetFlightPlans = "getFlightPlans",
+  QueryFlightPlans = "queryFlightPlans",
   GetShips = "getShips",
   Ready = "ready",
   GetLoan = "getLoan",
@@ -137,6 +138,12 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           },
         },
       },
+      [States.QueryFlightPlans]: {
+        entry: (c) => api.getFlightPlans(c.token!, "OE") as any,
+        after: {
+          1: { target: States.Ready },
+        },
+      },
       [States.GetFlightPlans]: {
         entry: (c) => console.log("player: getFlightPlans", c),
         invoke: {
@@ -172,6 +179,9 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           5000: {
             target: States.BuyShip,
             cond: "shouldBuyShip",
+          },
+          60000: {
+            target: States.QueryFlightPlans,
           },
         },
         on: {

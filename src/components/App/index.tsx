@@ -186,7 +186,7 @@ export function App() {
 
   const { pathname } = useLocation() as any;
 
-  const { menu, bottomMenu } = getMenus(state);
+  const menu = getMenus(state);
 
   const [queued, setQueued] = useState(0);
 
@@ -267,19 +267,6 @@ export function App() {
               ))}
             </List>
             <Divider />
-            <List>
-              {bottomMenu.map((item) => (
-                <MenuItem
-                  button
-                  key={item.title}
-                  component="a"
-                  href={item.href}
-                >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.title} />
-                </MenuItem>
-              ))}
-            </List>
           </div>
           <div
             className={clsx(classes.footer, {

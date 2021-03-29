@@ -12,7 +12,6 @@ export const drawMap = (
   const minY = Math.min(...locations.map((loc) => loc.y));
   const maxY = Math.max(...locations.map((loc) => loc.y));
   const distance = (a: number, b: number) => Math.sqrt((b -= a) * b);
-  console.log(minX, maxX, distance(minX, maxX));
 
   const xScale = (parentWidth - 24) / distance(minX, maxX);
   const yScale = (parentHeight - 24) / distance(minY, maxY);

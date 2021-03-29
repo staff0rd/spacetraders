@@ -8,6 +8,7 @@ import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import yellow from "@material-ui/core/colors/yellow";
 import DarkIcon from "@material-ui/icons/Brightness4";
 import LightIcon from "@material-ui/icons/Brightness7";
+import GitHubIcon from "@material-ui/icons/GitHub";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -77,6 +78,13 @@ export default function ButtonAppBar({
           <PersonIcon />
         </Tooltip>
       )}
+      <IconButton
+        aria-label="source"
+        title="Source"
+        href="https://github.com/staff0rd/spacetraders"
+      >
+        <GitHubIcon />
+      </IconButton>
     </>
   );
 }
