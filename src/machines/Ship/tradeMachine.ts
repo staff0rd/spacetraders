@@ -12,7 +12,7 @@ import { Location } from "../../api/Location";
 import { getDistance } from "../getDistance";
 import { FlightPlan } from "../../api/FlightPlan";
 import { DateTime } from "luxon";
-import { determineCargo } from "../determineCargo";
+import { determineCargo, MAX_CARGO_MOVE } from "../determineCargo";
 import db from "../../data";
 import { TradeType } from "../../data/ITrade";
 import { ShipStrategy } from "../../data/ShipStrategy";
@@ -29,6 +29,7 @@ export type ShouldBuy = {
 
 enum States {
   BuyGoods = "buyGoods",
+  SellCargo = "sellCargo",
   CheckStrategy = "checkStrategy",
   Done = "done",
 }
@@ -71,7 +72,7 @@ export const tradeMachine = createMachine<Context, any, any>(
           1: [
             { target: "inFlight", cond: "hasFlightPlan" },
             { target: "getMarket", cond: "noLocation" },
-            { target: "sellCargo", cond: "shouldSell" },
+            { target: States.SellCargo, cond: "shouldSell" },
             { target: States.CheckStrategy, cond: "shouldCheckStrategy" },
             { target: States.Done, cond: "shouldDone" },
             {
@@ -98,7 +99,7 @@ export const tradeMachine = createMachine<Context, any, any>(
           },
         },
       },
-      sellCargo: {
+      [States.SellCargo]: {
         invoke: {
           src: async (c) => {
             let result: Partial<api.PurchaseOrderResponse> = {
@@ -109,7 +110,7 @@ export const tradeMachine = createMachine<Context, any, any>(
               (cargo) => cargo.good !== "FUEL"
             );
             for (const sellOrder of sellableCargo) {
-              const quantity = Math.min(1000, sellOrder.quantity);
+              const quantity = Math.min(MAX_CARGO_MOVE, sellOrder.quantity);
               result = await api.sellOrder(
                 c.token,
                 c.username,

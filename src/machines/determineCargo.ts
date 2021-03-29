@@ -2,6 +2,8 @@ import { Marketplace } from "../api/Marketplace";
 import { getLocation } from "./locationCache";
 import { Context, ShouldBuy } from "./Ship/tradeMachine";
 
+export const MAX_CARGO_MOVE = 300;
+
 type BestBuy = {
   profit: number;
   quantity: number;
@@ -18,7 +20,7 @@ const getProfit = (
     hasSpaceFor,
     hasCreditsFor,
     from.quantityAvailable,
-    1000
+    MAX_CARGO_MOVE
   );
   const sell = destination.find((p) => p.symbol === from.symbol);
   if (!sell) return { profit: -from.pricePerUnit, quantity };
