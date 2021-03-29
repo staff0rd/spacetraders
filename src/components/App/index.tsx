@@ -177,7 +177,7 @@ export function App() {
     setDrawerOpen(false);
   };
 
-  const [state, send] = useMachine(playerMachine);
+  const [state] = useMachine(playerMachine);
 
   const credits = state.context.user?.credits || 0;
   const netWorth = state.context.netWorth

@@ -167,7 +167,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
         },
       },
       [States.Ready]: {
-        entry: ["netWorth", (c) => console.warn("ready", c)],
+        entry: ["netWorth", (c) => console.log("ready", c)],
         after: {
           5000: {
             target: States.BuyShip,
@@ -289,7 +289,6 @@ export const playerMachine = createMachine<Context, Event, Schema>(
       noPurchasedShips: (c) => c.user?.ships.length === 0,
       noLocations: (c) => {
         const hasLocations = Object.entries(c.systems || {}).length > 0;
-        console.warn("locations", hasLocations);
         return !hasLocations;
       },
       noAvailableShips: (c) => !c.availableShips.length,

@@ -35,6 +35,9 @@ export const buyShipMachine = createMachine<Context, any, any>({
             cheapestShip.type
           );
         },
+        onError: {
+          target: "doneWithError",
+        },
         onDone: {
           target: "done",
           actions: assign<Context>({
@@ -42,6 +45,9 @@ export const buyShipMachine = createMachine<Context, any, any>({
           }) as any,
         },
       },
+    },
+    doneWithError: {
+      type: "final",
     },
     done: {
       type: "final",

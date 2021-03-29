@@ -25,8 +25,8 @@ export const Ships = ({ ships }: Props) => {
     <Grid container spacing={1}>
       {ships.length ? (
         ships.map((ship, ix) => (
-          <Grid item xs={12} sm={6} md={3} className={classes.ship}>
-            <Ship key={ix} ship={ship} />
+          <Grid key={ix} item xs={12} sm={6} md={3} className={classes.ship}>
+            <Ship ship={ship} />
           </Grid>
         ))
       ) : (
