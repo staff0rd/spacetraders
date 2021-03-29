@@ -1,4 +1,4 @@
-import { useState, ReactNode } from "react";
+import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import db from "../data";
 import { DataTable, right } from "./DataTable";
@@ -47,6 +47,7 @@ export const Markets = () => {
     right("Qty"),
     "Good",
     "㎥",
+    right("Spread"),
     right("Cost"),
     "When",
   ];
@@ -61,7 +62,14 @@ export const Markets = () => {
     ),
     market.good,
     market.volumePerUnit,
-
+    right(
+      <NumberFormat
+        value={market.spread}
+        thousandSeparator=","
+        displayType="text"
+        prefix="$"
+      />
+    ),
     right(
       <NumberFormat
         value={market.pricePerUnit}

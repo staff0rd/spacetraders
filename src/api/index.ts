@@ -177,6 +177,7 @@ export const getMarket = (
         quantityAvailable: m.quantityAvailable,
         volumePerUnit: m.volumePerUnit,
         good: m.symbol,
+        spread: m.spread,
       })
     );
 

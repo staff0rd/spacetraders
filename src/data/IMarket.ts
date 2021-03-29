@@ -6,4 +6,5 @@ export interface IMarket {
   pricePerUnit: number;
   quantityAvailable: number;
   created: string;
+  spread: number;
 }

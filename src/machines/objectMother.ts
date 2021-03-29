@@ -60,6 +60,7 @@ export const fromLocation: LocationWithDistance = {
       pricePerUnit: 10,
       quantityAvailable: 100,
       volumePerUnit: 1,
+      spread: 3,
     },
   ],
 };

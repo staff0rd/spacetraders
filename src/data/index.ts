@@ -12,12 +12,11 @@ class Database extends Dexie {
 
   constructor() {
     super("Database");
-    this.version(14).stores({
+    this.version(15).stores({
       apiErrors: "++id, code",
       trades: "++id, good, shipId, location, type",
       market: "++id,location,good",
       strategies: "&shipId",
-      strategy: null,
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
