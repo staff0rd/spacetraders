@@ -249,7 +249,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           },
           onDone: {
             target: "ready",
-            actions: ["spawnShips", "assignUser"],
+            actions: ["assignUser", "spawnShips"],
           },
         },
       },
@@ -261,11 +261,25 @@ export const playerMachine = createMachine<Context, Event, Schema>(
         ships: (c, e: any) => {
           const buyShip = e.data.response?.user?.ships;
           const getShip = e.data.ships;
-          return (buyShip || getShip)
-            .filter(
-              (s: Ship) => !c.ships.find((existing) => existing.id === s.id)
-            )
-            .map(spawnShipMachine(c));
+
+          const alreadySpawnedShipIds = c.ships.map(
+            (actor) => actor.state.context.ship.id
+          );
+
+          const toSpawn: Ship[] = (buyShip || getShip).filter((s: Ship) => {
+            const alreadySpawned = alreadySpawnedShipIds.find(
+              (id) => id === s.id
+            );
+            if (alreadySpawned) {
+              console.log(`${s.id} already spawned`);
+              return false;
+            }
+            return true;
+          });
+
+          console.log(`Will spawn ${toSpawn.map((s) => s.id).join(",\n")}`);
+
+          return toSpawn.map(spawnShipMachine(c));
         },
       }) as any,
       assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,
