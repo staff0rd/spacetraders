@@ -25,7 +25,7 @@ import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import LocationsIcon from "@material-ui/icons/Language";
 import MapIcon from "@material-ui/icons/Explore";
 import StrategyIcon from "@material-ui/icons/Directions";
-import IntelIcon from "@material-ui/icons/BubbleChart";
+import IntelIcon from "@material-ui/icons/Visibility";
 
 export function getMenus(
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema>
