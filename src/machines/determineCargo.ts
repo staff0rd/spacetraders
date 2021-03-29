@@ -1,6 +1,6 @@
 import { Marketplace } from "../api/Marketplace";
 import { getLocation } from "./locationCache";
-import { Context, ShouldBuy } from "./shipMachine";
+import { Context, ShouldBuy } from "./Ship/tradeMachine";
 
 type BestBuy = {
   profit: number;

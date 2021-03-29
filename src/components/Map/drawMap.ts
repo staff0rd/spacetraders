@@ -1,4 +1,3 @@
-import { shrink } from "./geometry";
 import { Location } from "../../api/Location";
 
 export const drawMap = (

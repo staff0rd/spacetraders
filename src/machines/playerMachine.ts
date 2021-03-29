@@ -1,4 +1,4 @@
-import { assign, createMachine, spawn } from "xstate";
+import { assign, createMachine } from "xstate";
 import { User } from "../api/User";
 import { getUser, getToken } from "../api";
 import { newPlayerName } from "../newPlayerName";
@@ -6,11 +6,7 @@ import { getLoanMachine } from "./getLoanMachine";
 import { buyShipMachine } from "./buyShipMachine";
 import * as api from "../api";
 import { Location } from "../api/Location";
-import {
-  LocationWithDistance,
-  shipMachine,
-  ShipActor,
-} from "../machines/shipMachine";
+import { ShipActor } from "./Ship/tradeMachine";
 import { MarketContext, SystemContext } from "./MarketContext";
 import { cacheLocation } from "./locationCache";
 import { AvailableShip } from "../api/AvailableShip";
@@ -18,7 +14,7 @@ import { calculateNetWorth } from "./calculateNetWorth";
 import { NetWorthLineItem } from "./NetWorthLineItem";
 import { Ship } from "../api/Ship";
 import { FlightPlan } from "../api/FlightPlan";
-import { System } from "../api/System";
+import { spawnShipMachine } from "./Ship/spawnShipMachine";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -30,7 +26,6 @@ export enum States {
   GetFlightPlans = "getFlightPlans",
   GetShips = "getShips",
   Ready = "ready",
-  ClearPlayer = "clearPlayer",
   GetLoan = "getLoan",
   GetAvailableShips = "getAvailableShips",
   BuyShip = "buyShip",
@@ -42,7 +37,6 @@ export type Schema = {
 };
 
 export type Event =
-  | { type: "CLEAR_PLAYER" }
   | { type: "SHIP_UPDATE" }
   | { type: "UPDATE_CREDITS"; data: number }
   | { type: "UPDATE_LOCATION" };
@@ -112,21 +106,9 @@ export const playerMachine = createMachine<Context, Event, Schema>(
       [States.GetUser]: {
         invoke: {
           src: "getUser",
-          onError: [
-            {
-              //"message": "Token was invalid or missing from the request. Did you confirm sending the token as a query parameter or authorization header?",
-              //"code": 40101
-              target: States.Idle,
-              cond: (c, e) => e.data.code === 40101,
-              actions: [
-                () => console.warn("Token expired, removing..."),
-                "clearPlayer",
-              ],
-            },
-            {
-              target: States.Idle,
-            },
-          ],
+          onError: {
+            target: States.Idle,
+          },
           onDone: {
             target: States.Initialising,
             actions: assign<Context, any>({
@@ -193,7 +175,6 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           },
         },
         on: {
-          CLEAR_PLAYER: States.ClearPlayer,
           SHIP_UPDATE: {
             actions: ["netWorth"],
           },
@@ -215,15 +196,6 @@ export const playerMachine = createMachine<Context, Event, Schema>(
                 return { ...c.systems };
               },
             }) as any,
-          },
-        },
-      },
-      [States.ClearPlayer]: {
-        invoke: {
-          src: "clearPlayer",
-          onDone: {
-            target: "checkStorage",
-            actions: "clearPlayer",
           },
         },
       },
@@ -283,26 +255,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             .filter(
               (s: Ship) => !c.ships.find((existing) => existing.id === s.id)
             )
-            .map((ship: Ship) => {
-              const flightPlan = c.flightPlans.find(
-                (fp) => fp.shipId === ship.id
-              );
-              const system = (ship.location || flightPlan!.to).substring(0, 2);
-              const markets = c.systems![system]!;
-              return spawn(
-                shipMachine.withContext({
-                  token: c.token!,
-                  username: c.user!.username,
-                  ship: ship,
-                  credits: c.user!.credits,
-                  locations: Object.keys(markets).map(
-                    (symbol) => markets[symbol] as LocationWithDistance
-                  ),
-                  flightPlan,
-                }),
-                { name: `ship-${ship.id}`, sync: true }
-              ) as any;
-            });
+            .map(spawnShipMachine(c));
         },
       }) as any,
       assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,
@@ -329,10 +282,6 @@ export const playerMachine = createMachine<Context, Event, Schema>(
       getToken: async () => {
         const result = await getToken(newPlayerName());
         localStorage.setItem("player", JSON.stringify(result));
-      },
-      clearPlayer: async () => {
-        console.warn("Player cleared");
-        localStorage.removeItem("player");
       },
     },
     guards: {

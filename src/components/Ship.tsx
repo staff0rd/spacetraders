@@ -10,7 +10,7 @@ import { Grid } from "@material-ui/core";
 import { Box } from "@material-ui/core";
 import Cargo from "./Cargo";
 import { SpaceshipIcon } from "./App/SpaceshipIcon";
-import { ShipActor } from "../machines/shipMachine";
+import { ShipActor } from "../machines/Ship/tradeMachine";
 
 const useStyles = makeStyles((theme) => ({
   paper: {

@@ -179,10 +179,6 @@ export function App() {
 
   const [state, send] = useMachine(playerMachine);
 
-  const handleClearPlayer = () => {
-    send("CLEAR_PLAYER");
-  };
-
   const credits = state.context.user?.credits || 0;
   const netWorth = state.context.netWorth
     .map((v) => v.value)
@@ -190,7 +186,7 @@ export function App() {
 
   const { pathname } = useLocation() as any;
 
-  const { menu, bottomMenu } = getMenus(state, handleClearPlayer);
+  const { menu, bottomMenu } = getMenus(state);
 
   const [queued, setQueued] = useState(0);
 

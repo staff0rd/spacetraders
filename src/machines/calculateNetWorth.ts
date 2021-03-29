@@ -1,6 +1,6 @@
 import { SystemContext } from "./MarketContext";
 import { AvailableShip } from "../api/AvailableShip";
-import { Context as ShipContext } from "./shipMachine";
+import { Context as ShipContext } from "./Ship/tradeMachine";
 import { NetWorthLineItem, Category } from "./NetWorthLineItem";
 
 export const calculateNetWorth = (

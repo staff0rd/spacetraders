@@ -1,8 +1,8 @@
 import * as xstate from "xstate";
-import { shipMachine, Context as ShipContext } from "./shipMachine";
-import * as api from "../api";
-import { Cargo } from "../api/Ship";
-import { MarketContext } from "./MarketContext";
+import { tradeMachine, Context as ShipContext } from "./tradeMachine";
+import * as api from "../../api";
+import { Cargo } from "../../api/Ship";
+import { MarketContext } from "../MarketContext";
 import {
   fromLocation,
   toLocation,
@@ -10,7 +10,7 @@ import {
   testFlightPlan,
   testShip,
   testGood,
-} from "./objectMother";
+} from "../objectMother";
 
 const waitFor = (
   machine: any,
@@ -64,7 +64,7 @@ function getMachine(
     .spyOn(api, "purchaseOrder")
     .mockImplementation();
 
-  const machine = shipMachine.withContext(shipContext);
+  const machine = tradeMachine.withContext(shipContext);
   return { machine, purchaseOrderSpy };
 }
 

@@ -6,15 +6,17 @@ import {
   sendParent,
   StateMachine,
 } from "xstate";
-import * as api from "../api";
-import { Cargo, Ship } from "../api/Ship";
-import { Location } from "../api/Location";
-import { getDistance } from "./getDistance";
-import { FlightPlan } from "../api/FlightPlan";
+import * as api from "../../api";
+import { Cargo, Ship } from "../../api/Ship";
+import { Location } from "../../api/Location";
+import { getDistance } from "../getDistance";
+import { FlightPlan } from "../../api/FlightPlan";
 import { DateTime } from "luxon";
-import { determineCargo } from "./determineCargo";
-import db from "../data";
-import { TradeType } from "../data/ITrade";
+import { determineCargo } from "../determineCargo";
+import db from "../../data";
+import { TradeType } from "../../data/ITrade";
+import { ShipStrategy } from "../../data/ShipStrategy";
+import { ShipBaseContext } from "./ShipBaseContext";
 
 export type LocationWithDistance = Location & { distance: number };
 
@@ -27,16 +29,16 @@ export type ShouldBuy = {
 
 enum States {
   BuyGoods = "buyGoods",
+  CheckStrategy = "checkStrategy",
+  Done = "done",
 }
 
-export type Context = {
-  token: string;
-  username: string;
-  ship: Ship;
+export type Context = ShipBaseContext & {
   location?: Location;
   locations: LocationWithDistance[];
   destination?: string;
   shouldBuy?: ShouldBuy;
+  shouldCheckStrategy?: boolean;
   flightPlan?: FlightPlan;
   credits: number;
   hasSold?: boolean;
@@ -51,7 +53,7 @@ const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-export const shipMachine = createMachine<Context, any, any>(
+export const tradeMachine = createMachine<Context, any, any>(
   {
     id: "ship",
     initial: "idle",
@@ -61,6 +63,7 @@ export const shipMachine = createMachine<Context, any, any>(
       ship: {} as Ship,
       locations: [],
       credits: 0,
+      strategy: 0,
     },
     states: {
       idle: {
@@ -69,6 +72,8 @@ export const shipMachine = createMachine<Context, any, any>(
             { target: "inFlight", cond: "hasFlightPlan" },
             { target: "getMarket", cond: "noLocation" },
             { target: "sellCargo", cond: "shouldSell" },
+            { target: States.CheckStrategy, cond: "shouldCheckStrategy" },
+            { target: States.Done, cond: "shouldDone" },
             {
               target: States.BuyGoods,
               cond: "needFuel",
@@ -79,6 +84,18 @@ export const shipMachine = createMachine<Context, any, any>(
             { target: States.BuyGoods, cond: "shouldBuyCargo" },
             { target: "createFlightPlan", cond: "noFlightPlan" },
           ],
+        },
+      },
+      [States.Done]: {
+        type: "final",
+      },
+      [States.CheckStrategy]: {
+        invoke: {
+          src: "checkStrategy",
+          onDone: {
+            target: "idle",
+            actions: "checkStrategy",
+          },
         },
       },
       sellCargo: {
@@ -139,6 +156,7 @@ export const shipMachine = createMachine<Context, any, any>(
                 hasSold: (c, e: any) =>
                   e.data.ship.cargo.filter((p: Cargo) => p.good !== "FUEL")
                     .length === 0,
+                shouldCheckStrategy: true,
               }) as any,
               "shipUpdate",
               sendParent((context, event) => ({
@@ -305,7 +323,19 @@ export const shipMachine = createMachine<Context, any, any>(
     },
   },
   {
+    services: {
+      checkStrategy: async (c) => {
+        const strategy = await db.strategies
+          .where({ shipId: c.ship.id })
+          .first();
+        return strategy?.strategy;
+      },
+    },
     actions: {
+      checkStrategy: assign<Context>({
+        strategy: (c, e: any) => e.data,
+        shouldCheckStrategy: false,
+      }),
       clearShouldBuy: assign<Context>({ shouldBuy: undefined }),
       printError: (_, e: any) => console.warn("caught an error", e),
       assignNeededFuel: assign({
@@ -345,6 +375,8 @@ export const shipMachine = createMachine<Context, any, any>(
         c.shouldBuy.good !== "NONE" &&
         c.ship.spaceAvailable > 0,
       shouldSell: (c) => !c.hasSold,
+      shouldDone: (c) => c.strategy !== ShipStrategy.Trade,
+      shouldCheckStrategy: (c) => !!c.shouldCheckStrategy,
     },
   }
 );

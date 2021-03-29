@@ -1,4 +1,4 @@
-import { LocationWithDistance } from "./shipMachine";
+import { LocationWithDistance } from "./Ship/tradeMachine";
 import * as api from "../api";
 import { FlightPlan } from "../api/FlightPlan";
 import { DateTime } from "luxon";

@@ -1,5 +1,5 @@
 import LocationIcon from "@material-ui/icons/FiberManualRecord";
-import { makeStyles, Typography, Tooltip } from "@material-ui/core";
+import { makeStyles, Tooltip } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   location: {

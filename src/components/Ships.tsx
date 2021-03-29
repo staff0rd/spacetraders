@@ -2,7 +2,7 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Grid from "@material-ui/core/Grid";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
-import { ShipActor } from "../machines/shipMachine";
+import { ShipActor } from "../machines/Ship/tradeMachine";
 import Ship from "./Ship";
 
 const useStyles = makeStyles((theme) => ({

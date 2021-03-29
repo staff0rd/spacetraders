@@ -3,17 +3,15 @@ import { CircularProgress, Button } from "@material-ui/core";
 import useInterval from "@use-it/interval";
 import React, { useState, useEffect } from "react";
 import { ConfirmDialog } from "./ConfirmDialog";
+import db from "../data";
 
 const useStyles = makeStyles((theme) => ({
   resetButton: {
     marginTop: theme.spacing(6),
   },
 }));
-type Props = {
-  handleClearPlayer: () => void;
-};
 
-export const Settings = ({ handleClearPlayer }: Props) => {
+export const Settings = () => {
   const classes = useStyles();
   const [dbSize, setDbSize] = useState<string | undefined>();
   const [estimate, setEstimate] = useState<StorageEstimate | undefined>();
@@ -37,6 +35,19 @@ export const Settings = ({ handleClearPlayer }: Props) => {
     confirmClearPlayerDialogOpen,
     setConfirmClearPlayerDialogOpen,
   ] = useState(false);
+
+  const handleClearPlayer = async () => {
+    console.log("Clearing localStorage...");
+    localStorage.removeItem("player");
+    console.log("Clearing IndexedDB...");
+    await Promise.all([
+      db.strategies.clear(),
+      db.apiErrors.clear(),
+      db.markets.clear(),
+      db.trades.clear(),
+    ]);
+    console.log("Everything cleared");
+  };
 
   return (
     <>
