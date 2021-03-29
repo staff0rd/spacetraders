@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
   },
   formControl: {
     margin: theme.spacing(1),
-    minWidth: 100,
+    minWidth: 60,
   },
 }));
 
@@ -59,6 +59,9 @@ export const Trades = () => {
   const goods = useLiveQuery(() => db.trades.orderBy("good").uniqueKeys());
 
   if (!trades) return <CircularProgress color="primary" size={24} />;
+
+  if (!trades.length) return <>No trades yet</>;
+
   const columns = [
     "",
     "Location",
@@ -117,6 +120,17 @@ export const Trades = () => {
       [classes.buy]: trades[index].type === TradeType.Buy,
     });
 
+  const profit = trades
+    .filter((t) => t.type === TradeType.Sell)
+    .map((t) => t.profit || 0)
+    .reduce((a, b) => a + b);
+
+  const profitPerMinute = Math.round(
+    profit /
+      -DateTime.fromISO(trades[trades.length - 1].timestamp).diffNow("minutes")
+        .minutes
+  );
+
   return (
     <>
       <FormControl className={classes.formControl}>
@@ -155,10 +169,16 @@ export const Trades = () => {
       <FormControl className={classes.formControl}>
         <Typography className="MuiInputLabel-shrink">Profit</Typography>
         <NumberFormat
-          value={trades
-            .filter((t) => t.type === TradeType.Sell)
-            .map((t) => t.profit)
-            .reduce((a, b) => (a || 0) + (b || 0))}
+          value={profit}
+          thousandSeparator=","
+          displayType="text"
+          prefix="$"
+        />
+      </FormControl>
+      <FormControl className={classes.formControl}>
+        <Typography className="MuiInputLabel-shrink">per minute</Typography>
+        <NumberFormat
+          value={profitPerMinute}
           thousandSeparator=","
           displayType="text"
           prefix="$"
