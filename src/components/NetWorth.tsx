@@ -1,7 +1,7 @@
 import CircularProgress from "@material-ui/core/CircularProgress";
 import NumberFormat from "react-number-format";
 import { NetWorthLineItem } from "../machines/NetWorthLineItem";
-import { DataTable } from "./DataTable";
+import { DataTable, right } from "./DataTable";
 
 type Props = {
   lines: NetWorthLineItem[];
@@ -24,11 +24,6 @@ export const NetWorth = ({ lines }: Props) => {
     res[value.description].quantity += value.quantity;
     return res;
   }, {});
-
-  const right = (value: React.ReactNode) => ({
-    props: { align: "right" },
-    value,
-  });
 
   const columns = [
     "Category",
