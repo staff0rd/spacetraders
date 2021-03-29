@@ -54,7 +54,7 @@ export const Intel = () => {
           name="Username"
           setValue={setUsername}
           value={username}
-          values={usernames}
+          values={(usernames as any[]).sort()}
         />
       )}
       <DataTable title="Intel" columns={columns} rows={rows} />
