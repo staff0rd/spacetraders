@@ -295,7 +295,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
       noAvailableShips: (c) => !c.availableShips.length,
       noShipActors: (c) => !c.ships.length,
       shouldBuyShip: (c) =>
-        (c.user?.credits || 0) > 200000 && c.user!.ships.length < 20,
+        (c.user?.credits || 0) > 100000 && c.user!.ships.length < 20,
     },
   }
 );
