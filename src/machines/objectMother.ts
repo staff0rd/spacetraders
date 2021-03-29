@@ -1,7 +1,7 @@
 import { LocationWithDistance } from "./Ship/tradeMachine";
 import * as api from "../api";
-import { FlightPlan } from "../api/FlightPlan";
 import { DateTime } from "luxon";
+import { FlightPlan } from "../api/FlightPlan";
 
 export const testGood = (
   symbol: string,
@@ -30,13 +30,14 @@ export const testShip = {
   spaceAvailable: 10,
   cargo: [],
 };
-export const testFlightPlan: { flightPlan: api.NewFlightPlan } = {
+export const testFlightPlan: { flightPlan: FlightPlan } = {
   flightPlan: {
+    createdAt: DateTime.now().toISO(),
     arrivesAt: DateTime.now().plus({ seconds: 2 }).toISO(),
     departure: "FROM",
     destination: "TO",
     id: "id",
-    ship: "shipId",
+    shipId: "shipId",
     terminatedAt: null,
     fuelConsumed: 2,
     fuelRemaining: 8,

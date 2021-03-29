@@ -8,7 +8,7 @@ import { Context } from "../playerMachine";
 export function spawnShipMachine(c: Context): any {
   return (ship: Ship) => {
     const flightPlan = c.flightPlans.find((fp) => fp.shipId === ship.id);
-    const system = (ship.location || flightPlan!.to).substring(0, 2);
+    const system = (ship.location || flightPlan!.destination).substring(0, 2);
     const markets = c.systems![system]!;
 
     db.strategies.put({

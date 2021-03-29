@@ -30,7 +30,7 @@ const calculateCargoWorth = (
   sc: ShipContext,
   systems: SystemContext
 ): NetWorthLineItem[] => {
-  const locationSymbol = sc.ship.location || sc.flightPlan?.from || "";
+  const locationSymbol = sc.ship.location || sc.flightPlan?.departure || "";
   const systemSymbol = locationSymbol.substr(0, 2);
   const system = systems[systemSymbol];
   if (!system) return [];

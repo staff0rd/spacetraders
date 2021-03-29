@@ -1,10 +1,13 @@
 export type FlightPlan = {
-  id: string;
-  shipId: string;
   createdAt: string;
   arrivesAt: string;
-  from: string;
-  to: string;
-  username: string;
-  shipType: string;
+  departure: string;
+  destination: string;
+  distance: number;
+  fuelConsumed: number;
+  fuelRemaining: number;
+  id: string;
+  shipId: string;
+  terminatedAt: string | null;
+  timeRemainingInSeconds: number;
 };

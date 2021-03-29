@@ -10,6 +10,8 @@ import { Location } from "./Location";
 import { FlightPlan } from "./FlightPlan";
 import db from "../data/";
 import { DateTime } from "luxon";
+import { GetFlightPlanResponse } from "./GetFlightPlanResponse";
+import { GetFlightPlansResponse } from "./GetFlightPlansResponse";
 
 class ApiError extends Error {
   code: number;
@@ -97,10 +99,6 @@ const getSecure = async <T>(token: string, urlSegment: string): Promise<T> => {
   return get(urlSegment, {
     Authorization: `Bearer ${token}`,
   });
-};
-
-type GetFlightPlanResponse = {
-  flightPlan: NewFlightPlan;
 };
 
 export const getFlightPlan = (
@@ -244,27 +242,15 @@ export const sellOrder = (
 export const getFlightPlans = (
   token: string,
   symbol: string
-): Promise<{ flightPlans: FlightPlan[] }> =>
+): Promise<GetFlightPlansResponse> =>
   getSecure(token, `game/systems/${symbol}/flight-plans`);
 
-export type NewFlightPlan = {
-  arrivesAt: string;
-  departure: string;
-  destination: string;
-  distance: number;
-  fuelConsumed: number;
-  fuelRemaining: number;
-  id: string;
-  ship: string;
-  terminatedAt: string | null;
-  timeRemainingInSeconds: number;
-};
 export const newFlightPlan = (
   token: string,
   username: string,
   shipId: string,
   destination: string
-): Promise<{ flightPlan: NewFlightPlan }> =>
+): Promise<{ flightPlan: FlightPlan }> =>
   postSecure(token, `users/${username}/flight-plans`, { shipId, destination });
 
 export type GetUserResponse = {

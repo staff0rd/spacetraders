@@ -195,7 +195,7 @@ export const tradeMachine = createMachine<Context, any, any>(
                 ship: (c: Context, e) => {
                   return {
                     ...c.ship,
-                    location: c.flightPlan!.to,
+                    location: c.flightPlan!.destination,
                   };
                 },
                 destination: undefined,
@@ -219,13 +219,7 @@ export const tradeMachine = createMachine<Context, any, any>(
             target: "inFlight",
             actions: [
               assign({
-                flightPlan: (c, e: any) => ({
-                  ...e.data.flightPlan,
-                  shipId: (e.data.flightPlan as api.NewFlightPlan).ship,
-                  createdAt: DateTime.now().toISO(),
-                  from: (e.data.flightPlan as api.NewFlightPlan).departure,
-                  to: (e.data.flightPlan as api.NewFlightPlan).destination,
-                }),
+                flightPlan: (c, e: any) => e.data.flightPlan,
                 ship: (c, e: any) => ({
                   ...c.ship,
                   cargo: [
@@ -234,7 +228,7 @@ export const tradeMachine = createMachine<Context, any, any>(
                         ? c
                         : {
                             ...c,
-                            quantity: (e.data.flightPlan as api.NewFlightPlan)
+                            quantity: (e.data.flightPlan as FlightPlan)
                               .fuelRemaining,
                           }
                     ),
