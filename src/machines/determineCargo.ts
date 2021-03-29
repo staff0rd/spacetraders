@@ -51,6 +51,8 @@ export const determineCargo = async (c: Context): Promise<ShouldBuy> => {
       ...getProfit(x, sellMarket, c.ship.spaceAvailable, c.credits),
     }))
     .filter((x) => x.profit > 0)
+    // TODO: Fix spread check for RESEARCH
+    .filter((x) => x.good !== "RESEARCH")
     .sort((a, b) => b.profit - a.profit);
 
   if (!goods.length) {
