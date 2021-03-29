@@ -9,7 +9,7 @@ import { TradeType } from "../data/ITrade";
 import NumberFormat from "react-number-format";
 import green from "@material-ui/core/colors/green";
 import blue from "@material-ui/core/colors/blue";
-import { makeStyles } from "@material-ui/core";
+import { makeStyles, Typography } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
   },
   formControl: {
     margin: theme.spacing(1),
-    minWidth: 120,
+    minWidth: 100,
   },
 }));
 
@@ -140,6 +140,30 @@ export const Trades = () => {
           values={goods}
         />
       )}
+      <FormControl className={classes.formControl}>
+        <Typography className="MuiInputLabel-shrink">Cost</Typography>
+        <NumberFormat
+          value={trades
+            .filter((t) => t.type === TradeType.Sell)
+            .map((t) => t.cost)
+            .reduce((a, b) => (a || 0) + (b || 0))}
+          thousandSeparator=","
+          displayType="text"
+          prefix="$"
+        />
+      </FormControl>
+      <FormControl className={classes.formControl}>
+        <Typography className="MuiInputLabel-shrink">Profit</Typography>
+        <NumberFormat
+          value={trades
+            .filter((t) => t.type === TradeType.Sell)
+            .map((t) => t.profit)
+            .reduce((a, b) => (a || 0) + (b || 0))}
+          thousandSeparator=","
+          displayType="text"
+          prefix="$"
+        />
+      </FormControl>
       <DataTable
         title="Locations"
         columns={columns}
