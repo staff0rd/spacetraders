@@ -1,10 +1,7 @@
 import MainToolbar from "./MainToolbar";
 import { playerMachine } from "../../machines/playerMachine";
-import { useMachine } from "@xstate/react";
 import * as xstate from "xstate";
 import React, { useEffect, useState } from "react";
-import TradeIcon from "@material-ui/icons/SwapHoriz";
-import { Trades } from "../Trades";
 import {
   createStyles,
   Theme,
