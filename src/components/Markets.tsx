@@ -5,7 +5,7 @@ import { DataTable, right } from "./DataTable";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { DateTime } from "luxon";
 import NumberFormat from "react-number-format";
-import { makeStyles } from "@material-ui/core";
+import { makeStyles, useTheme } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
@@ -20,6 +20,8 @@ const useStyles = makeStyles((theme) => ({
 
 export const Markets = () => {
   const classes = useStyles();
+  const theme = useTheme();
+  const isMdDown = theme.breakpoints.down("md");
   const [location, setLocation] = useState("");
   const [good, setGood] = useState("");
 
@@ -44,8 +46,7 @@ export const Markets = () => {
 
   const columns = [
     "Location",
-    right("Qty"),
-    "Good",
+    ...(isMdDown ? ["Qty x Good"] : [right("Qty"), "Good"]),
     "㎥",
     right("Spread"),
     right("Cost"),
@@ -53,14 +54,27 @@ export const Markets = () => {
   ];
   const rows = markets.map((market) => [
     market.location,
-    right(
-      <NumberFormat
-        value={market.quantityAvailable}
-        thousandSeparator=","
-        displayType="text"
-      />
-    ),
-    market.good,
+    ...(isMdDown
+      ? [
+          <>
+            <NumberFormat
+              value={market.quantityAvailable}
+              thousandSeparator=","
+              displayType="text"
+            />{" "}
+            x {market.good}
+          </>,
+        ]
+      : [
+          right(
+            <NumberFormat
+              value={market.quantityAvailable}
+              thousandSeparator=","
+              displayType="text"
+            />
+          ),
+          market.good,
+        ]),
     market.volumePerUnit,
     right(
       <NumberFormat

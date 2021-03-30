@@ -13,6 +13,9 @@ const useStyles = makeStyles((theme) => ({
       "&.MuiTableCell-sizeSmall": {
         paddingRight: 0,
       },
+      "&:last-child": {
+        paddingRight: theme.spacing(2),
+      },
     },
   },
 }));
