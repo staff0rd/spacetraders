@@ -2,7 +2,7 @@ import Dexie from "dexie";
 import { IApiError } from "./IApiError";
 import { ITrade } from "./ITrade";
 import { IMarket } from "./IMarket";
-import { IShipStrategy } from "./IShipStrategy";
+import { IShipStrategy } from "./Strategy/IShipStrategy";
 import { IIntel } from "./IIntel";
 
 class Database extends Dexie {

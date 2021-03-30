@@ -7,7 +7,7 @@ import {
 } from "xstate";
 import { Ship } from "../../api/Ship";
 import db from "../../data";
-import { ShipStrategy } from "../../data/ShipStrategy";
+import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 
 enum States {

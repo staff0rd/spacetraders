@@ -48,7 +48,7 @@ export type Context = {
   systems?: SystemContext;
   availableShips: AvailableShip[];
   netWorth: NetWorthLineItem[];
-  ships: ShipActor[];
+  actors: ShipActor[];
   flightPlans: FlightPlan[];
 };
 
@@ -61,7 +61,7 @@ const getCachedPlayer = (): Context => {
       availableShips: [],
       netWorth: [],
       flightPlans: [],
-      ships: [],
+      actors: [],
     };
 };
 
@@ -74,7 +74,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
       availableShips: [],
       netWorth: [],
       flightPlans: [],
-      ships: [],
+      actors: [],
     } as Context,
     states: {
       [States.CheckStorage]: {
@@ -258,11 +258,11 @@ export const playerMachine = createMachine<Context, Event, Schema>(
   {
     actions: {
       spawnShips: assign<Context>({
-        ships: (c, e: any) => {
+        actors: (c, e: any) => {
           const buyShip = e.data.response?.user?.ships;
           const getShip = e.data.ships;
 
-          const alreadySpawnedShipIds = c.ships.map(
+          const alreadySpawnedShipIds = c.actors.map(
             (actor) => actor.state.context.ship.id
           );
 
@@ -294,7 +294,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
         netWorth: (c: Context) =>
           calculateNetWorth(
             c.user!.credits,
-            c.ships.map((a) => a.state?.context).filter((p) => p),
+            c.actors.map((a) => a.state?.context).filter((p) => p),
             c.availableShips,
             c.systems!
           ) as any,
@@ -316,7 +316,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
         return !hasLocations;
       },
       noAvailableShips: (c) => !c.availableShips.length,
-      noShipActors: (c) => !c.ships.length,
+      noShipActors: (c) => !c.actors.length,
       shouldBuyShip: (c) =>
         (c.user?.credits || 0) > 100000 && c.user!.ships.length < 20,
     },

@@ -40,7 +40,7 @@ export function getMenus(
       ),
       title: "Ships",
       to: "/ships",
-      component: <Ships ships={state?.context.ships || []} />,
+      component: <Ships ships={state?.context.actors || []} />,
     },
     {
       icon: (

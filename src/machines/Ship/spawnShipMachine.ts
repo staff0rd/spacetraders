@@ -2,7 +2,7 @@ import { spawn } from "xstate";
 import db from "../../data";
 import { LocationWithDistance, tradeMachine } from "./tradeMachine";
 import { Ship } from "../../api/Ship";
-import { ShipStrategy } from "../../data/ShipStrategy";
+import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { Context } from "../playerMachine";
 
 export function spawnShipMachine(c: Context): any {

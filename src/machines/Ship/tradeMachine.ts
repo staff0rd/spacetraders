@@ -15,7 +15,7 @@ import { DateTime } from "luxon";
 import { determineCargo, MAX_CARGO_MOVE } from "../determineCargo";
 import db from "../../data";
 import { TradeType } from "../../data/ITrade";
-import { ShipStrategy } from "../../data/ShipStrategy";
+import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 
 export type LocationWithDistance = Location & { distance: number };

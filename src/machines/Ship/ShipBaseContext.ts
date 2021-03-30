@@ -1,5 +1,5 @@
 import { Ship } from "../../api/Ship";
-import { ShipStrategy } from "../../data/ShipStrategy";
+import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 
 export type ShipBaseContext = {
   token: string;
