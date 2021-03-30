@@ -12,6 +12,7 @@ import db from "../data/";
 import { DateTime } from "luxon";
 import { GetFlightPlanResponse } from "./GetFlightPlanResponse";
 import { GetFlightPlansResponse } from "./GetFlightPlansResponse";
+import { PromiseExtended } from "dexie";
 
 class ApiError extends Error {
   code: number;
@@ -150,53 +151,79 @@ export const getSystems = (token: string): Promise<GetSystemsResponse> =>
 export type GetMarketResponse = {
   location: Location;
 };
-type MarketCache = {
-  timestamp: DateTime;
-  response: GetMarketResponse;
-};
-const marketLimits: { [key: string]: Bottleneck } = {};
-const marketCache: { [key: string]: MarketCache } = {};
 
-const scheduleMarket = (symbol: string, request: () => Promise<any>) => {
-  if (!(symbol in marketLimits)) {
-    marketLimits[symbol] = new Bottleneck({ maxConcurrent: 1 });
+type ResponseCache<T> = {
+  [key: string]: {
+    timestamp: DateTime;
+    response: T;
+  };
+};
+
+type LimitCache = { [key: string]: Bottleneck };
+
+const marketLimits: LimitCache = {};
+const marketCache: ResponseCache<GetMarketResponse> = {};
+
+const getCachedResponse = async <T>(
+  limits: LimitCache,
+  cache: ResponseCache<T>,
+  key: string,
+  request: () => Promise<T>,
+  onRequest?: (response: T) => Promise<any> | PromiseExtended<number>[],
+  cacheForSeconds = 60
+) => {
+  if (!(key in limits)) {
+    limits[key] = new Bottleneck({ maxConcurrent: 1 });
   }
-  return marketLimits[symbol].schedule(request);
+  const work = async () => {
+    if (
+      key in cache &&
+      -cache[key].timestamp.diffNow("seconds").seconds < cacheForSeconds
+    ) {
+      console.log("found in cache");
+      return Promise.resolve(cache[key].response);
+    }
+    console.log("not in cache, requesting...", cache[key]);
+
+    const result = await request();
+
+    cache[key] = {
+      timestamp: DateTime.now(),
+      response: result,
+    };
+    onRequest && onRequest(result);
+    return result;
+  };
+
+  return limits[key].schedule(work);
 };
 
 export const getMarket = (
   token: string,
   location: string
 ): Promise<GetMarketResponse> =>
-  scheduleMarket(location, async () => {
-    if (
-      location in marketCache &&
-      -marketCache[location].timestamp.diffNow("seconds").seconds < 60
-    )
-      return marketCache[location].response;
-
-    const result = await getSecure<GetMarketResponse>(
-      token,
-      `game/locations/${location}/marketplace`
-    );
-    marketCache[location] = {
-      timestamp: DateTime.now(),
-      response: result,
-    };
-    result.location.marketplace.map((m) =>
-      db.markets.put({
-        created: DateTime.now().toISO(),
-        location,
-        pricePerUnit: m.pricePerUnit,
-        quantityAvailable: m.quantityAvailable,
-        volumePerUnit: m.volumePerUnit,
-        good: m.symbol,
-        spread: m.spread,
-      })
-    );
-
-    return result;
-  });
+  getCachedResponse(
+    marketLimits,
+    marketCache,
+    location,
+    async () =>
+      getSecure<GetMarketResponse>(
+        token,
+        `game/locations/${location}/marketplace`
+      ),
+    (result) =>
+      result.location.marketplace.map((m) =>
+        db.markets.put({
+          created: DateTime.now().toISO(),
+          location,
+          pricePerUnit: m.pricePerUnit,
+          quantityAvailable: m.quantityAvailable,
+          volumePerUnit: m.volumePerUnit,
+          good: m.symbol,
+          spread: m.spread,
+        })
+      )
+  );
 
 interface GetShipsResponse {
   ships: Ship[];
