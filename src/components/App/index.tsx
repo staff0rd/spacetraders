@@ -1,7 +1,10 @@
 import MainToolbar from "./MainToolbar";
 import { playerMachine } from "../../machines/playerMachine";
 import { useMachine } from "@xstate/react";
+import * as xstate from "xstate";
 import React, { useEffect, useState } from "react";
+import TradeIcon from "@material-ui/icons/SwapHoriz";
+import { Trades } from "../Trades";
 import {
   createStyles,
   Theme,
@@ -30,11 +33,19 @@ import { Status } from "../Status";
 import WarningIcon from "@material-ui/icons/Warning";
 import { getMenus } from "./getMenus";
 import { PaletteColor } from "@material-ui/core/styles/createPalette";
+import {
+  Context as PlayerContext,
+  Schema as PlayerSchema,
+  Event as PlayerEvent,
+} from "../../machines/playerMachine";
 
 const drawerWidth = 180;
 
 const themeColor = (theme: Theme, color: PaletteColor) =>
   theme.palette.type === "dark" ? color.dark : color.light;
+
+const interpreter = xstate.interpret(playerMachine);
+interpreter.start();
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -177,10 +188,20 @@ export function App() {
     setDrawerOpen(false);
   };
 
-  const [state] = useMachine(playerMachine);
+  const [state, setState] = useState<xstate.State<
+    PlayerContext,
+    PlayerEvent,
+    any,
+    PlayerSchema
+  > | null>(null);
 
-  const credits = state.context.user?.credits || 0;
-  const netWorth = state.context.netWorth
+  useEffect(() => {
+    const interval = setInterval(() => setState(interpreter.state), 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const credits = state?.context.user?.credits || 0;
+  const netWorth = state?.context.netWorth
     .map((v) => v.value)
     .reduce((a, b) => a + b, 0);
 
@@ -221,9 +242,9 @@ export function App() {
               <MenuIcon />
             </IconButton>
             <MainToolbar
-              userName={state.context.user?.username || ""}
+              userName={state?.context.user?.username || ""}
               credits={credits}
-              netWorth={netWorth}
+              netWorth={netWorth || 0}
               darkMode={theme.palette.type === "dark"}
               toggleTheme={toggleTheme}
             />

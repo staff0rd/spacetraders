@@ -12,7 +12,7 @@ import { ShipStrategy } from "../data/ShipStrategy";
 import db from "../data";
 
 type Props = {
-  state: State<PlayerContext, PlayerEvent, any, PlayerSchema>;
+  state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null;
 };
 
 export const Strategy = ({ state }: Props) => {

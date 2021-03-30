@@ -1,11 +1,10 @@
-import { useState } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useState, useEffect } from "react";
 import db from "../data";
 import { DataTable, right } from "./DataTable";
 import Tooltip from "@material-ui/core/Tooltip";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { DateTime } from "luxon";
-import { TradeType } from "../data/ITrade";
+import { ITrade, TradeType } from "../data/ITrade";
 import NumberFormat from "react-number-format";
 import green from "@material-ui/core/colors/green";
 import blue from "@material-ui/core/colors/blue";
@@ -43,25 +42,30 @@ export const Trades = () => {
   const classes = useStyles();
   const [type, setType] = useState<string | number>("");
   const [good, setGood] = useState("");
+  const [trades, setTrades] = useState<ITrade[] | null>(null);
+  const [goods, setGoods] = useState<string[]>([]);
 
-  const trades = useLiveQuery(() => {
-    return db.trades
-      .reverse()
-      .filter(
-        (p) =>
-          (good ? p.good === good : p.good !== "FUEL") &&
-          (type !== "" ? type === p.type : true)
-      )
-      .limit(50)
-      .toArray();
-  }, [good, type]);
-
-  const goods = useLiveQuery(() => db.trades.orderBy("good").uniqueKeys());
+  useEffect(() => {
+    const doWork = async () => {
+      const tradeResult = await db.trades
+        .reverse()
+        .filter(
+          (p) =>
+            (good ? p.good === good : p.good !== "FUEL") &&
+            (type !== "" ? type === p.type : true)
+        )
+        .limit(50)
+        .toArray();
+      const goodResult = await db.trades.orderBy("good").uniqueKeys();
+      setTrades(tradeResult);
+      setGoods(goodResult as string[]);
+    };
+    doWork();
+    const interval = setInterval(doWork, 5000);
+    return () => clearInterval(interval);
+  }, [type, good]);
 
   if (!trades) return <CircularProgress color="primary" size={24} />;
-
-  if (!trades.length) return <>No trades yet</>;
-
   const columns = [
     "",
     "Location",
@@ -123,13 +127,16 @@ export const Trades = () => {
   const profit = trades
     .filter((t) => t.type === TradeType.Sell)
     .map((t) => t.profit || 0)
-    .reduce((a, b) => a + b);
+    .reduce((a, b) => a + b, 0);
 
-  const profitPerMinute = Math.round(
-    profit /
-      -DateTime.fromISO(trades[trades.length - 1].timestamp).diffNow("minutes")
-        .minutes
-  );
+  const profitPerMinute = trades.length
+    ? Math.round(
+        profit /
+          -DateTime.fromISO(trades[trades.length - 1].timestamp).diffNow(
+            "minutes"
+          ).minutes
+      )
+    : 0;
 
   return (
     <>
@@ -139,7 +146,10 @@ export const Trades = () => {
           labelId="select-type-label"
           id="select-type"
           value={type}
-          onChange={(e) => setType(e.target.value as string | number)}
+          onChange={(e) => {
+            setTrades(null);
+            setType(e.target.value as string | number);
+          }}
         >
           <MenuItem value={""}>All</MenuItem>
           <MenuItem value={0}>Buy</MenuItem>
@@ -149,7 +159,10 @@ export const Trades = () => {
       {goods && (
         <CustomSelect
           name="Good"
-          setValue={setGood}
+          setValue={(v) => {
+            setTrades(null);
+            setGood(v);
+          }}
           value={good}
           values={goods}
         />
@@ -160,7 +173,7 @@ export const Trades = () => {
           value={trades
             .filter((t) => t.type === TradeType.Sell)
             .map((t) => t.cost)
-            .reduce((a, b) => (a || 0) + (b || 0))}
+            .reduce((a, b) => (a || 0) + (b || 0), 0)}
           thousandSeparator=","
           displayType="text"
           prefix="$"

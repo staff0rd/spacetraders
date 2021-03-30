@@ -5,11 +5,11 @@ import {
 } from "../../machines/playerMachine";
 import { State } from "xstate";
 import TradeIcon from "@material-ui/icons/SwapHoriz";
+import { Trades } from "../Trades";
 import Badge from "@material-ui/core/Badge";
 import { SpaceshipIcon } from "./SpaceshipIcon";
 import { Ships } from "../Ships";
 import { AvailableShips } from "../AvailableShips";
-import { Trades } from "../Trades";
 import { Markets } from "../Markets";
 import { Errors } from "../Errors";
 import { Locations } from "../Locations";
@@ -28,9 +28,9 @@ import StrategyIcon from "@material-ui/icons/Directions";
 import IntelIcon from "@material-ui/icons/Visibility";
 
 export function getMenus(
-  state: State<PlayerContext, PlayerEvent, any, PlayerSchema>
+  state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null
 ) {
-  const shipCount = state.context.user?.ships?.length || 0;
+  const shipCount = state?.context.user?.ships?.length || 0;
   const menu = [
     {
       icon: (
@@ -40,13 +40,13 @@ export function getMenus(
       ),
       title: "Ships",
       to: "/ships",
-      component: <Ships ships={state.context.ships} />,
+      component: <Ships ships={state?.context.ships || []} />,
     },
     {
       icon: (
         <Badge
           color="primary"
-          badgeContent={state.context.availableShips.length}
+          badgeContent={state?.context.availableShips.length || 0}
         >
           <SpaceshipIcon />
         </Badge>
@@ -54,7 +54,7 @@ export function getMenus(
       title: "Available",
       to: "/available-ships",
       component: (
-        <AvailableShips availableShips={state.context.availableShips} />
+        <AvailableShips availableShips={state?.context.availableShips || []} />
       ),
     },
     {
@@ -67,13 +67,13 @@ export function getMenus(
       icon: <LocationsIcon />,
       title: "Locations",
       to: "/locations",
-      component: <Locations systems={state.context.systems} />,
+      component: <Locations systems={state?.context.systems || {}} />,
     },
     {
       icon: <MapIcon />,
       title: "Map",
       to: "/map",
-      component: <Map systems={state.context.systems} />,
+      component: <Map systems={state?.context.systems || {}} />,
     },
     {
       icon: <TradeIcon />,
@@ -91,7 +91,7 @@ export function getMenus(
       icon: <NetWorthIcon />,
       title: "Net Worth",
       to: "/net-worth",
-      component: <NetWorth lines={state.context.netWorth} />,
+      component: <NetWorth lines={state?.context.netWorth || []} />,
     },
     {
       icon: <IntelIcon />,
