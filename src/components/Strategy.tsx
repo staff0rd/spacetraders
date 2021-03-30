@@ -10,6 +10,7 @@ import ToggleButton from "@material-ui/lab/ToggleButton";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import { ShipStrategy } from "../data/ShipStrategy";
 import db from "../data";
+import { useLiveQuery } from "dexie-react-hooks";
 
 type Props = {
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null;
@@ -18,7 +19,11 @@ type Props = {
 export const Strategy = ({ state }: Props) => {
   const [strategy, setStrategy] = React.useState<string>("0");
 
-  if (!state || !state.context.ships.length)
+  const strategies = useLiveQuery(() => {
+    return db.strategies.toArray();
+  });
+
+  if (!state || !state.context.ships.length || !strategies)
     return <CircularProgress size={48} />;
   const handleStrategy = (
     event: React.MouseEvent<HTMLElement>,
@@ -33,6 +38,12 @@ export const Strategy = ({ state }: Props) => {
         })
       );
     }
+  };
+
+  const parseStrategy = (shipId: string) => {
+    const strat = strategies.find((s) => s.shipId === shipId)?.strategy;
+    if (strat === undefined) return "";
+    return ShipStrategy[strat];
   };
 
   return (
@@ -51,7 +62,9 @@ export const Strategy = ({ state }: Props) => {
         </ToggleButton>
       </ToggleButtonGroup>
       {state.context.ships.map((ship) => (
-        <pre>{ship.state.value}</pre>
+        <pre>
+          {ship.state.value} | {parseStrategy(ship.state.context.ship.id)}
+        </pre>
       ))}
     </>
   );

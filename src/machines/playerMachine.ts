@@ -24,7 +24,7 @@ export enum States {
   GetUser = "getUser",
   GetSystems = "getSystems",
   GetFlightPlans = "getFlightPlans",
-  QueryFlightPlans = "queryFlightPlans",
+  Tick = "tick",
   GetShips = "getShips",
   Ready = "ready",
   GetLoan = "getLoan",
@@ -138,7 +138,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           },
         },
       },
-      [States.QueryFlightPlans]: {
+      [States.Tick]: {
         entry: (c) => api.getFlightPlans(c.token!, "OE") as any,
         after: {
           1: { target: States.Ready },
@@ -180,8 +180,8 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             target: States.BuyShip,
             cond: "shouldBuyShip",
           },
-          60000: {
-            target: States.QueryFlightPlans,
+          10000: {
+            target: States.Tick,
           },
         },
         on: {

@@ -12,7 +12,7 @@ import db from "../data/";
 import { DateTime } from "luxon";
 import { GetFlightPlanResponse } from "./GetFlightPlanResponse";
 import { GetFlightPlansResponse } from "./GetFlightPlansResponse";
-import { PromiseExtended } from "dexie";
+import { getCachedResponse, createCache } from "./getCachedResponse";
 
 class ApiError extends Error {
   code: number;
@@ -148,54 +148,10 @@ export interface GetSystemsResponse {
 export const getSystems = (token: string): Promise<GetSystemsResponse> =>
   getSecure(token, "game/systems");
 
+const marketCache = createCache<GetMarketResponse>();
+
 export type GetMarketResponse = {
   location: Location;
-};
-
-type ResponseCache<T> = {
-  [key: string]: {
-    timestamp: DateTime;
-    response: T;
-  };
-};
-
-type LimitCache = { [key: string]: Bottleneck };
-
-const marketLimits: LimitCache = {};
-const marketCache: ResponseCache<GetMarketResponse> = {};
-
-const getCachedResponse = async <T>(
-  limits: LimitCache,
-  cache: ResponseCache<T>,
-  key: string,
-  request: () => Promise<T>,
-  onRequest?: (response: T) => Promise<any> | PromiseExtended<number>[],
-  cacheForSeconds = 60
-) => {
-  if (!(key in limits)) {
-    limits[key] = new Bottleneck({ maxConcurrent: 1 });
-  }
-  const work = async () => {
-    if (
-      key in cache &&
-      -cache[key].timestamp.diffNow("seconds").seconds < cacheForSeconds
-    ) {
-      console.log("found in cache");
-      return Promise.resolve(cache[key].response);
-    }
-    console.log("not in cache, requesting...", cache[key]);
-
-    const result = await request();
-
-    cache[key] = {
-      timestamp: DateTime.now(),
-      response: result,
-    };
-    onRequest && onRequest(result);
-    return result;
-  };
-
-  return limits[key].schedule(work);
 };
 
 export const getMarket = (
@@ -203,10 +159,9 @@ export const getMarket = (
   location: string
 ): Promise<GetMarketResponse> =>
   getCachedResponse(
-    marketLimits,
     marketCache,
     location,
-    async () =>
+    () =>
       getSecure<GetMarketResponse>(
         token,
         `game/locations/${location}/marketplace`
@@ -281,25 +236,32 @@ export const sellOrder = (
     quantity,
   });
 
+const flightPlansCache = createCache<GetFlightPlansResponse>();
+
 export const getFlightPlans = async (
   token: string,
   symbol: string
 ): Promise<GetFlightPlansResponse> => {
-  const result = await getSecure<GetFlightPlansResponse>(
-    token,
-    `game/systems/${symbol}/flight-plans`
+  return getCachedResponse(
+    flightPlansCache,
+    symbol,
+    () =>
+      getSecure<GetFlightPlansResponse>(
+        token,
+        `game/systems/${symbol}/flight-plans`
+      ),
+    (result) =>
+      result.flightPlans.map((fp) =>
+        db.intel.put({
+          shipId: fp.shipId,
+          destination: fp.destination,
+          departure: fp.departure,
+          lastSeen: DateTime.now().toISO(),
+          shipType: fp.shipType!,
+          username: fp.username!,
+        })
+      )
   );
-  result.flightPlans.map((fp) =>
-    db.intel.put({
-      shipId: fp.shipId,
-      destination: fp.destination,
-      departure: fp.departure,
-      lastSeen: DateTime.now().toISO(),
-      shipType: fp.shipType!,
-      username: fp.username!,
-    })
-  );
-  return result;
 };
 
 export const newFlightPlan = (
