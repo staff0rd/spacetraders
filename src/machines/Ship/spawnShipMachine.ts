@@ -36,6 +36,7 @@ export function spawnShipMachine(c: Context): any {
     if (IsStrategy(ShipStrategy.Trade, strategy, data))
       return spawn(
         tradeMachine.withContext({
+          id: ship.id,
           token: c.token!,
           username: c.user!.username,
           ship,
@@ -44,7 +45,7 @@ export function spawnShipMachine(c: Context): any {
             (symbol) => markets[symbol] as LocationWithDistance
           ),
           flightPlan,
-          strategy: ShipStrategy.Trade,
+          strategy: { strategy: ShipStrategy.Trade },
         }),
         { name: `ship-${ship.id}`, sync: true }
       ) as any;
@@ -52,8 +53,9 @@ export function spawnShipMachine(c: Context): any {
     if (IsStrategy(ShipStrategy.Halt, strategy, data))
       return spawn(
         haltMachine.withContext({
+          id: ship.id,
           token: c.token!,
-          strategy: ShipStrategy.Halt,
+          strategy: { strategy: ShipStrategy.Halt },
           username: c.user!.username,
           ship,
         })
@@ -70,6 +72,6 @@ function IsStrategy(
   return (
     shipStrategy === strategy ||
     (shipStrategy === ShipStrategy.Change &&
-      (data as ChangePayload).from === strategy)
+      (data as ChangePayload).from.strategy === strategy)
   );
 }

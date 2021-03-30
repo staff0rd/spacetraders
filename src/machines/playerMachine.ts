@@ -145,9 +145,29 @@ export const playerMachine = createMachine<Context, Event, Schema>(
         },
       },
       [States.Tick]: {
-        entry: (c) => api.getFlightPlans(c.token!, "OE") as any,
+        entry: [
+          (c) => api.getFlightPlans(c.token!, "OE") as any,
+          (c) => {
+            const doneActors = c.actors.filter((a) => a.state.value === "done");
+            console.warn(`There are ${doneActors.length} done actors`);
+            doneActors.forEach((a) => {
+              a.stop && a.stop(); // TODO: Is this required?
+            });
+          },
+        ],
+        exit: assign<Context>({
+          actors: (c, e) => {
+            const actorsNotDone = c.actors.filter(
+              (a) => a.state.value !== "done"
+            );
+            console.warn(
+              `Of ${c.actors.length} there are ${actorsNotDone.length} not done`
+            );
+            return actorsNotDone;
+          },
+        }) as any,
         after: {
-          1: { target: States.Ready },
+          1: { target: States.GetStrategies },
         },
       },
       [States.GetFlightPlans]: {
@@ -162,7 +182,6 @@ export const playerMachine = createMachine<Context, Event, Schema>(
                   .flightPlans as FlightPlan[]).filter((fp) =>
                   c.user!.ships.find((ship) => ship.id === fp.shipId)
                 );
-                console.log(filtered);
                 return filtered;
               },
             }) as any,
@@ -183,7 +202,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
       },
       [States.SpawnShips]: {
         entry: (c) => console.log("player: spawnShips", c),
-        exit: "spawnShips",
+        exit: ["spawnShips"],
         after: {
           1: {
             target: [States.Idle],
@@ -294,8 +313,9 @@ export const playerMachine = createMachine<Context, Event, Schema>(
     actions: {
       spawnShips: assign<Context>({
         actors: (c, e: any) => {
+          console.warn(`${c.actors?.length || 0} current actors`);
           const alreadySpawnedShipIds = c.actors.map(
-            (actor) => actor.state.context.ship.id
+            (actor) => actor.state.context.id
           );
 
           const toSpawn: Ship[] = c.ships!.filter((s: Ship) => {
@@ -303,15 +323,14 @@ export const playerMachine = createMachine<Context, Event, Schema>(
               (id) => id === s.id
             );
             if (alreadySpawned) {
-              console.log(`${s.id} already spawned`);
               return false;
             }
             return true;
           });
 
-          console.log(`Will spawn ${toSpawn.map((s) => s.id).join(",\n")}`);
+          console.log(`Spawning ${toSpawn.length} more`);
 
-          return toSpawn.map(spawnShipMachine(c));
+          return [...c.actors, ...toSpawn.map(spawnShipMachine(c))] as any;
         },
       }) as any,
       assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,

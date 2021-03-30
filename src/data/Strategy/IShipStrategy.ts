@@ -1,7 +1,5 @@
-import { ShipStrategy } from "./ShipStrategy";
+import { IStrategy } from "./IStrategy";
 
-export interface IShipStrategy {
+export interface IShipStrategy extends IStrategy {
   shipId: string;
-  strategy: ShipStrategy;
-  data?: object;
 }

@@ -15,14 +15,16 @@ export const calculateNetWorth = (
     description: "Credits",
     quantity: credits,
   },
-  ...scs.map((sc) => ({
-    value:
-      (availableShips.find((av) => av.type === sc.ship.type)
-        ?.purchaseLocations[0].price || 0) * 0.25,
-    category: "asset" as Category,
-    description: sc.ship.type,
-    quantity: 1,
-  })),
+  ...scs
+    .filter((sc) => !!sc.ship)
+    .map((sc) => ({
+      value:
+        (availableShips.find((av) => av.type === sc.ship!.type)
+          ?.purchaseLocations[0].price || 0) * 0.25,
+      category: "asset" as Category,
+      description: sc.ship!.type,
+      quantity: 1,
+    })),
   ...scs.map((s) => calculateCargoWorth(s, systems)).flat(),
 ];
 
@@ -30,6 +32,7 @@ const calculateCargoWorth = (
   sc: ShipContext,
   systems: SystemContext
 ): NetWorthLineItem[] => {
+  if (!sc.ship) return [];
   const locationSymbol = sc.ship.location || sc.flightPlan?.departure || "";
   const systemSymbol = locationSymbol.substr(0, 2);
   const system = systems[systemSymbol];
@@ -42,7 +45,7 @@ const calculateCargoWorth = (
     value:
       c.quantity * (market.find((m) => m.symbol === c.good)?.pricePerUnit || 0),
     category: "asset",
-    description: `${sc.ship.type} ${c.good}`,
+    description: `${sc.ship!.type} ${c.good}`,
     quantity: c.quantity,
   }));
 };

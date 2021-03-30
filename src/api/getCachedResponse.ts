@@ -35,10 +35,8 @@ export const getCachedResponse = async <T>(
       key in cache.cache &&
       -cache.cache[key].timestamp.diffNow("seconds").seconds < cacheForSeconds
     ) {
-      console.log("found in cache", cache.cache[key].response);
       return Promise.resolve(cache.cache[key].response);
     }
-    console.log("not in cache, requesting...", cache.cache[key]);
 
     const result = await request();
 

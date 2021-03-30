@@ -180,6 +180,17 @@ export const getMarket = (
       )
   );
 
+export interface GetShipResponse {
+  ship: Ship;
+}
+
+export const getShip = (
+  token: string,
+  username: string,
+  shipId: string
+): Promise<GetShipsResponse> =>
+  getSecure(token, `users/${username}/ships/${shipId}`);
+
 export interface GetShipsResponse {
   ships: Ship[];
 }

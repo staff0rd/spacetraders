@@ -41,13 +41,15 @@ export const Strategy = ({ state }: Props) => {
       setPlayerStrategy(parseInt(newStrategy));
       state.context.actors.forEach((actor) =>
         db.strategies.put({
-          shipId: actor.state.context.ship.id,
+          shipId: actor.state.context.id,
           strategy: ShipStrategy.Change,
           data: {
-            from: strategies.find(
-              (p) => p.shipId === actor.state.context.ship.id
-            )?.strategy,
-            to: parseInt(newStrategy),
+            from: {
+              strategy: strategies.find(
+                (p) => p.shipId === actor.state.context.id
+              )?.strategy,
+            },
+            to: { strategy: parseInt(newStrategy) },
           } as ChangePayload,
         })
       );
@@ -77,7 +79,7 @@ export const Strategy = ({ state }: Props) => {
       </ToggleButtonGroup>
       {state.context.actors.map((ship) => (
         <pre key={ship.id}>
-          {ship.state.value} | {parseStrategy(ship.state.context.ship.id)}
+          {ship.state.value} | {parseStrategy(ship.state.context.id)}
         </pre>
       ))}
     </>

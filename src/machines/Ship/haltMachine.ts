@@ -8,11 +8,13 @@ import {
 import { Ship } from "../../api/Ship";
 import db from "../../data";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
+import { updateStrategy } from "./updateStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 
 enum States {
   Waiting = "waiting",
   CheckStrategy = "checkStrategy",
+  UpdateStrategy = "updateStrategy",
   Done = "done",
 }
 
@@ -25,22 +27,34 @@ export const haltMachine = createMachine<Context, any, any>(
     id: "halt",
     initial: States.Waiting,
     context: {
+      id: "",
       token: "",
       username: "",
       ship: {} as Ship,
-      strategy: ShipStrategy.Halt,
+      strategy: { strategy: ShipStrategy.Halt },
     },
     states: {
       [States.Waiting]: {
         after: {
           1000: [
-            { target: States.Done, cond: "shouldDone" },
+            {
+              target: States.UpdateStrategy,
+              cond: "shouldDone",
+            },
             { target: States.CheckStrategy },
           ],
         },
       },
       [States.Done]: {
         type: "final",
+      },
+      [States.UpdateStrategy]: {
+        invoke: {
+          src: updateStrategy,
+          onDone: {
+            target: States.Done,
+          },
+        },
       },
       [States.CheckStrategy]: {
         invoke: {
@@ -56,11 +70,8 @@ export const haltMachine = createMachine<Context, any, any>(
   {
     services: {
       checkStrategy: async (c) => {
-        const strategy = await db.strategies
-          .where({ shipId: c.ship.id })
-          .first();
-        console.log("strategy", strategy);
-        return strategy?.strategy;
+        const strategy = await db.strategies.where({ shipId: c.id }).first();
+        return strategy;
       },
     },
     actions: {
@@ -69,7 +80,7 @@ export const haltMachine = createMachine<Context, any, any>(
       }),
     },
     guards: {
-      shouldDone: (c) => c.strategy !== ShipStrategy.Halt,
+      shouldDone: (c) => c.strategy.strategy !== ShipStrategy.Halt,
     },
   }
 );

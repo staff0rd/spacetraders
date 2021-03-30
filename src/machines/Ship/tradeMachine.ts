@@ -17,6 +17,7 @@ import db from "../../data";
 import { TradeType } from "../../data/ITrade";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
+import { updateStrategy } from "./updateStrategy";
 
 export type LocationWithDistance = Location & { distance: number };
 
@@ -28,9 +29,12 @@ export type ShouldBuy = {
 };
 
 enum States {
+  Idle = "idle",
+  Init = "init",
   BuyCargo = "buyCargo",
   SellCargo = "sellCargo",
   CheckStrategy = "checkStrategy",
+  UpdateStrategy = "updateStrategy",
   Done = "done",
 }
 
@@ -56,24 +60,34 @@ const sleep = (ms: number) => {
 export const tradeMachine = createMachine<Context, any, any>(
   {
     id: "ship",
-    initial: "idle",
+    initial: States.Init,
     context: {
+      id: "",
       token: "",
       username: "",
       ship: {} as Ship,
       locations: [],
       credits: 0,
-      strategy: 0,
+      strategy: { strategy: ShipStrategy.Trade },
     },
     states: {
-      idle: {
+      [States.Init]: {
+        invoke: {
+          src: (c) => api.getShip(c.token, c.username, c.id),
+          onDone: {
+            target: States.Idle,
+            actions: assign<Context>({ ship: (c, e: any) => e.data.ship }),
+          },
+        },
+      },
+      [States.Idle]: {
         after: {
           1: [
             { target: "inFlight", cond: "hasFlightPlan" },
             { target: "getMarket", cond: "noLocation" },
             { target: States.SellCargo, cond: "shouldSell" },
             { target: States.CheckStrategy, cond: "shouldCheckStrategy" },
-            { target: States.Done, cond: "shouldDone" },
+            { target: States.UpdateStrategy, cond: "shouldDone" },
             {
               target: States.BuyCargo,
               cond: "needFuel",
@@ -89,11 +103,19 @@ export const tradeMachine = createMachine<Context, any, any>(
       [States.Done]: {
         type: "final",
       },
+      [States.UpdateStrategy]: {
+        invoke: {
+          src: updateStrategy,
+          onDone: {
+            target: States.Done,
+          },
+        },
+      },
       [States.CheckStrategy]: {
         invoke: {
           src: "checkStrategy",
           onDone: {
-            target: "idle",
+            target: States.Idle,
             actions: "checkStrategy",
           },
         },
@@ -105,7 +127,7 @@ export const tradeMachine = createMachine<Context, any, any>(
               ship: c.ship,
               credits: c.credits,
             };
-            const sellableCargo = c.ship.cargo.filter(
+            const sellableCargo = c.ship!.cargo.filter(
               (cargo) => cargo.good !== "FUEL"
             );
             for (const sellOrder of sellableCargo) {
@@ -113,7 +135,7 @@ export const tradeMachine = createMachine<Context, any, any>(
               result = await api.sellOrder(
                 c.token,
                 c.username,
-                c.ship.id,
+                c.id,
                 sellOrder.good,
                 quantity
               );
@@ -122,7 +144,7 @@ export const tradeMachine = createMachine<Context, any, any>(
                 .filter(
                   (p) =>
                     p.good === sellOrder.good &&
-                    p.shipId === c.ship.id &&
+                    p.shipId === c.id &&
                     p.type === TradeType.Buy
                 )
                 .last();
@@ -132,7 +154,7 @@ export const tradeMachine = createMachine<Context, any, any>(
                 good: sellOrder.good,
                 quantity,
                 location: c.location!.symbol,
-                shipId: c.ship.id,
+                shipId: c.id,
                 timestamp: DateTime.now().toISO(),
                 profit: lastBuy
                   ? (result!.order!.pricePerUnit -
@@ -145,10 +167,10 @@ export const tradeMachine = createMachine<Context, any, any>(
           },
           onError: {
             actions: "printError",
-            target: "idle",
+            target: States.Idle,
           },
           onDone: {
-            target: "idle",
+            target: States.Idle,
             actions: [
               assign({
                 credits: (c, e: any) => e.data.credits,
@@ -171,7 +193,7 @@ export const tradeMachine = createMachine<Context, any, any>(
         invoke: {
           src: determineCargo,
           onDone: {
-            target: "idle",
+            target: States.Idle,
             actions: assign({ shouldBuy: (c, e: any) => e.data }),
           },
         },
@@ -185,16 +207,16 @@ export const tradeMachine = createMachine<Context, any, any>(
             );
           },
           onDone: {
-            target: "idle",
+            target: States.Idle,
             actions: [
               sendParent((c: Context, e) => ({
                 type: "SHIP_ARRIVED",
-                data: c.ship.id,
+                data: c.id,
               })),
               assign({
                 ship: (c: Context, e) => {
                   return {
-                    ...c.ship,
+                    ...c.ship!,
                     location: c.flightPlan!.destination,
                   };
                 },
@@ -209,21 +231,21 @@ export const tradeMachine = createMachine<Context, any, any>(
       },
       determineDestination: {
         entry: ["determineDestination"],
-        after: { 1: "idle" },
+        after: { 1: States.Idle },
       },
       createFlightPlan: {
         invoke: {
           src: (c) =>
-            api.newFlightPlan(c.token, c.username, c.ship.id, c.destination!),
+            api.newFlightPlan(c.token, c.username, c.id, c.destination!),
           onDone: {
             target: "inFlight",
             actions: [
               assign({
                 flightPlan: (c, e: any) => e.data.flightPlan,
                 ship: (c, e: any) => ({
-                  ...c.ship,
+                  ...c.ship!,
                   cargo: [
-                    ...c.ship.cargo.map((c) =>
+                    ...c.ship!.cargo.map((c) =>
                       c.good !== "FUEL"
                         ? c
                         : {
@@ -247,13 +269,13 @@ export const tradeMachine = createMachine<Context, any, any>(
       getMarket: {
         invoke: {
           src: (context: Context) =>
-            api.getMarket(context.token, context.ship.location!),
+            api.getMarket(context.token, context.ship!.location!),
           onError: {
             actions: "printError",
-            target: "idle",
+            target: States.Idle,
           },
           onDone: {
-            target: "idle",
+            target: States.Idle,
             actions: [
               assign({
                 location: (c, e: any) =>
@@ -275,7 +297,7 @@ export const tradeMachine = createMachine<Context, any, any>(
             const result = await api.purchaseOrder(
               context.token,
               context.username,
-              context.ship.id,
+              context.id,
               good,
               quantity
             );
@@ -285,7 +307,7 @@ export const tradeMachine = createMachine<Context, any, any>(
               good,
               quantity,
               location: sellTo,
-              shipId: context.ship.id,
+              shipId: context.id,
               timestamp: DateTime.now().toISO(),
               profit,
             });
@@ -298,7 +320,7 @@ export const tradeMachine = createMachine<Context, any, any>(
             target: "getMarket",
           },
           onDone: {
-            target: "idle",
+            target: States.Idle,
             actions: [
               assign({
                 ship: (c, e: any) => e.data.ship,
@@ -319,10 +341,8 @@ export const tradeMachine = createMachine<Context, any, any>(
   {
     services: {
       checkStrategy: async (c) => {
-        const strategy = await db.strategies
-          .where({ shipId: c.ship.id })
-          .first();
-        return strategy?.strategy;
+        const strategy = await db.strategies.where({ shipId: c.id }).first();
+        return strategy;
       },
     },
     actions: {
@@ -335,7 +355,7 @@ export const tradeMachine = createMachine<Context, any, any>(
       assignNeededFuel: assign({
         shouldBuy: (c) => ({
           good: "FUEL",
-          quantity: fuelAmountNeeded(c.ship),
+          quantity: fuelAmountNeeded(c.ship!),
           profit: 0,
         }),
       }),
@@ -358,7 +378,7 @@ export const tradeMachine = createMachine<Context, any, any>(
       }),
     },
     guards: {
-      needFuel: (c) => fuelAmountNeeded(c.ship) > 0,
+      needFuel: (c) => fuelAmountNeeded(c.ship!) > 0,
       noLocation: (c) => !c.location,
       noDestination: (c) => !c.destination,
       noFlightPlan: (c) => !c.flightPlan,
@@ -367,9 +387,9 @@ export const tradeMachine = createMachine<Context, any, any>(
       shouldBuyCargo: (c) =>
         c.shouldBuy !== undefined &&
         c.shouldBuy.good !== "NONE" &&
-        c.ship.spaceAvailable > 0,
+        c.ship!.spaceAvailable > 0,
       shouldSell: (c) => !c.hasSold,
-      shouldDone: (c) => c.strategy !== ShipStrategy.Trade,
+      shouldDone: (c) => c.strategy.strategy !== ShipStrategy.Trade,
       shouldCheckStrategy: (c) => !!c.shouldCheckStrategy,
     },
   }

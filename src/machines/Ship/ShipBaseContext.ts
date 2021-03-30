@@ -1,10 +1,11 @@
 import { Ship } from "../../api/Ship";
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
+import { IStrategy } from "../../data/Strategy/IStrategy";
 
 export type ShipBaseContext = {
+  id: string;
   token: string;
   username: string;
-  ship: Ship;
-  strategy: ShipStrategy;
+  ship?: Ship;
+  strategy: IStrategy;
   shouldCheckStrategy?: boolean;
 };

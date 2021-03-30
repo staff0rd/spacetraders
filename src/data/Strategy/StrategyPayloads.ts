@@ -1,6 +1,6 @@
-import { ShipStrategy } from "./ShipStrategy";
+import { IStrategy } from "./IStrategy";
 
 export type ChangePayload = {
-  from: ShipStrategy;
-  to: ShipStrategy;
+  from: IStrategy;
+  to: IStrategy;
 };

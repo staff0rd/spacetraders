@@ -1,11 +1,10 @@
 import { ShipStrategy } from "./ShipStrategy";
 import { DateTime } from "luxon";
+import { IStrategy } from "./IStrategy";
 
 type PlayerStrategy = {
-  strategy: ShipStrategy;
-  data: any;
   since: string;
-};
+} & IStrategy;
 
 export const setPlayerStrategy = (newStrategy: ShipStrategy, data?: any) => {
   localStorage.setItem(
