@@ -159,7 +159,7 @@ const marketCache: { [key: string]: MarketCache } = {};
 
 const scheduleMarket = (symbol: string, request: () => Promise<any>) => {
   if (!(symbol in marketLimits)) {
-    marketLimits[symbol] = new Bottleneck({ maxConcurrent: 1, minTime: 5000 });
+    marketLimits[symbol] = new Bottleneck({ maxConcurrent: 1 });
   }
   return marketLimits[symbol].schedule(request);
 };
