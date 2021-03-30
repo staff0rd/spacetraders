@@ -39,7 +39,6 @@ export type Context = ShipBaseContext & {
   locations: LocationWithDistance[];
   destination?: string;
   shouldBuy?: ShouldBuy;
-  shouldCheckStrategy?: boolean;
   flightPlan?: FlightPlan;
   credits: number;
   hasSold?: boolean;

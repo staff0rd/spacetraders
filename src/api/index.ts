@@ -180,7 +180,7 @@ export const getMarket = (
       )
   );
 
-interface GetShipsResponse {
+export interface GetShipsResponse {
   ships: Ship[];
 }
 

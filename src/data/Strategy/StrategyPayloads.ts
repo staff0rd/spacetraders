@@ -1,6 +1,6 @@
 import { ShipStrategy } from "./ShipStrategy";
 
-export type Change = {
+export type ChangePayload = {
   from: ShipStrategy;
   to: ShipStrategy;
 };

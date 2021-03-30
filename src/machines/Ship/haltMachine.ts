@@ -35,7 +35,7 @@ export const haltMachine = createMachine<Context, any, any>(
         after: {
           1000: [
             { target: States.Done, cond: "shouldDone" },
-            { target: States.CheckStrategy, cond: "shouldCheckStrategy" },
+            { target: States.CheckStrategy },
           ],
         },
       },
@@ -46,7 +46,7 @@ export const haltMachine = createMachine<Context, any, any>(
         invoke: {
           src: "checkStrategy",
           onDone: {
-            target: "idle",
+            target: States.Waiting,
             actions: "checkStrategy",
           },
         },
@@ -59,6 +59,7 @@ export const haltMachine = createMachine<Context, any, any>(
         const strategy = await db.strategies
           .where({ shipId: c.ship.id })
           .first();
+        console.log("strategy", strategy);
         return strategy?.strategy;
       },
     },

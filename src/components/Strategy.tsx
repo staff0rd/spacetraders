@@ -11,15 +11,20 @@ import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import { ShipStrategy } from "../data/Strategy/ShipStrategy";
 import db from "../data";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Change } from "../data/Strategy/StrategyPayloads";
-import { setPlayerStrategy } from "../data/Strategy/PlayerStrategy";
+import { ChangePayload } from "../data/Strategy/StrategyPayloads";
+import {
+  getPlayerStrategy,
+  setPlayerStrategy,
+} from "../data/Strategy/PlayerStrategy";
 
 type Props = {
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null;
 };
 
 export const Strategy = ({ state }: Props) => {
-  const [strategy, setStrategy] = React.useState<string>("0");
+  const [strategy, setStrategy] = React.useState<string>(
+    getPlayerStrategy().strategy.toString()
+  );
 
   const strategies = useLiveQuery(() => {
     return db.strategies.toArray();
@@ -38,12 +43,12 @@ export const Strategy = ({ state }: Props) => {
         db.strategies.put({
           shipId: actor.state.context.ship.id,
           strategy: ShipStrategy.Change,
-          data: JSON.stringify({
+          data: {
             from: strategies.find(
               (p) => p.shipId === actor.state.context.ship.id
             )?.strategy,
             to: parseInt(newStrategy),
-          } as Change),
+          } as ChangePayload,
         })
       );
     }
@@ -71,7 +76,7 @@ export const Strategy = ({ state }: Props) => {
         </ToggleButton>
       </ToggleButtonGroup>
       {state.context.actors.map((ship) => (
-        <pre>
+        <pre key={ship.id}>
           {ship.state.value} | {parseStrategy(ship.state.context.ship.id)}
         </pre>
       ))}

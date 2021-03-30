@@ -15,6 +15,8 @@ import { NetWorthLineItem } from "./NetWorthLineItem";
 import { Ship } from "../api/Ship";
 import { FlightPlan } from "../api/FlightPlan";
 import { spawnShipMachine } from "./Ship/spawnShipMachine";
+import db from "../data";
+import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -26,6 +28,8 @@ export enum States {
   GetFlightPlans = "getFlightPlans",
   Tick = "tick",
   GetShips = "getShips",
+  GetStrategies = "getStrategies",
+  SpawnShips = "spawnShips",
   Ready = "ready",
   GetLoan = "getLoan",
   GetAvailableShips = "getAvailableShips",
@@ -50,6 +54,8 @@ export type Context = {
   netWorth: NetWorthLineItem[];
   actors: ShipActor[];
   flightPlans: FlightPlan[];
+  strategies?: IShipStrategy[];
+  ships?: Ship[];
 };
 
 const getCachedPlayer = (): Context => {
@@ -163,13 +169,36 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           },
         },
       },
+      [States.GetStrategies]: {
+        entry: (c) => console.log("player: GetStrategies", c),
+        invoke: {
+          src: () => db.strategies.toArray(),
+          onDone: {
+            actions: assign<Context>({
+              strategies: (c, e: any) => e.data,
+            }) as any,
+            target: States.SpawnShips,
+          },
+        },
+      },
+      [States.SpawnShips]: {
+        entry: (c) => console.log("player: spawnShips", c),
+        exit: "spawnShips",
+        after: {
+          1: {
+            target: [States.Idle],
+          },
+        },
+      },
       [States.GetShips]: {
         entry: (c) => console.log("player: getShips", c),
         invoke: {
           src: (c) => api.getShips(c.token!, c.user!.username),
           onDone: {
-            target: States.Ready,
-            actions: "spawnShips",
+            target: States.GetStrategies,
+            actions: assign<Context>({
+              ships: (c, e: any) => (e.data as api.GetShipsResponse).ships,
+            }),
           },
         },
       },
@@ -248,8 +277,14 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             actions: (c, e) => console.error(e),
           },
           onDone: {
-            target: "ready",
-            actions: ["assignUser", "spawnShips"],
+            target: States.GetStrategies,
+            actions: [
+              "assignUser",
+              assign<Context>({
+                ships: (c, e: any) =>
+                  (e.data.response as api.GetUserResponse).user.ships,
+              }),
+            ],
           },
         },
       },
@@ -259,14 +294,11 @@ export const playerMachine = createMachine<Context, Event, Schema>(
     actions: {
       spawnShips: assign<Context>({
         actors: (c, e: any) => {
-          const buyShip = e.data.response?.user?.ships;
-          const getShip = e.data.ships;
-
           const alreadySpawnedShipIds = c.actors.map(
             (actor) => actor.state.context.ship.id
           );
 
-          const toSpawn: Ship[] = (buyShip || getShip).filter((s: Ship) => {
+          const toSpawn: Ship[] = c.ships!.filter((s: Ship) => {
             const alreadySpawned = alreadySpawnedShipIds.find(
               (id) => id === s.id
             );

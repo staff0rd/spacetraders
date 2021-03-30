@@ -6,4 +6,5 @@ export type ShipBaseContext = {
   username: string;
   ship: Ship;
   strategy: ShipStrategy;
+  shouldCheckStrategy?: boolean;
 };
