@@ -150,8 +150,12 @@ export const getSystems = (token: string): Promise<GetSystemsResponse> =>
 export type GetMarketResponse = {
   location: Location;
 };
-
+type MarketCache = {
+  timestamp: DateTime;
+  response: GetMarketResponse;
+};
 const marketLimits: { [key: string]: Bottleneck } = {};
+const marketCache: { [key: string]: MarketCache } = {};
 
 const scheduleMarket = (symbol: string, request: () => Promise<any>) => {
   if (!(symbol in marketLimits)) {
@@ -165,10 +169,20 @@ export const getMarket = (
   location: string
 ): Promise<GetMarketResponse> =>
   scheduleMarket(location, async () => {
+    if (
+      location in marketCache &&
+      -marketCache[location].timestamp.diffNow("seconds").seconds < 60
+    )
+      return marketCache[location].response;
+
     const result = await getSecure<GetMarketResponse>(
       token,
       `game/locations/${location}/marketplace`
     );
+    marketCache[location] = {
+      timestamp: DateTime.now(),
+      response: result,
+    };
     result.location.marketplace.map((m) =>
       db.markets.put({
         created: DateTime.now().toISO(),
