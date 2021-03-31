@@ -57,10 +57,10 @@ export const fromLocation: LocationWithDistance = {
   marketplace: [
     {
       symbol: "GOOD_A",
-      pricePerUnit: 10,
+      purchasePricePerUnit: 10,
+      sellPricePerUnit: 10,
       quantityAvailable: 100,
       volumePerUnit: 1,
-      spread: 3,
     },
   ],
 };
@@ -77,7 +77,7 @@ export const testMarketResponse = {
     symbol: "FROM",
     marketplace: [
       {
-        pricePerUnit: 1,
+        purchasePricePerUnit: 1,
         quantityAvailable: 500,
         symbol: "FUEL",
         volumePerUnit: 1,

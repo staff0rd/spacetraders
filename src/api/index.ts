@@ -171,11 +171,11 @@ export const getMarket = (
         db.markets.put({
           created: DateTime.now().toISO(),
           location,
-          pricePerUnit: m.pricePerUnit,
+          purchasePricePerUnit: m.purchasePricePerUnit,
+          sellPricePerUnit: m.sellPricePerUnit,
           quantityAvailable: m.quantityAvailable,
           volumePerUnit: m.volumePerUnit,
           good: m.symbol,
-          spread: m.spread,
         })
       )
   );

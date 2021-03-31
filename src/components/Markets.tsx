@@ -48,8 +48,9 @@ export const Markets = () => {
     "Location",
     ...(isMdDown ? ["Qty x Good"] : [right("Qty"), "Good"]),
     "㎥",
+    right("Buy"),
+    right("Sell"),
     right("Spread"),
-    right("Cost"),
     "When",
   ];
   const rows = markets.map((market) => [
@@ -78,7 +79,7 @@ export const Markets = () => {
     market.volumePerUnit,
     right(
       <NumberFormat
-        value={market.spread}
+        value={market.purchasePricePerUnit}
         thousandSeparator=","
         displayType="text"
         prefix="$"
@@ -86,7 +87,15 @@ export const Markets = () => {
     ),
     right(
       <NumberFormat
-        value={market.pricePerUnit}
+        value={market.sellPricePerUnit}
+        thousandSeparator=","
+        displayType="text"
+        prefix="$"
+      />
+    ),
+    right(
+      <NumberFormat
+        value={market.purchasePricePerUnit - market.sellPricePerUnit}
         thousandSeparator=","
         displayType="text"
         prefix="$"

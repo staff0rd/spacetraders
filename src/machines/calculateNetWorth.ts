@@ -43,7 +43,8 @@ const calculateCargoWorth = (
   if (!market) return [];
   return sc.ship.cargo.map((c) => ({
     value:
-      c.quantity * (market.find((m) => m.symbol === c.good)?.pricePerUnit || 0),
+      c.quantity *
+      (market.find((m) => m.symbol === c.good)?.sellPricePerUnit || 0),
     category: "asset",
     description: `${sc.ship!.type} ${c.good}`,
     quantity: c.quantity,

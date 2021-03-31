@@ -3,8 +3,8 @@ export interface IMarket {
   location: string;
   good: string;
   volumePerUnit: number;
-  pricePerUnit: number;
+  sellPricePerUnit: number;
+  purchasePricePerUnit: number;
   quantityAvailable: number;
   created: string;
-  spread: number;
 }

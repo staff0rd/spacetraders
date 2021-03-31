@@ -15,7 +15,7 @@ const getProfit = (
   credits: number
 ): BestBuy => {
   const hasSpaceFor = Math.floor(spaceAvailable / from.volumePerUnit);
-  const hasCreditsFor = Math.floor(credits / from.pricePerUnit);
+  const hasCreditsFor = Math.floor(credits / from.purchasePricePerUnit);
   const quantity = Math.min(
     hasSpaceFor,
     hasCreditsFor,
@@ -23,9 +23,9 @@ const getProfit = (
     MAX_CARGO_MOVE
   );
   const sell = destination.find((p) => p.symbol === from.symbol);
-  if (!sell) return { profit: -from.pricePerUnit, quantity };
+  if (!sell) return { profit: -from.purchasePricePerUnit, quantity };
   return {
-    profit: (sell.pricePerUnit - from.pricePerUnit) * quantity,
+    profit: (sell.sellPricePerUnit - from.purchasePricePerUnit) * quantity,
     quantity,
   };
 };
