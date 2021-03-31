@@ -24,7 +24,7 @@ export const getCachedResponse = async <T>(
   cache: ResponseLimit<T>,
   key: string,
   request: () => Promise<T>,
-  onRequest?: (response: T) => Promise<any> | PromiseExtended<number>[],
+  onRequest?: (response: T) => Promise<any> | PromiseExtended<any>[],
   cacheForSeconds = 60
 ) => {
   if (!(key in cache.limits)) {
