@@ -90,8 +90,8 @@ export const playerMachine = createMachine<Context, Event, Schema>(
       [States.Idle]: {
         entry: [() => console.log("player: idle")],
         always: [
-          { target: "getToken", cond: (context) => !context.token },
-          { target: "getUser", cond: (context) => !!context.token },
+          { target: States.GetToken, cond: (context) => !context.token },
+          { target: States.GetUser, cond: (context) => !!context.token },
         ],
       },
       [States.Initialising]: {
@@ -205,7 +205,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
         exit: ["spawnShips"],
         after: {
           1: {
-            target: [States.Idle],
+            target: [States.Ready],
           },
         },
       },
@@ -292,7 +292,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             availableShips: (context: Context) => context.availableShips,
           },
           onError: {
-            target: "ready",
+            target: States.Ready,
             actions: (c, e) => console.error(e),
           },
           onDone: {
