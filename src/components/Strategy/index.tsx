@@ -4,26 +4,33 @@ import {
   Context as PlayerContext,
   Schema as PlayerSchema,
   Event as PlayerEvent,
-} from "../machines/playerMachine";
+} from "../../machines/playerMachine";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import ToggleButton from "@material-ui/lab/ToggleButton";
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
-import { ShipStrategy } from "../data/Strategy/ShipStrategy";
-import db from "../data";
+import { makeStyles } from "@material-ui/core";
+import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
+import db from "../../data";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ChangePayload } from "../data/Strategy/StrategyPayloads";
 import {
   getPlayerStrategy,
   setPlayerStrategy,
-} from "../data/Strategy/PlayerStrategy";
+} from "../../data/Strategy/PlayerStrategy";
+import { StrategyToggle } from "./StrategyToggle";
+import { ChangePayload } from "../../data/Strategy/StrategyPayloads";
+
+const useStyles = makeStyles((theme) => ({
+  playerStrategy: {
+    marginBottom: theme.spacing(2),
+  },
+}));
 
 type Props = {
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null;
 };
 
 export const Strategy = ({ state }: Props) => {
-  const [strategy, setStrategy] = React.useState<string>(
-    getPlayerStrategy().strategy.toString()
+  const classes = useStyles();
+  const [strategy, setStrategy] = React.useState<ShipStrategy>(
+    getPlayerStrategy().strategy
   );
 
   const strategies = useLiveQuery(() => {
@@ -32,20 +39,22 @@ export const Strategy = ({ state }: Props) => {
 
   if (!state || !state.context.actors.length || !strategies)
     return <CircularProgress size={48} />;
-  const handleStrategy = (
+
+  const handlePlayerStrategyChange = (
     event: React.MouseEvent<HTMLElement>,
-    newStrategy: string | null
+    newStrategy: string
   ) => {
     if (newStrategy != null) {
-      setStrategy(newStrategy);
+      setStrategy(parseInt(newStrategy));
       setPlayerStrategy(parseInt(newStrategy));
-      state.context.actors.forEach((actor) =>
+      console.log("new strat", newStrategy);
+      state!.context.actors.forEach((actor) =>
         db.strategies.put({
           shipId: actor.state.context.id,
           strategy: ShipStrategy.Change,
           data: {
             from: {
-              strategy: strategies.find(
+              strategy: strategies!.find(
                 (p) => p.shipId === actor.state.context.id
               )?.strategy,
             },
@@ -57,30 +66,26 @@ export const Strategy = ({ state }: Props) => {
   };
 
   const parseStrategy = (shipId: string) => {
-    const strat = strategies.find((s) => s.shipId === shipId)?.strategy;
+    const strat = strategies!.find((s) => s.shipId === shipId)?.strategy;
     if (strat === undefined) return "";
     return ShipStrategy[strat];
   };
 
   return (
     <>
-      <ToggleButtonGroup
-        value={strategy}
-        exclusive
-        onChange={handleStrategy}
-        aria-label="strategy"
-      >
-        <ToggleButton value={ShipStrategy.Halt.toString()} aria-label="halt">
-          Halt
-        </ToggleButton>
-        <ToggleButton value={ShipStrategy.Trade.toString()} aria-label="trade">
-          Trade
-        </ToggleButton>
-      </ToggleButtonGroup>
+      <div className={classes.playerStrategy}>
+        <StrategyToggle
+          strategy={strategy}
+          handleStrategy={handlePlayerStrategyChange}
+        />
+      </div>
       {state.context.actors.map((ship) => (
-        <pre key={ship.id}>
-          {ship.state.value} | {parseStrategy(ship.state.context.id)}
-        </pre>
+        <>
+          {/* <SingleShipStrategy shipId={ship.id} /> */}
+          <pre key={ship.id}>
+            {ship.state.value} | {parseStrategy(ship.state.context.id)}
+          </pre>
+        </>
       ))}
     </>
   );
