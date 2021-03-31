@@ -33,6 +33,8 @@ export function spawnShipMachine(c: Context): any {
 
     const { data, strategy } = getStrategy(c, ship);
 
+    console.log("ShipStrategy", strategy, data);
+
     if (IsStrategy(ShipStrategy.Trade, strategy, data))
       return spawn(
         tradeMachine.withContext({

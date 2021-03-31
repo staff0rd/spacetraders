@@ -8,25 +8,34 @@ type Props = {
     event: React.MouseEvent<HTMLElement, MouseEvent>,
     value: any
   ) => void;
-  strategy: ShipStrategy;
+  strategy: ShipStrategy | undefined;
+  size?: "small" | "medium" | "large";
+  disabled?: boolean;
 };
-export const StrategyToggle = ({ strategy, handleStrategy }: Props) => {
+export const StrategyToggle = ({
+  strategy,
+  disabled,
+  handleStrategy,
+  size,
+}: Props) => {
   const strats = Object.keys(ShipStrategy)
     .filter((p) => !isNaN(+p))
     .filter((p) => ShipStrategy[(p as unknown) as number] !== "Change");
 
-  console.log(
-    strats.map((s) => ({ a: ShipStrategy[(s as unknown) as number], b: s }))
-  );
   return (
     <ToggleButtonGroup
+      size={size}
       value={strategy}
       exclusive
       onChange={handleStrategy}
       aria-label="strategy"
     >
       {strats.map((strat) => (
-        <ToggleButton value={parseInt(strat)} aria-label="halt">
+        <ToggleButton
+          value={parseInt(strat)}
+          aria-label="halt"
+          disabled={disabled}
+        >
           {ShipStrategy[(strat as unknown) as number]}
         </ToggleButton>
       ))}

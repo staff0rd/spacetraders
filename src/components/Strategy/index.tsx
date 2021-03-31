@@ -7,6 +7,7 @@ import {
 } from "../../machines/playerMachine";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { makeStyles } from "@material-ui/core";
+import { Grid, Typography } from "@material-ui/core";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import db from "../../data";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -20,6 +21,10 @@ import { ChangePayload } from "../../data/Strategy/StrategyPayloads";
 const useStyles = makeStyles((theme) => ({
   playerStrategy: {
     marginBottom: theme.spacing(2),
+  },
+  shipState: {
+    display: "inline",
+    marginLeft: theme.spacing(2),
   },
 }));
 
@@ -40,6 +45,20 @@ export const Strategy = ({ state }: Props) => {
   if (!state || !state.context.actors.length || !strategies)
     return <CircularProgress size={48} />;
 
+  const persistStrategy = (shipId: string, newStrategy: ShipStrategy) => {
+    console.log("setting strategy", JSON.stringify(newStrategy));
+    db.strategies.put({
+      shipId,
+      strategy: ShipStrategy.Change,
+      data: {
+        from: {
+          strategy: getStrategy(shipId),
+        },
+        to: { strategy: newStrategy },
+      } as ChangePayload,
+    });
+  };
+
   const handlePlayerStrategyChange = (
     event: React.MouseEvent<HTMLElement>,
     newStrategy: string
@@ -47,26 +66,25 @@ export const Strategy = ({ state }: Props) => {
     if (newStrategy != null) {
       setStrategy(parseInt(newStrategy));
       setPlayerStrategy(parseInt(newStrategy));
-      console.log("new strat", newStrategy);
+      console.log("new strat", JSON.stringify(newStrategy));
       state!.context.actors.forEach((actor) =>
-        db.strategies.put({
-          shipId: actor.state.context.id,
-          strategy: ShipStrategy.Change,
-          data: {
-            from: {
-              strategy: strategies!.find(
-                (p) => p.shipId === actor.state.context.id
-              )?.strategy,
-            },
-            to: { strategy: parseInt(newStrategy) },
-          } as ChangePayload,
-        })
+        persistStrategy(actor.state.context.id, parseInt(newStrategy))
       );
     }
   };
+  const handleShipStrategyChange = (shipId: string, newStrategy: string) => {
+    if (newStrategy != null) {
+      persistStrategy(shipId, parseInt(newStrategy));
+    }
+  };
 
-  const parseStrategy = (shipId: string) => {
-    const strat = strategies!.find((s) => s.shipId === shipId)?.strategy;
+  const getStrategy = (shipId: string) => {
+    const result = strategies!.find((s) => s.shipId === shipId)?.strategy;
+    return result;
+  };
+
+  const getStrategyLabel = (shipId: string) => {
+    const strat = getStrategy(shipId);
     if (strat === undefined) return "";
     return ShipStrategy[strat];
   };
@@ -77,16 +95,39 @@ export const Strategy = ({ state }: Props) => {
         <StrategyToggle
           strategy={strategy}
           handleStrategy={handlePlayerStrategyChange}
+          disabled={
+            strategies.filter((p) => p.strategy === ShipStrategy.Change)
+              .length > 0
+          }
         />
       </div>
-      {state.context.actors.map((ship) => (
-        <>
-          {/* <SingleShipStrategy shipId={ship.id} /> */}
-          <pre key={ship.id}>
-            {ship.state.value} | {parseStrategy(ship.state.context.id)}
-          </pre>
-        </>
-      ))}
+      <Grid container spacing={1}>
+        {state.context.actors
+          .sort(
+            (a, b) =>
+              a?.state?.context?.ship?.id.localeCompare(
+                b?.state?.context?.ship?.id || ""
+              ) || 0
+          )
+          .map((actor) => (
+            <Grid item key={actor.id} xs={12}>
+              <StrategyToggle
+                disabled={
+                  getStrategy(actor.state.context.id) === ShipStrategy.Change
+                }
+                strategy={getStrategy(actor.state.context.id)}
+                handleStrategy={(_, value) =>
+                  handleShipStrategyChange(actor.state.context.id, value)
+                }
+                size="small"
+              />
+
+              <Typography className={classes.shipState}>
+                {actor.state.value} | {getStrategyLabel(actor.state.context.id)}
+              </Typography>
+            </Grid>
+          ))}
+      </Grid>
     </>
   );
 };
