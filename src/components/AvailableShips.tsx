@@ -4,12 +4,16 @@ import { DataTable, right } from "./DataTable";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import NumberFormat from "react-number-format";
 import { AvailableShip } from "../api/AvailableShip";
+import { useMediaQuery, useTheme } from "@material-ui/core";
 
 type Props = {
   availableShips: AvailableShip[];
 };
 
 export const AvailableShips = ({ availableShips }: Props) => {
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
+  console.warn("msdown", isMdDown);
   if (!availableShips || !availableShips.length)
     return <CircularProgress size={48} />;
 
@@ -25,8 +29,7 @@ export const AvailableShips = ({ availableShips }: Props) => {
     .sort((a, b) => a.price - b.price);
 
   const columns = [
-    "Manufacturer",
-    "Class",
+    ...(isMdDown ? [] : ["Manufacturer", "Class"]),
     "Type",
     "Location",
     <>
@@ -46,9 +49,7 @@ export const AvailableShips = ({ availableShips }: Props) => {
     right("Price"),
   ];
   const rows = ships.map((line) => [
-    line.manufacturer,
-
-    line.class,
+    ...(isMdDown ? [] : [line.manufacturer, line.class]),
     line.type,
     line.location,
 

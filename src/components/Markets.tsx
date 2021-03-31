@@ -5,7 +5,7 @@ import { DataTable, right } from "./DataTable";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { DateTime } from "luxon";
 import NumberFormat from "react-number-format";
-import { makeStyles, useTheme } from "@material-ui/core";
+import { makeStyles, useTheme, useMediaQuery } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
 export const Markets = () => {
   const classes = useStyles();
   const theme = useTheme();
-  const isMdDown = theme.breakpoints.down("md");
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const [location, setLocation] = useState("");
   const [good, setGood] = useState("");
 
