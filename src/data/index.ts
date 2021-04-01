@@ -18,10 +18,10 @@ class Database extends Dexie {
 
   constructor() {
     super("Database");
-    this.version(28).stores({
+    this.version(29).stores({
       apiErrors: "++id, code",
       trades: "++id, good, shipId, location, type, timestamp",
-      market: "++id,location,good",
+      market: "++id,location,good,created",
       strategies: "&shipId",
       intel: "&shipId,username",
       locationScouts: "&location",
