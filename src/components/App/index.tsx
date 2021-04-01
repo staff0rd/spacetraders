@@ -36,6 +36,7 @@ import {
   Event as PlayerEvent,
 } from "../../machines/playerMachine";
 import { useTableCap } from "../../data/useTableCap";
+import db from "../../data";
 
 const drawerWidth = 180;
 
@@ -148,7 +149,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 export function App() {
   useTableCap(db.trades, "timestamp", 1);
-  useTableCap(db.market, "created", 1);
+  useTableCap(db.markets, "created", 1);
 
   const classes = useStyles();
   const [drawerOpen, setDrawerOpen] = React.useState(true);

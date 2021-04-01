@@ -19,8 +19,6 @@ import BuyIcon from "@material-ui/icons/AddCircle";
 import SellIcon from "@material-ui/icons/RemoveCircle";
 import clsx from "clsx";
 import { useLiveQuery } from "dexie-react-hooks";
-import { timeStamp } from "node:console";
-import { useTableCap } from "../data/useTableCap";
 
 const useStyles = makeStyles((theme) => ({
   buyIcon: {

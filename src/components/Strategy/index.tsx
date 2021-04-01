@@ -18,10 +18,6 @@ import {
 import { StrategyToggle } from "./StrategyToggle";
 import { ChangePayload } from "../../data/Strategy/StrategyPayloads";
 import { getShipName } from "../../data/names";
-import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
-import { IShip } from "../../data/IShip";
-
-type IShipDetail = IShipStrategy & IShip;
 
 const useStyles = makeStyles((theme) => ({
   playerStrategy: {
