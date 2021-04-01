@@ -40,7 +40,7 @@ export const Markets = () => {
   const locations = useLiveQuery(() =>
     db.trades.orderBy("location").uniqueKeys()
   );
-  const goods = useLiveQuery(() => db.trades.orderBy("good").uniqueKeys());
+  const goods = useLiveQuery(() => db.markets.orderBy("good").uniqueKeys());
 
   if (!markets) return <CircularProgress color="primary" size={24} />;
 
