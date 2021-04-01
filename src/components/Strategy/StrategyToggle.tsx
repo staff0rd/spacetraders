@@ -30,8 +30,9 @@ export const StrategyToggle = ({
       onChange={handleStrategy}
       aria-label="strategy"
     >
-      {strats.map((strat) => (
+      {strats.map((strat, ix) => (
         <ToggleButton
+          key={ix}
           value={parseInt(strat)}
           aria-label="halt"
           disabled={disabled}
