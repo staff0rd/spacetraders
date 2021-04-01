@@ -13,7 +13,6 @@ type Props = {
 export const AvailableShips = ({ availableShips }: Props) => {
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
-  console.warn("msdown", isMdDown);
   if (!availableShips || !availableShips.length)
     return <CircularProgress size={48} />;
 
