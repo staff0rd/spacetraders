@@ -13,6 +13,7 @@ import { DateTime } from "luxon";
 import { GetFlightPlanResponse } from "./GetFlightPlanResponse";
 import { GetFlightPlansResponse } from "./GetFlightPlansResponse";
 import { getCachedResponse, createCache } from "./getCachedResponse";
+import { getShipName } from "../data/names";
 
 class ApiError extends Error {
   code: number;
@@ -90,7 +91,11 @@ export const getToken = async (username: string): Promise<GetTokenResponse> => {
   return json;
 };
 
-const postSecure = async (token: string, urlSegment: string, data?: any) => {
+const postSecure = async <T>(
+  token: string,
+  urlSegment: string,
+  data?: any
+): Promise<T> => {
   return post(urlSegment, data, {
     Authorization: `Bearer ${token}`,
   });
@@ -200,13 +205,20 @@ export const getShips = (
   username: string
 ): Promise<GetShipsResponse> => getSecure(token, `users/${username}/ships`);
 
-export const buyShip = (
+export const buyShip = async (
   token: string,
   username: string,
   location: string,
   type: string
-): Promise<GetUserResponse> =>
-  postSecure(token, `users/${username}/ships`, { location, type });
+): Promise<GetUserResponse> => {
+  const result = await postSecure<GetUserResponse>(
+    token,
+    `users/${username}/ships`,
+    { location, type }
+  );
+  result.user.ships.map((s) => getShipName(s.id));
+  return result;
+};
 
 type Order = {
   good: string;
