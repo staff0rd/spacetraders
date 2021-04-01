@@ -17,6 +17,11 @@ import {
 } from "../../data/Strategy/PlayerStrategy";
 import { StrategyToggle } from "./StrategyToggle";
 import { ChangePayload } from "../../data/Strategy/StrategyPayloads";
+import { getShipName } from "../../data/names";
+import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
+import { IShip } from "../../data/IShip";
+
+type IShipDetail = IShipStrategy & IShip;
 
 const useStyles = makeStyles((theme) => ({
   playerStrategy: {
@@ -38,8 +43,22 @@ export const Strategy = ({ state }: Props) => {
     getPlayerStrategy().strategy
   );
 
-  const strategies = useLiveQuery(() => {
-    return db.strategies.toArray();
+  const strategies = useLiveQuery(async () => {
+    const strats = await db.strategies.toArray();
+    const names = await db.ships.toArray();
+    const shipsWithoutNames = strats.filter(
+      (p) => !names.map((n) => n.shipId).includes(p.shipId)
+    );
+    for (const nameless of shipsWithoutNames) {
+      names.push({
+        shipId: nameless.shipId,
+        name: await getShipName(nameless.shipId),
+      });
+    }
+    return strats.map((s) => ({
+      ...s,
+      name: names.find((p) => p.shipId === s.shipId)!.name,
+    }));
   });
 
   if (!state || !state.context.actors.length || !strategies)
@@ -78,8 +97,11 @@ export const Strategy = ({ state }: Props) => {
     }
   };
 
+  const getShip = (shipId: string) =>
+    strategies!.find((s) => s.shipId === shipId);
+
   const getStrategy = (shipId: string) => {
-    const result = strategies!.find((s) => s.shipId === shipId)?.strategy;
+    const result = getShip(shipId)?.strategy;
     return result;
   };
 
@@ -123,7 +145,9 @@ export const Strategy = ({ state }: Props) => {
               />
 
               <Typography className={classes.shipState}>
-                {actor.state.value} | {getStrategyLabel(actor.state.context.id)}
+                {getShip(actor.state.context.id)!.name} |{" "}
+                {actor.state.context.ship!.type} | {actor.state.value} |{" "}
+                {getStrategyLabel(actor.state.context.id)}
               </Typography>
             </Grid>
           ))}

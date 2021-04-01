@@ -54,7 +54,7 @@ export const Trades = () => {
             (good ? p.good === good : p.good !== "FUEL") &&
             (type !== "" ? type === p.type : true)
         )
-        .limit(50)
+        .limit(100)
         .toArray();
       const goodResult = await db.trades.orderBy("good").uniqueKeys();
       setTrades(tradeResult);

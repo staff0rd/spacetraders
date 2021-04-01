@@ -1,7 +1,7 @@
 import { assign, createMachine } from "xstate";
 import { User } from "../api/User";
 import { getUser, getToken } from "../api";
-import { newPlayerName } from "../newPlayerName";
+import { newPlayerName } from "../data/names";
 import { getLoanMachine } from "./getLoanMachine";
 import { buyShipMachine } from "./buyShipMachine";
 import * as api from "../api";
@@ -369,7 +369,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
       noAvailableShips: (c) => !c.availableShips.length,
       noShipActors: (c) => !c.actors.length,
       shouldBuyShip: (c) =>
-        (c.user?.credits || 0) > 100000 && c.user!.ships.length < 20,
+        (c.user?.credits || 0) > 100000 && c.user!.ships.length < 50,
     },
   }
 );
