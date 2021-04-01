@@ -19,6 +19,8 @@ import BuyIcon from "@material-ui/icons/AddCircle";
 import SellIcon from "@material-ui/icons/RemoveCircle";
 import clsx from "clsx";
 import { useLiveQuery } from "dexie-react-hooks";
+import { timeStamp } from "node:console";
+import { useTableCap } from "../data/useTableCap";
 
 const useStyles = makeStyles((theme) => ({
   buyIcon: {
@@ -48,20 +50,6 @@ export const Trades = () => {
 
   const ships = useLiveQuery(() => db.ships.orderBy("name").toArray());
   const goods = useLiveQuery(() => db.trades.orderBy("good").uniqueKeys());
-
-  useEffect(() => {
-    const deleteOld = async () => {
-      const old = await db.trades
-        .where("timestamp")
-        .below(DateTime.now().minus({ hours: 1 }).toISO())
-        .delete();
-      const total = await db.trades.count();
-      console.log("deleted", old, "current", total);
-    };
-    deleteOld();
-    const interval = setInterval(deleteOld, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const getIndex = () => {
     if (shipId)
