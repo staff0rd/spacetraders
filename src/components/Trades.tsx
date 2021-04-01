@@ -18,6 +18,7 @@ import { CustomSelect } from "./CustomSelect";
 import BuyIcon from "@material-ui/icons/AddCircle";
 import SellIcon from "@material-ui/icons/RemoveCircle";
 import clsx from "clsx";
+import { useLiveQuery } from "dexie-react-hooks";
 
 const useStyles = makeStyles((theme) => ({
   buyIcon: {
@@ -42,32 +43,72 @@ export const Trades = () => {
   const classes = useStyles();
   const [type, setType] = useState<string | number>("");
   const [good, setGood] = useState("");
+  const [shipId, setShipId] = useState("");
   const [trades, setTrades] = useState<ITrade[] | null>(null);
-  const [goods, setGoods] = useState<string[]>([]);
+
+  const ships = useLiveQuery(() => db.ships.orderBy("name").toArray());
+  const goods = useLiveQuery(() => db.trades.orderBy("good").uniqueKeys());
 
   useEffect(() => {
-    const doWork = async () => {
-      const tradeResult = await db.trades
-        .reverse()
+    const deleteOld = async () => {
+      const old = await db.trades
+        .where("timestamp")
+        .below(DateTime.now().minus({ hours: 1 }).toISO())
+        .delete();
+      const total = await db.trades.count();
+      console.log("deleted", old, "current", total);
+    };
+    deleteOld();
+    const interval = setInterval(deleteOld, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getIndex = () => {
+    if (shipId)
+      return db.trades
+        .where("shipId")
+        .equals(shipId)
         .filter(
           (p) =>
             (good ? p.good === good : p.good !== "FUEL") &&
             (type !== "" ? type === p.type : true)
-        )
-        .limit(100)
-        .toArray();
-      const goodResult = await db.trades.orderBy("good").uniqueKeys();
+        );
+    else if (good)
+      return db.trades
+        .where("good")
+        .equals(good)
+        .filter(
+          (p) =>
+            (type !== "" ? type === p.type : true) &&
+            (shipId !== "" ? shipId === p.shipId : true)
+        );
+    else if (type)
+      return db.trades
+        .where("type")
+        .equals(type)
+        .filter(
+          (p) =>
+            (good ? p.good === good : p.good !== "FUEL") &&
+            (shipId !== "" ? shipId === p.shipId : true)
+        );
+    else return db.trades;
+  };
+
+  useEffect(() => {
+    const doWork = async () => {
+      const tradeResult = await getIndex().reverse().limit(100).toArray();
       setTrades(tradeResult);
-      setGoods(goodResult as string[]);
     };
     doWork();
     const interval = setInterval(doWork, 5000);
     return () => clearInterval(interval);
-  }, [type, good]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, good, shipId]);
 
   if (!trades) return <CircularProgress color="primary" size={24} />;
   const columns = [
     "",
+    "Ship",
     "Location",
     "Qty",
     "Good",
@@ -85,6 +126,7 @@ export const Trades = () => {
         <SellIcon className={classes.sellIcon} />
       </Tooltip>
     ),
+    ships?.find((s) => s.shipId === trade.shipId)?.name,
     trade.location,
     <NumberFormat
       value={trade.quantity}
@@ -165,6 +207,19 @@ export const Trades = () => {
           }}
           value={good}
           values={goods}
+        />
+      )}
+      {ships && (
+        <CustomSelect
+          name="Ship"
+          setValue={(v) => {
+            setTrades(null);
+            setShipId(v);
+          }}
+          value={shipId}
+          values={ships}
+          displayMap={(s) => s.name}
+          valueMap={(s) => s.shipId}
         />
       )}
       <FormControl className={classes.formControl}>
