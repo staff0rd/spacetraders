@@ -43,6 +43,7 @@ export function spawnShipMachine(c: Context): any {
           username: c.user!.username,
           ship,
           system,
+          shipName: "",
         })
       );
 
@@ -59,6 +60,7 @@ export function spawnShipMachine(c: Context): any {
           ),
           flightPlan,
           strategy: { strategy: ShipStrategy.Trade },
+          shipName: "",
         }),
         { name: `ship-${ship.id}`, sync: true }
       ) as any;
@@ -71,6 +73,7 @@ export function spawnShipMachine(c: Context): any {
           strategy: { strategy: ShipStrategy.Halt },
           username: c.user!.username,
           ship,
+          shipName: "",
         })
       );
 

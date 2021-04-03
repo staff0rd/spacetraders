@@ -65,6 +65,7 @@ export const tradeMachine = createMachine<Context, any, any>(
       token: "",
       username: "",
       ship: {} as Ship,
+      shipName: "",
       locations: [],
       credits: 0,
       strategy: { strategy: ShipStrategy.Trade },

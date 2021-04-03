@@ -13,8 +13,13 @@ import { getProbeAssignment } from "../../data/Strategy/getProbeAssignment";
 import { DateTime } from "luxon";
 import { travelToLocationMachine } from "./travelToLocationMachine";
 import { IProbe } from "../../data/IProbe";
+import { getShipName } from "../../data/names";
 import { confirmStrategy } from "./confirmStrategy";
 import { FlightPlan } from "../../api/FlightPlan";
+
+const debug = (_: string) => {
+  return undefined;
+}; //import { debug } from "./debug";
 
 enum States {
   Init = "init",
@@ -41,29 +46,21 @@ export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
 export const probeMachine = createMachine<Context, any, any>({
   id: "probe",
-  initial: States.ConfirmStrategy,
+  initial: States.Init,
   context: {
     id: "",
     token: "",
     username: "",
+    shipName: "",
     ship: {} as Ship,
     strategy: { strategy: ShipStrategy.Probe },
     probe: undefined,
     system: "",
   },
   states: {
-    [States.Init]: {
-      entry: (c, e, d) => console.warn("probe: ", d.state.value),
-      invoke: {
-        src: (c) => api.getShip(c.token, c.username, c.id),
-        onDone: {
-          target: States.GetAssignment,
-          actions: assign<Context>({ ship: (c, e: any) => e.data.ship }) as any,
-        },
-      },
-    },
+    [States.Init]: initShipMachine("probe", States.ConfirmStrategy),
     [States.Idle]: {
-      entry: (c, e, d) => console.warn("probe: ", d.state.value),
+      entry: debug("probe"),
       after: {
         1: [
           { target: States.Done, cond: (c) => !c.probe },
@@ -73,8 +70,14 @@ export const probeMachine = createMachine<Context, any, any>({
               !c.ship?.location || c.probe!.location !== c.ship.location,
           },
 
-          { target: States.Probe, cond: (c) => !c.lastProbe }, // TODO: or datetime diff
+          {
+            target: States.Probe,
+            cond: (c) =>
+              !c.lastProbe ||
+              -c.lastProbe.diffNow("minutes").minutes >= PROBE_DELAY_MINUTES,
+          },
         ],
+        10000: [{ target: States.ConfirmStrategy }],
       },
     },
     [States.TravelToLocation]: {
@@ -86,6 +89,7 @@ export const probeMachine = createMachine<Context, any, any>({
             token: c.token,
             to: c.probe!,
             ship: c.ship!,
+            shipName: c.shipName,
           }),
         onDone: {
           target: States.Idle,
@@ -102,11 +106,11 @@ export const probeMachine = createMachine<Context, any, any>({
       },
     },
     [States.Done]: {
-      entry: (c, e, d) => console.warn("probe: ", d.state.value),
+      entry: debug("probe"),
       type: "final",
     },
     [States.GetAssignment]: {
-      entry: (c, e, d) => console.warn("probe: ", d.state.value),
+      entry: debug("probe"),
       invoke: {
         src: (c) => getProbeAssignment(c.system, c.id),
         onDone: [
@@ -122,7 +126,7 @@ export const probeMachine = createMachine<Context, any, any>({
       },
     },
     [States.Probe]: {
-      entry: (c, e, d) => console.warn("probe: ", d.state.value),
+      entry: debug("probe"),
       invoke: {
         src: async (c) => {
           await api.getMarket(c.token, c.ship!.location!);
@@ -136,13 +140,13 @@ export const probeMachine = createMachine<Context, any, any>({
       },
     },
     [States.WaitAfterErorr]: {
-      entry: (c, e, d) => console.warn("probe: ", d.state.value),
+      entry: debug("probe"),
       after: {
         5000: States.Init,
       },
     },
     [States.Waiting]: {
-      entry: (c, e, d) => console.warn("probe: ", d.state.value),
+      entry: debug("probe"),
       after: {
         [PROBE_DELAY_MINUTES * 1000 * 60]: {
           target: States.Probe,
@@ -156,3 +160,25 @@ export const probeMachine = createMachine<Context, any, any>({
     ),
   },
 });
+
+function initShipMachine<TContext extends ShipBaseContext>(
+  machineName: string,
+  nextState: any
+) {
+  return {
+    entry: debug(machineName),
+    invoke: {
+      src: async (c: TContext) => {
+        const data = await api.getShip(c.token, c.username, c.id);
+        return { ship: data.ship, shipName: await getShipName(c.id) };
+      },
+      onDone: {
+        target: nextState,
+        actions: assign<TContext>({
+          ship: (c, e: any) => e.data.ship,
+          shipName: (c, e: any) => e.data.shipName,
+        }) as any,
+      },
+    },
+  };
+}

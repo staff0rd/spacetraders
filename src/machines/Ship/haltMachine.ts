@@ -31,6 +31,7 @@ export const haltMachine = createMachine<Context, any, any>(
       id: "",
       token: "",
       username: "",
+      shipName: "",
       ship: {} as Ship,
       strategy: { strategy: ShipStrategy.Halt },
     },
