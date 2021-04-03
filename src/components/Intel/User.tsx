@@ -45,7 +45,7 @@ export const User = () => {
           Total: {enroute + docked}
         </Typography>
       </div>
-      <Grid container>
+      <Grid container spacing={2}>
         {grouped.map((g) => (
           <Grid item xs={3}>
             <Typography variant="h6">{g.symbol}</Typography>

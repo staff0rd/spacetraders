@@ -2,7 +2,7 @@ import React from "react";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
 import { FlightPlan as FlightPlanType } from "../api/FlightPlan";
-import CircularProgressWithLabel from "./FlightProgress";
+import FlightProgress from "./FlightProgress";
 import { getLocation } from "../machines/locationCache";
 import ForwardIcon from "@material-ui/icons/Forward";
 import { makeStyles } from "@material-ui/core";
@@ -27,7 +27,7 @@ export const FlightPlan = ({ flightPlan }: Props) => {
   if (flightPlan)
     return (
       <Box className={classes.root}>
-        <CircularProgressWithLabel flightPlan={flightPlan} />
+        <FlightProgress flightPlan={flightPlan} />
         <Typography>
           {symbolOrName(flightPlan.departure)}{" "}
           <ForwardIcon className={classes.forwardIcon} />{" "}

@@ -89,15 +89,15 @@ export const probeMachine = createMachine<Context, any, any>({
           }),
         onDone: {
           target: States.Idle,
-          actions: assign<Context>({ ship: (c, e: any) => e.data }),
+          actions: assign<Context>({
+            ship: (c, e: any) => e.data,
+            flightPlan: undefined,
+          }),
         },
       },
       on: {
         FLIGHTPLAN_UPDATE: {
-          actions: [
-            (_, e: any) => console.warn("FLIGTPLAN REEEECECECE", e),
-            assign<Context>({ flightPlan: (c, e: any) => e.data }),
-          ],
+          actions: assign<Context>({ flightPlan: (c, e: any) => e.data }),
         },
       },
     },

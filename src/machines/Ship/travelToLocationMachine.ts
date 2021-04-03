@@ -234,7 +234,6 @@ export const travelToLocationMachine = createMachine<Context, any, any>(
               const result = DateTime.fromISO(c.flightPlan!.arrivesAt).diffNow(
                 "milliseconds"
               ).milliseconds;
-              console.log(`Arriving in ${Math.round(result / 1000)} seconds`);
               return result;
             },
             target: States.Done,

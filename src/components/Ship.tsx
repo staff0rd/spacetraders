@@ -44,7 +44,7 @@ export const ShipComponent = ({ ship: actor }: Props) => {
           <Grid item xs={6}>
             <Box className={classes.name}>
               <SpaceshipIcon className={classes.icon} fontSize="small" />
-              <Typography>{actor.state.context.ship!.type}</Typography>
+              <Typography>{actor.state.context.ship?.type}</Typography>
             </Box>
           </Grid>
           <Grid item xs={6}>
