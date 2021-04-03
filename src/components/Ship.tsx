@@ -36,7 +36,7 @@ type Props = {
 
 export const ShipComponent = ({ ship: actor }: Props) => {
   const classes = useStyles();
-
+  if (!actor.state.context.ship) console.warn("No ship!", actor.state.context);
   return (
     <Paper className={classes.paper}>
       {actor.state ? (

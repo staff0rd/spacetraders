@@ -31,7 +31,7 @@ export const drawMap = (
 
   const result = locations.map((l) => ({
     ...convertToWindow(l),
-    symbol: l.symbol,
+    location: l,
   }));
 
   return result;

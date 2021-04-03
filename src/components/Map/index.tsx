@@ -53,12 +53,14 @@ export const Map = ({ systems }: Props) => {
       <div className={classes.root} ref={ref}>
         {locations &&
           locations.map((l, ix) => (
-            <Location
-              key={ix}
-              location={l}
-              parentWidth={(ref.current as any)?.offsetWidth}
-              parentHeight={(ref.current as any)?.offsetHeight}
-            />
+            <>
+              <Location
+                key={ix}
+                location={l}
+                parentWidth={(ref.current as any)?.offsetWidth}
+                parentHeight={(ref.current as any)?.offsetHeight}
+              />
+            </>
           ))}
       </div>
     </>

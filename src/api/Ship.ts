@@ -12,4 +12,5 @@ export type Ship = ShipBase & {
   y: number;
   cargo: Cargo[];
   spaceAvailable: number;
+  flightPlanId?: string;
 };

@@ -149,7 +149,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           (c) => api.getFlightPlans(c.token!, "OE") as any,
           (c) => {
             const doneActors = c.actors.filter((a) => a.state.value === "done");
-            console.warn(`There are ${doneActors.length} done actors`);
+
             doneActors.forEach((a) => {
               a.stop && a.stop(); // TODO: Is this required?
             });
@@ -159,9 +159,6 @@ export const playerMachine = createMachine<Context, Event, Schema>(
           actors: (c, e) => {
             const actorsNotDone = c.actors.filter(
               (a) => a.state.value !== "done"
-            );
-            console.warn(
-              `Of ${c.actors.length} there are ${actorsNotDone.length} not done`
             );
             return actorsNotDone;
           },
@@ -217,7 +214,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             target: States.GetStrategies,
             actions: assign<Context>({
               ships: (c, e: any) => (e.data as api.GetShipsResponse).ships,
-            }),
+            }) as any,
           },
         },
       },
@@ -313,7 +310,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
     actions: {
       spawnShips: assign<Context>({
         actors: (c, e: any) => {
-          console.warn(`${c.actors?.length || 0} current actors`);
+          console.log(`${c.actors?.length || 0} current actors`);
           const alreadySpawnedShipIds = c.actors.map(
             (actor) => actor.state.context.id
           );
@@ -328,7 +325,7 @@ export const playerMachine = createMachine<Context, Event, Schema>(
             return true;
           });
 
-          console.log(`Spawning ${toSpawn.length} more`);
+          console.warn(`Spawning ${toSpawn.length} actor(s)`);
 
           return [...c.actors, ...toSpawn.map(spawnShipMachine(c))] as any;
         },

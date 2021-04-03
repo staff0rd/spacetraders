@@ -7,6 +7,7 @@ import { Context } from "../playerMachine";
 import { getPlayerStrategy } from "../../data/Strategy/PlayerStrategy";
 import { ChangePayload } from "../../data/Strategy/StrategyPayloads";
 import { haltMachine } from "./haltMachine";
+import { probeMachine } from "./probeMachine";
 
 const getStrategy = (
   c: Context,
@@ -33,7 +34,17 @@ export function spawnShipMachine(c: Context): any {
 
     const { data, strategy } = getStrategy(c, ship);
 
-    console.log("ShipStrategy", strategy, data);
+    if (IsStrategy(ShipStrategy.Probe, strategy, data))
+      return spawn(
+        probeMachine.withContext({
+          id: ship.id,
+          token: c.token!,
+          strategy: { strategy: ShipStrategy.Probe },
+          username: c.user!.username,
+          ship,
+          system,
+        })
+      );
 
     if (IsStrategy(ShipStrategy.Trade, strategy, data))
       return spawn(

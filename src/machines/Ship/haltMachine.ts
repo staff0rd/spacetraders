@@ -8,14 +8,15 @@ import {
 import { Ship } from "../../api/Ship";
 import db from "../../data";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
-import { updateStrategy } from "./updateStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
+import { confirmStrategy } from "./confirmStrategy";
 
 enum States {
   Waiting = "waiting",
   CheckStrategy = "checkStrategy",
   UpdateStrategy = "updateStrategy",
   Done = "done",
+  ConfirmStrategy = "confirmStrategy",
 }
 
 export type Context = ShipBaseContext;
@@ -36,35 +37,17 @@ export const haltMachine = createMachine<Context, any, any>(
     states: {
       [States.Waiting]: {
         after: {
-          1000: [
-            {
-              target: States.UpdateStrategy,
-              cond: "shouldDone",
-            },
-            { target: States.CheckStrategy },
-          ],
+          5000: States.ConfirmStrategy,
         },
       },
       [States.Done]: {
         type: "final",
       },
-      [States.UpdateStrategy]: {
-        invoke: {
-          src: updateStrategy,
-          onDone: {
-            target: States.Done,
-          },
-        },
-      },
-      [States.CheckStrategy]: {
-        invoke: {
-          src: "checkStrategy",
-          onDone: {
-            target: States.Waiting,
-            actions: "checkStrategy",
-          },
-        },
-      },
+      [States.ConfirmStrategy]: confirmStrategy(
+        ShipStrategy.Halt,
+        States.Waiting,
+        States.Done
+      ),
     },
   },
   {

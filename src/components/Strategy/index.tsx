@@ -142,8 +142,7 @@ export const Strategy = ({ state }: Props) => {
 
               <Typography className={classes.shipState}>
                 {getShip(actor.state.context.id)!.name} |{" "}
-                {actor.state.context.ship!.type} | {actor.state.value} |{" "}
-                {getStrategyLabel(actor.state.context.id)}
+                {actor.state.context.ship?.type} | {actor.state.value}
               </Typography>
             </Grid>
           ))}

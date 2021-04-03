@@ -4,7 +4,7 @@ import { ITrade } from "./ITrade";
 import { IMarket } from "./IMarket";
 import { IShipStrategy } from "./Strategy/IShipStrategy";
 import { IIntel } from "./IIntel";
-import { ILocationScout } from "./ILocationScout";
+import { IProbe } from "./IProbe";
 import { IShip } from "./IShip";
 
 class Database extends Dexie {
@@ -13,18 +13,18 @@ class Database extends Dexie {
   markets: Dexie.Table<IMarket, number>;
   strategies: Dexie.Table<IShipStrategy, string>;
   intel: Dexie.Table<IIntel, string>;
-  locationScouts: Dexie.Table<ILocationScout, string>;
+  probes: Dexie.Table<IProbe, string>;
   ships: Dexie.Table<IShip, string>;
 
   constructor() {
     super("Database");
-    this.version(29).stores({
+    this.version(32).stores({
       apiErrors: "++id, code",
       trades: "++id, good, shipId, location, type, timestamp",
       market: "++id,location,good,created",
       strategies: "&shipId",
       intel: "&shipId,username",
-      locationScouts: "&location",
+      probes: "&location",
       ships: "&shipId, name",
     });
     // The following line is needed if your typescript
@@ -34,7 +34,7 @@ class Database extends Dexie {
     this.markets = this.table("market");
     this.strategies = this.table("strategies");
     this.intel = this.table("intel");
-    this.locationScouts = this.table("locationScouts");
+    this.probes = this.table("probes");
     this.ships = this.table("ships");
   }
 }

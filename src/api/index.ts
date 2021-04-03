@@ -14,6 +14,7 @@ import { GetFlightPlanResponse } from "./GetFlightPlanResponse";
 import { GetFlightPlansResponse } from "./GetFlightPlansResponse";
 import { getCachedResponse, createCache } from "./getCachedResponse";
 import { getShipName } from "../data/names";
+import { TradeType } from "../data/ITrade";
 
 class ApiError extends Error {
   code: number;
@@ -107,6 +108,33 @@ const getSecure = async <T>(token: string, urlSegment: string): Promise<T> => {
   });
 };
 
+type GetDockedShipsResponse = {
+  location: {
+    ships: {
+      shipId: string;
+      username: string;
+      shipType: string;
+    }[];
+  };
+};
+
+export const getDockedShips = async (token: string, location: string) => {
+  const result = await getSecure<GetDockedShipsResponse>(
+    token,
+    `game/locations/${location}/ships`
+  );
+  result.location.ships.map((ship) =>
+    db.intel.put({
+      destination: location,
+      lastSeen: DateTime.now().toISO(),
+      shipId: ship.shipId,
+      shipType: ship.shipType,
+      username: ship.username,
+    })
+  );
+  return result;
+};
+
 export const getFlightPlan = (
   token: string,
   username: string,
@@ -150,8 +178,27 @@ export interface GetSystemsResponse {
   systems: System[];
 }
 
-export const getSystems = (token: string): Promise<GetSystemsResponse> =>
-  getSecure(token, "game/systems");
+export const getSystems = async (
+  token: string
+): Promise<GetSystemsResponse> => {
+  const result = await getSecure<GetSystemsResponse>(token, "game/systems");
+  result.systems.map((s) =>
+    s.locations.map(async (location) => {
+      if (
+        (await db.probes.where("location").equals(location.symbol).count()) ===
+        0
+      ) {
+        db.probes.put({
+          location: location.symbol,
+          x: location.x,
+          y: location.y,
+          type: location.type,
+        });
+      }
+    })
+  );
+  return result;
+};
 
 const marketCache = createCache<GetMarketResponse>();
 
@@ -193,7 +240,7 @@ export const getShip = (
   token: string,
   username: string,
   shipId: string
-): Promise<GetShipsResponse> =>
+): Promise<GetShipResponse> =>
   getSecure(token, `users/${username}/ships/${shipId}`);
 
 export interface GetShipsResponse {
@@ -233,18 +280,36 @@ export type PurchaseOrderResponse = {
   order: Order;
 };
 
-export const purchaseOrder = (
+export const purchaseOrder = async (
   token: string,
   username: string,
   shipId: string,
   good: string,
-  quantity: number
-): Promise<PurchaseOrderResponse> =>
-  postSecure(token, `users/${username}/purchase-orders`, {
-    shipId,
+  quantity: number,
+  location: string,
+  profit?: number
+): Promise<PurchaseOrderResponse> => {
+  const result = await postSecure<PurchaseOrderResponse>(
+    token,
+    `users/${username}/purchase-orders`,
+    {
+      shipId,
+      good,
+      quantity,
+    }
+  );
+  db.trades.put({
+    cost: result.order.total,
+    type: TradeType.Buy,
     good,
     quantity,
+    location,
+    shipId,
+    timestamp: DateTime.now().toISO(),
+    profit,
   });
+  return result;
+};
 
 export const sellOrder = (
   token: string,

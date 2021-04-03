@@ -17,7 +17,7 @@ import db from "../../data";
 import { TradeType } from "../../data/ITrade";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
-import { updateStrategy } from "./updateStrategy";
+import { confirmStrategy } from "./confirmStrategy";
 
 export type LocationWithDistance = Location & { distance: number };
 
@@ -33,9 +33,8 @@ enum States {
   Init = "init",
   BuyCargo = "buyCargo",
   SellCargo = "sellCargo",
-  CheckStrategy = "checkStrategy",
-  UpdateStrategy = "updateStrategy",
   Done = "done",
+  ConfirmStrategy = "confirmStrategy",
 }
 
 export type Context = ShipBaseContext & {
@@ -75,7 +74,7 @@ export const tradeMachine = createMachine<Context, any, any>(
         invoke: {
           src: (c) => api.getShip(c.token, c.username, c.id),
           onDone: {
-            target: States.Idle,
+            target: States.ConfirmStrategy,
             actions: assign<Context>({ ship: (c, e: any) => e.data.ship }),
           },
         },
@@ -86,8 +85,6 @@ export const tradeMachine = createMachine<Context, any, any>(
             { target: "inFlight", cond: "hasFlightPlan" },
             { target: "getMarket", cond: "noLocation" },
             { target: States.SellCargo, cond: "shouldSell" },
-            { target: States.CheckStrategy, cond: "shouldCheckStrategy" },
-            { target: States.UpdateStrategy, cond: "shouldDone" },
             {
               target: States.BuyCargo,
               cond: "needFuel",
@@ -102,23 +99,6 @@ export const tradeMachine = createMachine<Context, any, any>(
       },
       [States.Done]: {
         type: "final",
-      },
-      [States.UpdateStrategy]: {
-        invoke: {
-          src: updateStrategy,
-          onDone: {
-            target: States.Done,
-          },
-        },
-      },
-      [States.CheckStrategy]: {
-        invoke: {
-          src: "checkStrategy",
-          onDone: {
-            target: States.Idle,
-            actions: "checkStrategy",
-          },
-        },
       },
       [States.SellCargo]: {
         invoke: {
@@ -170,7 +150,7 @@ export const tradeMachine = createMachine<Context, any, any>(
             target: States.Idle,
           },
           onDone: {
-            target: States.Idle,
+            target: States.ConfirmStrategy,
             actions: [
               assign({
                 credits: (c, e: any) => e.data.credits,
@@ -290,27 +270,25 @@ export const tradeMachine = createMachine<Context, any, any>(
           },
         },
       },
+      [States.ConfirmStrategy]: confirmStrategy(
+        ShipStrategy.Trade,
+        States.Idle,
+        States.Done
+      ),
       [States.BuyCargo]: {
         invoke: {
           src: async (context: Context) => {
-            const { good, quantity, profit, sellTo } = context.shouldBuy!;
+            const { good, quantity, profit } = context.shouldBuy!;
             const result = await api.purchaseOrder(
               context.token,
               context.username,
               context.id,
               good,
-              quantity
-            );
-            db.trades.put({
-              cost: result.order.total,
-              type: TradeType.Buy,
-              good,
               quantity,
-              location: sellTo,
-              shipId: context.id,
-              timestamp: DateTime.now().toISO(),
-              profit,
-            });
+              context.location!.symbol,
+              profit
+            );
+
             return result;
           },
           onError: {
@@ -339,17 +317,7 @@ export const tradeMachine = createMachine<Context, any, any>(
     },
   },
   {
-    services: {
-      checkStrategy: async (c) => {
-        const strategy = await db.strategies.where({ shipId: c.id }).first();
-        return strategy;
-      },
-    },
     actions: {
-      checkStrategy: assign<Context>({
-        strategy: (c, e: any) => e.data,
-        shouldCheckStrategy: false,
-      }),
       clearShouldBuy: assign<Context>({ shouldBuy: undefined }),
       printError: (_, e: any) => console.warn("caught an error", e),
       assignNeededFuel: assign({
