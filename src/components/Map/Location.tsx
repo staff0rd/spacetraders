@@ -4,7 +4,7 @@ import { useState } from "react";
 import db from "../../data";
 import { Location as LocationSchema } from "../../api/Location";
 import { useLiveQuery } from "dexie-react-hooks";
-import { IIntel } from "../../data/IIntel";
+import { groupByLocation } from "./groupByLocation";
 
 const useStyles = makeStyles((theme) => ({
   location: {
@@ -35,19 +35,7 @@ export const Location = ({ location, parentWidth, parentHeight }: Props) => {
 
   const intel = useLiveQuery(() => db.intel.toArray());
 
-  const grouped: any = {};
-  intel?.reduce(function (res: any, value: IIntel) {
-    if (!res[value.destination]) {
-      res[value.destination] = {
-        docked: 0,
-        enroute: 0,
-      };
-      grouped[value.destination] = res[value.destination];
-    }
-    if (value.departure) res[value.destination].enroute += 1;
-    else res[value.destination].docked += 1;
-    return res;
-  }, {});
+  const grouped: any = groupByLocation(intel);
 
   const handlePopoverOpen = (
     event: React.MouseEvent<HTMLElement, MouseEvent>

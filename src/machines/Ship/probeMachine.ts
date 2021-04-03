@@ -14,6 +14,7 @@ import { DateTime } from "luxon";
 import { travelToLocationMachine } from "./travelToLocationMachine";
 import { IProbe } from "../../data/IProbe";
 import { confirmStrategy } from "./confirmStrategy";
+import { FlightPlan } from "../../api/FlightPlan";
 
 enum States {
   Init = "init",
@@ -33,6 +34,7 @@ export type Context = ShipBaseContext & {
   probe?: IProbe;
   lastProbe?: DateTime;
   system: string;
+  flightPlan?: FlightPlan;
 };
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -88,6 +90,14 @@ export const probeMachine = createMachine<Context, any, any>({
         onDone: {
           target: States.Idle,
           actions: assign<Context>({ ship: (c, e: any) => e.data }),
+        },
+      },
+      on: {
+        FLIGHTPLAN_UPDATE: {
+          actions: [
+            (_, e: any) => console.warn("FLIGTPLAN REEEECECECE", e),
+            assign<Context>({ flightPlan: (c, e: any) => e.data }),
+          ],
         },
       },
     },

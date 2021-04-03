@@ -18,6 +18,7 @@ import {
 import { StrategyToggle } from "./StrategyToggle";
 import { ChangePayload } from "../../data/Strategy/StrategyPayloads";
 import { getShipName } from "../../data/names";
+import { Probes } from "./Probes";
 
 const useStyles = makeStyles((theme) => ({
   playerStrategy: {
@@ -101,12 +102,6 @@ export const Strategy = ({ state }: Props) => {
     return result;
   };
 
-  const getStrategyLabel = (shipId: string) => {
-    const strat = getStrategy(shipId);
-    if (strat === undefined) return "";
-    return ShipStrategy[strat];
-  };
-
   return (
     <>
       <div className={classes.playerStrategy}>
@@ -118,6 +113,7 @@ export const Strategy = ({ state }: Props) => {
               .length > 0
           }
         />
+        <Probes />
       </div>
       <Grid container spacing={1}>
         {state.context.actors

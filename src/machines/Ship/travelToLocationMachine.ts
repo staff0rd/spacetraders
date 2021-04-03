@@ -3,6 +3,7 @@ import {
   assign,
   createMachine,
   EventObject,
+  sendParent,
   StateMachine,
 } from "xstate";
 import { Ship } from "../../api/Ship";
@@ -142,14 +143,20 @@ export const travelToLocationMachine = createMachine<Context, any, any>(
         },
       },
       [States.GetFlightPlan]: {
-        entry: "debug",
+        entry: ["debug"],
         invoke: {
           src: (c) =>
             api.getFlightPlan(c.token, c.username, c.ship.flightPlanId!),
           onDone: {
-            actions: assign<Context>({
-              flightPlan: (c, e: any) => e.data.flightPlan,
-            }),
+            actions: [
+              assign<Context>({
+                flightPlan: (c, e: any) => e.data.flightPlan,
+              }),
+              sendParent((c, e: any) => ({
+                type: "FLIGHTPLAN_UPDATE",
+                data: e.data.flightPlan,
+              })),
+            ],
             target: States.Idle,
           },
         },
@@ -178,6 +185,10 @@ export const travelToLocationMachine = createMachine<Context, any, any>(
                   ],
                 }),
               }),
+              sendParent((c, e: any) => ({
+                type: "FLIGHTPLAN_UPDATE",
+                data: e.data.flightPlan,
+              })),
             ],
           },
         },

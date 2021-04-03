@@ -7,14 +7,17 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import { DataTable } from "../DataTable";
 import { IIntel } from "../../data/IIntel";
 import { Summary } from "./Summary";
+import { Link } from "react-router-dom";
+import { filterToIntelWindow } from "./filterToIntelWindow";
 
 export const Intel = () => {
   const [username, setUsername] = useState("");
 
   const intel = useLiveQuery(() => {
-    return db.intel
-      .filter((p) => (username !== "" ? username === p.username : true))
-      .toArray();
+    const collection = username
+      ? db.intel.where("username").equals("username")
+      : db.intel.toCollection();
+    return filterToIntelWindow(collection);
   }, [username]);
 
   const usernames = useLiveQuery(() =>
@@ -39,7 +42,7 @@ export const Intel = () => {
   const columns = ["Username", "ShipType", "From", "To", "Last seen"];
 
   const rows = intel.map((i) => [
-    i.username,
+    <Link to={`intel/${i.username}`}>{i.username}</Link>,
     i.shipType,
     i.departure ?? "-",
     i.destination,

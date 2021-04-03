@@ -37,6 +37,7 @@ import {
 } from "../../machines/playerMachine";
 import { useTableCap } from "../../data/useTableCap";
 import db from "../../data";
+import { User } from "../Intel/User";
 
 const drawerWidth = 180;
 
@@ -282,7 +283,7 @@ export function App() {
                   to={item.to}
                   button
                   key={item.title}
-                  selected={item.to === pathname}
+                  selected={pathname.startsWith(item.to)}
                 >
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.title} />
@@ -318,6 +319,9 @@ export function App() {
         <main className={classes.content}>
           <Toolbar />
           <Switch>
+            <Route exact path="/intel/:username">
+              <User />
+            </Route>
             {menu.map((item) => (
               <Route key={item.title} path={item.to}>
                 {item.component}

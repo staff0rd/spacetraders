@@ -48,7 +48,7 @@ export const ShipComponent = ({ ship: actor }: Props) => {
             </Box>
           </Grid>
           <Grid item xs={6}>
-            {actor.state.value === "inFlight" ? (
+            {actor.state.context.flightPlan ? (
               <FlightPlan flightPlan={actor.state.context.flightPlan!} />
             ) : (
               <Typography className={classes.state}>
