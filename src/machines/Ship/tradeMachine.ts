@@ -18,7 +18,7 @@ import { confirmStrategy } from "./confirmStrategy";
 import { initShipMachine } from "./initShipMachine";
 import { determineBestTradeRouteByCurrentLocation } from "./determineBestTradeRoute";
 import { TradeRoute } from "./TradeRoute";
-import { debug } from "./debug";
+import { debugShipMachine } from "./debug";
 import { travelToLocation } from "./travelToLocation";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { printErrorAction } from "./printError";
@@ -78,7 +78,7 @@ export const tradeMachine = createMachine<Context, any, any>(
     states: {
       [States.Init]: initShipMachine<Context>("trade", States.GetTradeRoute),
       [States.GetTradeRoute]: {
-        entry: debug("trade"),
+        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c) => {
             const route = await db.tradeRoutes
@@ -94,7 +94,7 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       [States.Idle]: {
-        entry: debug("trade"),
+        entry: debugShipMachine("trade"),
         after: {
           1: [
             { target: States.InFlight, cond: (c) => !!c.flightPlan },
@@ -122,7 +122,7 @@ export const tradeMachine = createMachine<Context, any, any>(
             },
             {
               target: States.Done,
-              actions: debug("trade", "Nothing left to do"),
+              actions: debugShipMachine("trade", "Nothing left to do"),
             },
           ],
         },
@@ -133,7 +133,7 @@ export const tradeMachine = createMachine<Context, any, any>(
         States.Idle
       ),
       [States.DetermineTradeRoute]: {
-        entry: debug("trade"),
+        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c) => {
             const tradeRoutes = await determineBestTradeRouteByCurrentLocation(
@@ -154,11 +154,11 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       [States.Done]: {
-        entry: debug("trade"),
+        entry: debugShipMachine("trade"),
         type: "final",
       },
       [States.SellCargo]: {
-        entry: debug("trade"),
+        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c) => {
             let result: Partial<api.PurchaseOrderResponse> = {
@@ -233,7 +233,7 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       [States.InFlight]: {
-        entry: debug("trade"),
+        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c) => {
             await sleep(
@@ -263,7 +263,7 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       createFlightPlan: {
-        entry: debug("trade"),
+        entry: debugShipMachine("trade"),
         invoke: {
           src: (c) =>
             api.newFlightPlan(
@@ -302,7 +302,7 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       [States.GetMarket]: {
-        entry: debug("trade"),
+        entry: debugShipMachine("trade"),
         invoke: {
           src: (context: Context) =>
             api.getMarket(context.token, context.ship!.location!),
@@ -331,7 +331,7 @@ export const tradeMachine = createMachine<Context, any, any>(
         States.Done
       ),
       [States.BuyCargo]: {
-        entry: debug("trade"),
+        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c: Context) => {
             let result: Partial<api.PurchaseOrderResponse> = {

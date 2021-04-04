@@ -1,5 +1,5 @@
 import { assign } from "xstate";
-import { debug } from "./debug";
+import { debugShipMachine } from "./debug";
 import { printError } from "./printError";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { travelToLocationMachine } from "./travelToLocationMachine";
@@ -10,7 +10,7 @@ export function travelToLocation<TContext extends ShipBaseContext>(
   nextState: any
 ) {
   return {
-    entry: debug(machineName),
+    entry: debugShipMachine(machineName),
     invoke: {
       src: (c: TContext) =>
         travelToLocationMachine.withContext({

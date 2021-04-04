@@ -13,7 +13,7 @@ import * as api from "../../api";
 import { DateTime } from "luxon";
 import { getFuelNeeded } from "../../data/getFuelNeeded";
 import { getDistance } from "../getDistance";
-import { debug } from "./debug";
+import { debugShipMachine } from "./debug";
 import { ShipContext } from "./ShipBaseContext";
 import { printError } from "./printError";
 
@@ -59,7 +59,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
   },
   states: {
     [States.Idle]: {
-      entry: debug("travel"),
+      entry: debugShipMachine("travel"),
       after: {
         1: [
           {
@@ -88,14 +88,14 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
       },
     },
     [States.Done]: {
-      entry: debug("travel"),
+      entry: debugShipMachine("travel"),
       type: "final",
       data: {
         ship: (c: Context) => ({ ...c.ship, location: c.destination }),
       },
     },
     [States.BuyFuel]: {
-      entry: debug("travel"),
+      entry: debugShipMachine("travel"),
       invoke: {
         src: async (c) => {
           const from = await db.probes.get(c.ship.location!);
@@ -140,7 +140,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
       },
     },
     [States.GetShip]: {
-      entry: debug("travel"),
+      entry: debugShipMachine("travel"),
       invoke: {
         src: (c) => api.getShip(c.token, c.username, c.id),
         onDone: {
@@ -150,7 +150,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
       },
     },
     [States.GetFlightPlan]: {
-      entry: debug("travel"),
+      entry: debugShipMachine("travel"),
       invoke: {
         src: (c) =>
           api.getFlightPlan(c.token, c.username, c.ship.flightPlanId!),
@@ -169,7 +169,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
       },
     },
     [States.CreateFlightPlan]: {
-      entry: debug("travel"),
+      entry: debugShipMachine("travel"),
       invoke: {
         src: (c) => api.newFlightPlan(c.token, c.username, c.id, c.destination),
         onDone: {
@@ -235,7 +235,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
       },
     },
     [States.InTransit]: {
-      entry: debug("travel"),
+      entry: debugShipMachine("travel"),
       after: [
         {
           delay: (c) => {

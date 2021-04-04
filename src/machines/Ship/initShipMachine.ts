@@ -2,14 +2,14 @@ import { assign } from "xstate";
 import { ShipBaseContext } from "./ShipBaseContext";
 import * as api from "../../api";
 import { getShipName } from "../../data/names";
-import { debug } from "./debug";
+import { debugShipMachine } from "./debug";
 
 export function initShipMachine<TContext extends ShipBaseContext>(
   machineName: string,
   nextState: any
 ) {
   return {
-    entry: debug<TContext>(machineName),
+    entry: debugShipMachine<TContext>(machineName),
     invoke: {
       src: async (c: TContext) => {
         const data = await api.getShip(c.token, c.username, c.id);
