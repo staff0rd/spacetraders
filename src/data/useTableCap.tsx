@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import db from ".";
 import { DateTime } from "luxon";
 
 export const useTableCap = (
@@ -9,12 +8,10 @@ export const useTableCap = (
 ) => {
   useEffect(() => {
     const deleteOld = async () => {
-      const old = await table
+      await table
         .where(timestampColumn)
         .below(DateTime.now().minus({ hours }).toISO())
         .delete();
-      const total = await db.trades.count();
-      console.log(`Deleted ${old} from ${table.name}, left: ${total}`);
     };
     deleteOld();
     const interval = setInterval(deleteOld, 300 * 1000);
