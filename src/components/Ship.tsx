@@ -57,6 +57,7 @@ export const ShipComponent = ({ ship: actor }: Props) => {
             )}
           </Grid>
           <Grid item xs={12}>
+            <Typography>{actor.state.context.shipName}</Typography>
             <Cargo ship={actor.state.context.ship} />
           </Grid>
         </Grid>

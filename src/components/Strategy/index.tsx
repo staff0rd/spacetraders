@@ -129,8 +129,9 @@ export const Strategy = ({ state }: Props) => {
     getShip(actor.state.context.id)!.name,
     actor.state.context.ship?.type,
     actor.state.value,
-    actor.state.context.ship?.location ||
-      flightPlanToRelative(actor.state.context.flightPlan),
+    actor.state.context.flightPlan
+      ? flightPlanToRelative(actor.state.context.flightPlan)
+      : actor.state.context.ship?.location,
   ]);
 
   return (
