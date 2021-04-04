@@ -104,7 +104,8 @@ const config: MachineConfig<Context, any, any> = {
             target: States.SellCargo,
             cond: (c) =>
               atSellLocationWithSellableGoods(c) ||
-              atBuyLocationWithTooMuchFuel(c),
+              atBuyLocationWithTooMuchFuel(c) ||
+              haveExcessCargo(c),
           },
           {
             target: States.DetermineTradeRoute,
@@ -172,6 +173,13 @@ const config: MachineConfig<Context, any, any> = {
               quantity: fuelOverage,
               totalVolume: fuelOverage,
             });
+
+          if (c.tradeRoute) {
+            c.ship!.cargo.filter(
+              (p) => p.good !== "FUEL" && p.good !== c.tradeRoute?.good
+            ).forEach((cargo) => sellableCargo.push(cargo));
+          }
+
           for (const sellOrder of sellableCargo) {
             const quantity = Math.min(
               MAX_CARGO_MOVE,
@@ -331,7 +339,8 @@ const config: MachineConfig<Context, any, any> = {
           do {
             const quantity = Math.min(
               MAX_CARGO_MOVE,
-              c.tradeRoute!.quantityToBuy
+              c.tradeRoute!.quantityToBuy -
+                getCargoQuantity(c, c.tradeRoute!.good)
             );
             result = await api.purchaseOrder(
               c.token,
@@ -420,5 +429,17 @@ function atBuyLocationWaitingToBuy(c: Context): boolean {
     hasLocation &&
     atBuyLocation &&
     getCargoQuantity(c, c.tradeRoute!.good) < c.tradeRoute!.quantityToBuy
+  );
+}
+
+function haveExcessCargo(c: Context): boolean {
+  const hasTradeRoute = !!c.tradeRoute;
+  const hasLocation = !!c.ship?.location;
+  return (
+    hasTradeRoute &&
+    hasLocation &&
+    c.ship!.cargo.filter(
+      (p) => p.good !== "FUEL" && p.good !== c.tradeRoute!.good
+    ).length > 0
   );
 }
