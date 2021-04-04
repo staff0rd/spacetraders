@@ -22,7 +22,7 @@ export function travelToLocation<TContext extends ShipBaseContext>(
       onDone: {
         target: nextState,
         actions: assign<TContext>({
-          ship: (c, e: any) => e.data,
+          ship: (c, e: any) => e.data.ship,
           flightPlan: undefined,
           location: undefined,
         }) as any,

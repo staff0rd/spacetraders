@@ -15,6 +15,7 @@ import { getFuelNeeded } from "../../data/getFuelNeeded";
 import { getDistance } from "../getDistance";
 import { ShipContext } from "./ShipBaseContext";
 import { printError } from "./printError";
+import { getCargoQuantity } from "./getCargoQuantity";
 
 const throwError = (message: string) => {
   console.warn(message);
@@ -38,7 +39,6 @@ export type Context = {
   ship: Ship;
   destination: string;
   flightPlan?: FlightPlan;
-  boughtFuel?: boolean;
   neededFuel?: number;
 } & ShipContext;
 
@@ -54,7 +54,6 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
     shipName: "",
     ship: {} as Ship,
     destination: "",
-    boughtFuel: false,
   },
   states: {
     [States.Idle]: {
@@ -75,13 +74,9 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
           { target: States.InTransit, cond: (c) => !!c.flightPlan },
           {
             target: States.BuyFuel,
-            cond: (c) => !c.boughtFuel && haveFuel(c) < c.neededFuel!,
+            cond: (c) => getCargoQuantity(c, "FUEL") < c.neededFuel!,
           },
           { target: States.CreateFlightPlan, cond: (c) => !!c.ship.location },
-          // {
-          //   target: States.GetShip,
-          //   cond: (c) => !c.ship.location && !c.ship.flightPlanId,
-          // },
         ],
       },
     },
@@ -94,36 +89,26 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
     [States.BuyFuel]: {
       invoke: {
         src: async (c) => {
-          const from = await db.probes.get(c.ship.location!);
-          if (!from) throwError("Couldn't find departure");
+          const currentFuel = getCargoQuantity(c, "FUEL");
+          const neededFuel = c.neededFuel! - currentFuel;
+
+          if (neededFuel > c.ship.spaceAvailable)
+            throwError(
+              `Fuel: Have ${currentFuel}, need ${neededFuel}, not enough space for fuel`
+            );
           else {
-            const to = await db.probes.get(c.destination);
-            if (!to) throwError("Couldn't find destination");
-            else {
-              const distance = getDistance(from.x, from.y, to.x, to.y);
-              const neededFuel = getFuelNeeded(distance, from.type);
+            console.warn(`Buying ${neededFuel} fuel`);
+            const result = await api.purchaseOrder(
+              c.token,
+              c.username,
+              c.id,
+              "FUEL",
+              neededFuel,
+              c.ship.location!,
+              0
+            );
 
-              if (neededFuel > c.ship.spaceAvailable)
-                throwError(
-                  `Fuel: Have ${haveFuel(
-                    c
-                  )}, need ${neededFuel}, not enough space for fuel`
-                );
-              else {
-                console.warn(`Buying ${neededFuel} fuel`);
-                const result = await api.purchaseOrder(
-                  c.token,
-                  c.username,
-                  c.id,
-                  "FUEL",
-                  neededFuel,
-                  from.location,
-                  0
-                );
-
-                return result;
-              }
-            }
+            return result;
           }
         },
         onError: States.Idle,
@@ -165,6 +150,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
     [States.CreateFlightPlan]: {
       invoke: {
         src: (c) => api.newFlightPlan(c.token, c.username, c.id, c.destination),
+        onError: printError(),
         onDone: {
           target: States.InTransit,
           actions: [
@@ -205,17 +191,6 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
             else {
               const distance = getDistance(from.x, from.y, to.x, to.y);
               const neededFuel = getFuelNeeded(distance, from.type);
-
-              const currentFuel = haveFuel(c);
-
-              if (currentFuel >= neededFuel) return 0;
-
-              if (neededFuel > c.ship.spaceAvailable)
-                throwError(
-                  `Fuel: Have ${haveFuel(
-                    c
-                  )}, need ${neededFuel}, not enough space for fuel`
-                );
               return neededFuel;
             }
           }
@@ -242,7 +217,3 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
     },
   },
 });
-
-function haveFuel(c: Context) {
-  return c.ship.cargo.find((c) => c.good === "FUEL")?.quantity || 0;
-}

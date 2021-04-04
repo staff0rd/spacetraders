@@ -27,7 +27,7 @@ export async function determineBestTradeRoute(
             .filter((dest) => dest.location !== depart.location)
             .map((dest) => {
               const profitPerUnit =
-                depart.purchasePricePerUnit - dest.sellPricePerUnit;
+                dest.sellPricePerUnit - depart.purchasePricePerUnit;
               const volume = depart.volumePerUnit;
               const distance = getDistance(depart.x, depart.y, dest.x, dest.y);
               const fuelNeeded = getFuelNeeded(distance, depart.type);
