@@ -15,6 +15,7 @@ import { getFuelNeeded } from "../../data/getFuelNeeded";
 import { getDistance } from "../getDistance";
 import { debug } from "./debug";
 import { ShipContext } from "./ShipBaseContext";
+import { printError } from "./printError";
 
 const throwError = (message: string) => {
   console.warn(message);
@@ -86,7 +87,13 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
         ],
       },
     },
-    [States.Done]: { entry: debug("travel"), type: "final" },
+    [States.Done]: {
+      entry: debug("travel"),
+      type: "final",
+      data: {
+        ship: (c: Context) => ({ ...c.ship, location: c.destination }),
+      },
+    },
     [States.BuyFuel]: {
       entry: debug("travel"),
       invoke: {
@@ -162,6 +169,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
       },
     },
     [States.CreateFlightPlan]: {
+      entry: debug("travel"),
       invoke: {
         src: (c) => api.newFlightPlan(c.token, c.username, c.id, c.destination),
         onDone: {
@@ -219,6 +227,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
             }
           }
         },
+        onError: printError(),
         onDone: {
           actions: assign<Context>({ neededFuel: (_, e: any) => e.data }),
           target: States.Idle,

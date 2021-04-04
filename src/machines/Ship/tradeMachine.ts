@@ -127,15 +127,26 @@ export const tradeMachine = createMachine<Context, any, any>(
           ],
         },
       },
-      [States.TravelToLocation]: travelToLocation(
+      [States.TravelToLocation]: travelToLocation<Context>(
+        "trade",
         (c) => c.tradeRoute!.sellLocation,
         States.Idle
       ),
       [States.DetermineTradeRoute]: {
         entry: debug("trade"),
         invoke: {
-          src: async (c) =>
-            (await determineBestTradeRouteByCurrentLocation(c))[0],
+          src: async (c) => {
+            const tradeRoutes = await determineBestTradeRouteByCurrentLocation(
+              c
+            );
+            const tradeRoute = tradeRoutes[0];
+            db.tradeRoutes.put({
+              ...tradeRoute,
+              created: DateTime.now().toISO(),
+              shipId: c.id,
+            });
+            return tradeRoute;
+          },
           onDone: {
             target: States.Idle,
             actions: assign<Context>({ tradeRoute: (c, e: any) => e.data }),
@@ -157,6 +168,15 @@ export const tradeMachine = createMachine<Context, any, any>(
             const sellableCargo = c.ship!.cargo.filter(
               (cargo) => cargo.good === c.tradeRoute?.good
             );
+
+            const fuelOverage =
+              getCargoQuantity(c, "FUEL") - c.tradeRoute!.fuelNeeded;
+            if (fuelOverage > 0)
+              sellableCargo.push({
+                good: "FUEL",
+                quantity: fuelOverage,
+                totalVolume: fuelOverage,
+              });
             for (const sellOrder of sellableCargo) {
               const quantity = Math.min(MAX_CARGO_MOVE, sellOrder.quantity);
               result = await api.sellOrder(
@@ -193,7 +213,7 @@ export const tradeMachine = createMachine<Context, any, any>(
             return result;
           },
           onError: {
-            actions: printErrorAction,
+            actions: printErrorAction(),
             target: States.Idle,
           },
           onDone: {
@@ -287,7 +307,7 @@ export const tradeMachine = createMachine<Context, any, any>(
           src: (context: Context) =>
             api.getMarket(context.token, context.ship!.location!),
           onError: {
-            actions: printErrorAction,
+            actions: printErrorAction(),
             target: States.Idle,
           },
           onDone: {
@@ -343,8 +363,8 @@ export const tradeMachine = createMachine<Context, any, any>(
           onError: {
             //{code: 2004, message: "User has insufficient credits for transaction."},
             //{code: 2006, message: "Good quantity is not available on planet." },
-            actions: printErrorAction,
-            target: States.GetMarket,
+            actions: printErrorAction(),
+            //target: States.GetMarket,
           },
           onDone: {
             target: States.Idle,

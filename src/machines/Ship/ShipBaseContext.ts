@@ -1,4 +1,5 @@
 import { FlightPlan } from "../../api/FlightPlan";
+import { Location } from "../../api/Location";
 import { Ship } from "../../api/Ship";
 import { IStrategy } from "../../data/Strategy/IStrategy";
 
@@ -9,6 +10,7 @@ export type ShipBaseContext = ShipContext & {
   strategy: IStrategy;
   shouldCheckStrategy?: boolean;
   flightPlan?: FlightPlan;
+  location?: Location;
 };
 
 export type ShipContext = {

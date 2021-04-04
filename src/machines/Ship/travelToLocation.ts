@@ -1,13 +1,16 @@
 import { assign } from "xstate";
+import { debug } from "./debug";
 import { printError } from "./printError";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { travelToLocationMachine } from "./travelToLocationMachine";
 
 export function travelToLocation<TContext extends ShipBaseContext>(
+  machineName: string,
   destination: (c: TContext) => string,
   nextState: any
 ) {
   return {
+    entry: debug(machineName),
     invoke: {
       src: (c: TContext) =>
         travelToLocationMachine.withContext({
@@ -24,6 +27,7 @@ export function travelToLocation<TContext extends ShipBaseContext>(
         actions: assign<TContext>({
           ship: (c, e: any) => e.data,
           flightPlan: undefined,
+          location: undefined,
         }) as any,
       },
     },

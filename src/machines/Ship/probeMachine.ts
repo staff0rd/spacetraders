@@ -81,6 +81,7 @@ export const probeMachine = createMachine<Context, any, any>({
       },
     },
     [States.TravelToLocation]: travelToLocation<Context>(
+      "probe",
       (c) => c.probe!.location,
       States.Idle
     ),
