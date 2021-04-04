@@ -47,7 +47,7 @@ export const User = () => {
       </div>
       <Grid container spacing={2}>
         {grouped.map((g) => (
-          <Grid item xs={3}>
+          <Grid key={g.symbol} item xs={3}>
             <Typography variant="h6">{g.symbol}</Typography>
             <Typography>Docked: {g.docked}</Typography>
             <Typography>In Transit: {g.inTransit}</Typography>
