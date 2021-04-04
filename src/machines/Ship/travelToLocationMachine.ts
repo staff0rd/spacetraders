@@ -111,7 +111,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
             return result;
           }
         },
-        onError: States.Idle,
+        onError: printError(),
         onDone: {
           target: States.Idle,
           actions: assign<Context>({
