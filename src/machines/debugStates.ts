@@ -5,7 +5,7 @@ import {
   StateNodeConfig,
   StateSchema,
 } from "xstate";
-import { debugMachine, debugShipMachine } from "./Ship/debug";
+import { debugMachine, debugShipMachine } from "./Ship/debugMachine";
 import { ShipContext } from "./Ship/ShipBaseContext";
 
 export function debugShipMachineStates<
@@ -42,8 +42,7 @@ function debugStates<
 ): MachineConfig<TContext, TStateSchema, TEvent> {
   if (!debugOn) return config;
   Object.entries(config.states!).forEach((value) => {
-    const [name, state] = value;
-    console.log("adding to " + name);
+    const [, state] = value;
     const node = state as StateNodeConfig<TContext, any, TEvent>;
 
     if (node.entry) {
@@ -57,6 +56,5 @@ function debugStates<
     }
   });
 
-  console.log(JSON.stringify(config, null, 2));
   return config;
 }

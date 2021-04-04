@@ -321,7 +321,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
   actions: {
     spawnShips: assign<Context>({
       actors: (c, e: any) => {
-        console.log(`${c.actors?.length || 0} current actors`);
         const alreadySpawnedShipIds = c.actors.map(
           (actor) => actor.state.context.id
         );

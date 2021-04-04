@@ -7,7 +7,7 @@ export function debugShipMachine<TContext extends ShipContext>(
 ) {
   return (c: TContext, e: any, d: ActionMeta<TContext, any>) => {
     console.warn(
-      `[${c.shipName}] ${machineName}: ${d.state.value}` +
+      ` ${machineName} [${c.shipName}]: ${d.state.value}` +
         (message !== undefined ? ` - ${message}` : ""),
       c
     );

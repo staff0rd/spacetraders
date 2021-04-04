@@ -15,7 +15,6 @@ export function initShipMachine<TContext extends ShipBaseContext>(
         target: nextState,
         actions: assign<TContext>({
           ship: (c, e: any) => e.data.ship,
-          shipName: (c, e: any) => e.data.shipName,
         }) as any,
       },
     },

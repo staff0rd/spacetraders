@@ -18,7 +18,7 @@ import { confirmStrategy } from "./confirmStrategy";
 import { initShipMachine } from "./initShipMachine";
 import { determineBestTradeRouteByCurrentLocation } from "./determineBestTradeRoute";
 import { TradeRoute } from "./TradeRoute";
-import { debugShipMachine } from "./debug";
+import { debugShipMachine } from "./debugMachine";
 import { travelToLocation } from "./travelToLocation";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { printErrorAction } from "./printError";

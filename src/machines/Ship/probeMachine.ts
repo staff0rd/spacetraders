@@ -16,6 +16,7 @@ import { IProbe } from "../../data/IProbe";
 import { confirmStrategy } from "./confirmStrategy";
 import { initShipMachine } from "./initShipMachine";
 import { travelToLocation } from "./travelToLocation";
+import { debugShipMachineStates } from "../debugStates";
 
 enum States {
   Init = "init",
@@ -129,4 +130,6 @@ const config: MachineConfig<Context, any, any> = {
   },
 };
 
-export const probeMachine = createMachine<Context, any, any>(config);
+export const probeMachine = createMachine<Context, any, any>(
+  debugShipMachineStates(config)
+);

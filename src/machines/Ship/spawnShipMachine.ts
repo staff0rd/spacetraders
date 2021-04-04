@@ -32,6 +32,7 @@ export function spawnShipMachine(c: Context): any {
     const system = (ship.location || flightPlan!.destination).substring(0, 2);
     const markets = c.systems![system]!;
     const shipName = c.shipNames?.find((s) => s.shipId === ship.id)?.name || "";
+    if (!shipName) console.error("No ship name for " + ship.id);
 
     const { data, strategy } = getStrategy(c, ship);
 
