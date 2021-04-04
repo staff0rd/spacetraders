@@ -40,12 +40,7 @@ export const Settings = () => {
     console.log("Clearing localStorage...");
     localStorage.removeItem("player");
     console.log("Clearing IndexedDB...");
-    await Promise.all([
-      db.strategies.clear(),
-      db.apiErrors.clear(),
-      db.markets.clear(),
-      db.trades.clear(),
-    ]);
+    await Promise.all(db.tables.map((table) => table.clear()));
     console.log("Everything cleared");
   };
 
