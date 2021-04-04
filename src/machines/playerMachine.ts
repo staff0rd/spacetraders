@@ -18,6 +18,7 @@ import { spawnShipMachine } from "./Ship/spawnShipMachine";
 import db from "../data";
 import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
+import { IShip } from "../data/IShip";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -35,6 +36,7 @@ export enum States {
   GetLoan = "getLoan",
   GetAvailableShips = "getAvailableShips",
   BuyShip = "buyShip",
+  GetShipNames = "getShipNames",
 }
 
 export type Schema = {
@@ -57,6 +59,7 @@ export type Context = {
   flightPlans: FlightPlan[];
   strategies?: IShipStrategy[];
   ships?: Ship[];
+  shipNames?: IShip[];
 };
 
 const getCachedPlayer = (): Context => {
@@ -98,6 +101,7 @@ const config: MachineConfig<Context, any, Event> = {
     [States.Initialising]: {
       after: {
         1: [
+          { target: States.GetShipNames, cond: (c) => !c.shipNames },
           { target: States.GetSystems, cond: "noLocations" },
           { target: States.GetAvailableShips, cond: "noAvailableShips" },
           { target: States.GetLoan, cond: "noLoans" },
@@ -105,6 +109,15 @@ const config: MachineConfig<Context, any, Event> = {
           { target: States.GetFlightPlans, cond: "noShipActors" },
           { target: States.Ready },
         ],
+      },
+    },
+    [States.GetShipNames]: {
+      invoke: {
+        src: async () => db.ships.toArray(),
+        onDone: {
+          target: States.Initialising,
+          actions: assign<Context>({ shipNames: (c, e: any) => e.data }),
+        },
       },
     },
     [States.GetToken]: {
@@ -295,6 +308,7 @@ const config: MachineConfig<Context, any, Event> = {
             assign<Context>({
               ships: (c, e: any) =>
                 (e.data.response as api.GetUserResponse).user.ships,
+              shipNames: (c, e: any) => e.data.shipNames,
             }),
           ],
         },

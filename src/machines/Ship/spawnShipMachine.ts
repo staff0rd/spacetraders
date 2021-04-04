@@ -31,6 +31,7 @@ export function spawnShipMachine(c: Context): any {
     const flightPlan = c.flightPlans.find((fp) => fp.shipId === ship.id);
     const system = (ship.location || flightPlan!.destination).substring(0, 2);
     const markets = c.systems![system]!;
+    const shipName = c.shipNames?.find((s) => s.shipId === ship.id)?.name || "";
 
     const { data, strategy } = getStrategy(c, ship);
 
@@ -43,7 +44,7 @@ export function spawnShipMachine(c: Context): any {
           username: c.user!.username,
           ship,
           system,
-          shipName: "",
+          shipName,
         })
       );
 
@@ -60,7 +61,7 @@ export function spawnShipMachine(c: Context): any {
           ),
           flightPlan,
           strategy: { strategy: ShipStrategy.Trade },
-          shipName: "",
+          shipName,
         }),
         { name: `ship-${ship.id}`, sync: true }
       ) as any;
@@ -73,7 +74,7 @@ export function spawnShipMachine(c: Context): any {
           strategy: { strategy: ShipStrategy.Halt },
           username: c.user!.username,
           ship,
-          shipName: "",
+          shipName,
         })
       );
 

@@ -76,9 +76,8 @@ export const tradeMachine = createMachine<Context, any, any>(
       strategy: { strategy: ShipStrategy.Trade },
     },
     states: {
-      [States.Init]: initShipMachine<Context>("trade", States.GetTradeRoute),
+      [States.Init]: initShipMachine<Context>(States.GetTradeRoute),
       [States.GetTradeRoute]: {
-        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c) => {
             const route = await db.tradeRoutes
@@ -94,7 +93,6 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       [States.Idle]: {
-        entry: debugShipMachine("trade"),
         after: {
           1: [
             { target: States.InFlight, cond: (c) => !!c.flightPlan },
@@ -128,12 +126,10 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       [States.TravelToLocation]: travelToLocation<Context>(
-        "trade",
         (c) => c.tradeRoute!.sellLocation,
         States.Idle
       ),
       [States.DetermineTradeRoute]: {
-        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c) => {
             const tradeRoutes = await determineBestTradeRouteByCurrentLocation(
@@ -154,11 +150,9 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       [States.Done]: {
-        entry: debugShipMachine("trade"),
         type: "final",
       },
       [States.SellCargo]: {
-        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c) => {
             let result: Partial<api.PurchaseOrderResponse> = {
@@ -233,7 +227,6 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       [States.InFlight]: {
-        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c) => {
             await sleep(
@@ -263,7 +256,6 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       createFlightPlan: {
-        entry: debugShipMachine("trade"),
         invoke: {
           src: (c) =>
             api.newFlightPlan(
@@ -302,7 +294,6 @@ export const tradeMachine = createMachine<Context, any, any>(
         },
       },
       [States.GetMarket]: {
-        entry: debugShipMachine("trade"),
         invoke: {
           src: (context: Context) =>
             api.getMarket(context.token, context.ship!.location!),
@@ -331,7 +322,6 @@ export const tradeMachine = createMachine<Context, any, any>(
         States.Done
       ),
       [States.BuyCargo]: {
-        entry: debugShipMachine("trade"),
         invoke: {
           src: async (c: Context) => {
             let result: Partial<api.PurchaseOrderResponse> = {

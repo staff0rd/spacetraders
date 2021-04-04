@@ -3,6 +3,7 @@ import {
   assign,
   createMachine,
   EventObject,
+  MachineConfig,
   StateMachine,
 } from "xstate";
 import { Ship } from "../../api/Ship";
@@ -15,12 +16,6 @@ import { IProbe } from "../../data/IProbe";
 import { confirmStrategy } from "./confirmStrategy";
 import { initShipMachine } from "./initShipMachine";
 import { travelToLocation } from "./travelToLocation";
-
-export const debug = (_: string) => {
-  return () => {
-    //return undefined;
-  };
-}; //import { debug } from "./debug";
 
 enum States {
   Init = "init",
@@ -44,7 +39,7 @@ export type Context = ShipBaseContext & {
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
-export const probeMachine = createMachine<Context, any, any>({
+const config: MachineConfig<Context, any, any> = {
   id: "probe",
   initial: States.Init,
   context: {
@@ -58,9 +53,8 @@ export const probeMachine = createMachine<Context, any, any>({
     system: "",
   },
   states: {
-    [States.Init]: initShipMachine<Context>("probe", States.ConfirmStrategy),
+    [States.Init]: initShipMachine<Context>(States.ConfirmStrategy),
     [States.Idle]: {
-      entry: debug("probe"),
       after: {
         1: [
           { target: States.Done, cond: (c) => !c.probe },
@@ -81,16 +75,13 @@ export const probeMachine = createMachine<Context, any, any>({
       },
     },
     [States.TravelToLocation]: travelToLocation<Context>(
-      "probe",
       (c) => c.probe!.location,
       States.Idle
     ),
     [States.Done]: {
-      entry: debug("probe"),
       type: "final",
     },
     [States.GetAssignment]: {
-      entry: debug("probe"),
       invoke: {
         src: (c) => getProbeAssignment(c.system, c.id),
         onDone: [
@@ -106,7 +97,6 @@ export const probeMachine = createMachine<Context, any, any>({
       },
     },
     [States.Probe]: {
-      entry: debug("probe"),
       invoke: {
         src: async (c) => {
           await api.getMarket(c.token, c.ship!.location!);
@@ -120,13 +110,11 @@ export const probeMachine = createMachine<Context, any, any>({
       },
     },
     [States.WaitAfterErorr]: {
-      entry: debug("probe"),
       after: {
         5000: States.Init,
       },
     },
     [States.Waiting]: {
-      entry: debug("probe"),
       after: {
         [PROBE_DELAY_MINUTES * 1000 * 60]: {
           target: States.Probe,
@@ -139,4 +127,6 @@ export const probeMachine = createMachine<Context, any, any>({
       States.Done
     ),
   },
-});
+};
+
+export const probeMachine = createMachine<Context, any, any>(config);

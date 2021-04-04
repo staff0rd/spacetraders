@@ -1,16 +1,13 @@
 import { assign } from "xstate";
-import { debugShipMachine } from "./debug";
 import { printError } from "./printError";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { travelToLocationMachine } from "./travelToLocationMachine";
 
 export function travelToLocation<TContext extends ShipBaseContext>(
-  machineName: string,
   destination: (c: TContext) => string,
   nextState: any
 ) {
   return {
-    entry: debugShipMachine(machineName),
     invoke: {
       src: (c: TContext) =>
         travelToLocationMachine.withContext({
