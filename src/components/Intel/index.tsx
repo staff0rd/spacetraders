@@ -32,10 +32,14 @@ export const Intel = () => {
       res[value.username] = {
         quantity: 0,
         username: value.username,
+        inTransit: 0,
+        docked: 0,
       };
       grouped.push(res[value.username]);
     }
     res[value.username].quantity += 1;
+    if (value.departure) res[value.username].inTransit += 1;
+    else res[value.username].docked += 1;
     return res;
   }, {});
 

@@ -20,6 +20,8 @@ import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
 import { IShip } from "../data/IShip";
 
+const BUY_MAX_SHIPS = 70;
+
 export enum States {
   CheckStorage = "checkStorage",
   Idle = "idle",
@@ -376,7 +378,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
     noAvailableShips: (c) => !c.availableShips.length,
     noShipActors: (c) => !c.actors.length,
     shouldBuyShip: (c) =>
-      (c.user?.credits || 0) > 100000 && c.user!.ships.length < 70,
+      (c.user?.credits || 0) > 100000 && c.user!.ships.length < BUY_MAX_SHIPS,
   },
 };
 

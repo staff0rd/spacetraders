@@ -18,9 +18,16 @@ export const Summary = ({ items }: { items: SummaryItem[] }) => {
       <Typography className={classes.link}>
         <Link to={`/intel/${i.username}`}>{i.username}</Link>
       </Typography>,
+      i.docked,
+      i.inTransit,
       i.quantity,
     ]);
-  const columns = ["Username", "Ships"];
+  const columns = ["Ships", "Docked", "InTransit", "Total"];
   return <DataTable title="summary" rows={rows} columns={columns} />;
 };
-type SummaryItem = { quantity: number; username: string };
+type SummaryItem = {
+  quantity: number;
+  username: string;
+  docked: number;
+  inTransit: number;
+};
