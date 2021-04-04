@@ -1,5 +1,4 @@
-export interface IMarket {
-  id?: number;
+export interface IMarketNow {
   location: string;
   good: string;
   volumePerUnit: number;
@@ -7,4 +6,11 @@ export interface IMarket {
   purchasePricePerUnit: number;
   quantityAvailable: number;
   created: string;
+  x: number;
+  y: number;
+  type: string;
+}
+
+export interface IMarket extends IMarketNow {
+  id?: number;
 }

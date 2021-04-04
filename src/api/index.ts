@@ -219,8 +219,8 @@ export const getMarket = (
         `game/locations/${location}/marketplace`
       ),
     (result) =>
-      result.location.marketplace.map((m) =>
-        db.markets.put({
+      result.location.marketplace.map((m) => {
+        const market = {
           created: DateTime.now().toISO(),
           location,
           purchasePricePerUnit: m.purchasePricePerUnit,
@@ -228,8 +228,13 @@ export const getMarket = (
           quantityAvailable: m.quantityAvailable,
           volumePerUnit: m.volumePerUnit,
           good: m.symbol,
-        })
-      )
+          x: result.location.x,
+          y: result.location.y,
+          type: result.location.type,
+        };
+        db.goodLocation.put(market);
+        return db.markets.put(market);
+      })
   );
 
 export interface GetShipResponse {

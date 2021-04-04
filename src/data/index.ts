@@ -1,7 +1,7 @@
 import Dexie from "dexie";
 import { IApiError } from "./IApiError";
 import { ITrade } from "./ITrade";
-import { IMarket } from "./IMarket";
+import { IMarket, IMarketNow as IGoodLocation } from "./IMarket";
 import { IShipStrategy } from "./Strategy/IShipStrategy";
 import { IIntel } from "./IIntel";
 import { IProbe } from "./IProbe";
@@ -11,6 +11,7 @@ class Database extends Dexie {
   apiErrors: Dexie.Table<IApiError, number>; // number = type of the primkey
   trades: Dexie.Table<ITrade, number>;
   markets: Dexie.Table<IMarket, number>;
+  goodLocation: Dexie.Table<IGoodLocation, string>;
   strategies: Dexie.Table<IShipStrategy, string>;
   intel: Dexie.Table<IIntel, string>;
   probes: Dexie.Table<IProbe, string>;
@@ -18,10 +19,11 @@ class Database extends Dexie {
 
   constructor() {
     super("Database");
-    this.version(33).stores({
+    this.version(37).stores({
       apiErrors: "++id, code",
       trades: "++id, good, shipId, location, type, timestamp",
       market: "++id,location,good,created",
+      goodLocation: "[location+good], created",
       strategies: "&shipId",
       intel: "&shipId,username",
       probes: "&location,shipId",
@@ -36,6 +38,7 @@ class Database extends Dexie {
     this.intel = this.table("intel");
     this.probes = this.table("probes");
     this.ships = this.table("ships");
+    this.goodLocation = this.table("goodLocation");
   }
 }
 

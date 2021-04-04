@@ -18,6 +18,8 @@ import { TradeType } from "../../data/ITrade";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { confirmStrategy } from "./confirmStrategy";
+import { initShipMachine } from "./initShipMachine";
+import { determineBestTradeRoute } from "./determineBestTradeRoute";
 
 export type LocationWithDistance = Location & { distance: number };
 
@@ -71,30 +73,22 @@ export const tradeMachine = createMachine<Context, any, any>(
       strategy: { strategy: ShipStrategy.Trade },
     },
     states: {
-      [States.Init]: {
-        invoke: {
-          src: (c) => api.getShip(c.token, c.username, c.id),
-          onDone: {
-            target: States.ConfirmStrategy,
-            actions: assign<Context>({ ship: (c, e: any) => e.data.ship }),
-          },
-        },
-      },
+      [States.Init]: initShipMachine("trade", States.ConfirmStrategy),
       [States.Idle]: {
         after: {
           1: [
             { target: "inFlight", cond: "hasFlightPlan" },
             { target: "getMarket", cond: "noLocation" },
             { target: States.SellCargo, cond: "shouldSell" },
-            {
-              target: States.BuyCargo,
-              cond: "needFuel",
-              actions: "assignNeededFuel",
-            },
+            // {
+            //   target: States.BuyCargo,
+            //   cond: "needFuel",
+            //   actions: "assignNeededFuel",
+            // },
             { target: "determineDestination", cond: "noDestination" },
             { target: "determineCargo", cond: "shouldDetermineCargo" },
-            { target: States.BuyCargo, cond: "shouldBuyCargo" },
-            { target: "createFlightPlan", cond: "noFlightPlan" },
+            // { target: States.BuyCargo, cond: "shouldBuyCargo" },
+            // { target: "createFlightPlan", cond: "noFlightPlan" },
           ],
         },
       },
@@ -212,7 +206,9 @@ export const tradeMachine = createMachine<Context, any, any>(
       },
       determineDestination: {
         entry: ["determineDestination"],
-        after: { 1: States.Idle },
+        invoke: {
+          src: determineBestTradeRoute,
+        },
       },
       createFlightPlan: {
         invoke: {
@@ -320,7 +316,8 @@ export const tradeMachine = createMachine<Context, any, any>(
   {
     actions: {
       clearShouldBuy: assign<Context>({ shouldBuy: undefined }),
-      printError: (_, e: any) => console.warn("caught an error", e),
+      printError: (c, e: any) =>
+        console.warn(`[${c.shipName}] caught an error`, e),
       assignNeededFuel: assign({
         shouldBuy: (c) => ({
           good: "FUEL",

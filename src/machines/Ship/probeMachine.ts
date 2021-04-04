@@ -13,12 +13,14 @@ import { getProbeAssignment } from "../../data/Strategy/getProbeAssignment";
 import { DateTime } from "luxon";
 import { travelToLocationMachine } from "./travelToLocationMachine";
 import { IProbe } from "../../data/IProbe";
-import { getShipName } from "../../data/names";
 import { confirmStrategy } from "./confirmStrategy";
 import { FlightPlan } from "../../api/FlightPlan";
+import { initShipMachine } from "./initShipMachine";
 
-const debug = (_: string) => {
-  return undefined;
+export const debug = (_: string) => {
+  return () => {
+    //return undefined;
+  };
 }; //import { debug } from "./debug";
 
 enum States {
@@ -160,25 +162,3 @@ export const probeMachine = createMachine<Context, any, any>({
     ),
   },
 });
-
-function initShipMachine<TContext extends ShipBaseContext>(
-  machineName: string,
-  nextState: any
-) {
-  return {
-    entry: debug(machineName),
-    invoke: {
-      src: async (c: TContext) => {
-        const data = await api.getShip(c.token, c.username, c.id);
-        return { ship: data.ship, shipName: await getShipName(c.id) };
-      },
-      onDone: {
-        target: nextState,
-        actions: assign<TContext>({
-          ship: (c, e: any) => e.data.ship,
-          shipName: (c, e: any) => e.data.shipName,
-        }) as any,
-      },
-    },
-  };
-}
