@@ -9,7 +9,7 @@ export function initShipMachine<TContext extends ShipBaseContext>(
   nextState: any
 ) {
   return {
-    entry: debug(machineName),
+    entry: debug<TContext>(machineName),
     invoke: {
       src: async (c: TContext) => {
         const data = await api.getShip(c.token, c.username, c.id);

@@ -11,11 +11,10 @@ import { ShipBaseContext } from "./ShipBaseContext";
 import * as api from "../../api";
 import { getProbeAssignment } from "../../data/Strategy/getProbeAssignment";
 import { DateTime } from "luxon";
-import { travelToLocationMachine } from "./travelToLocationMachine";
 import { IProbe } from "../../data/IProbe";
 import { confirmStrategy } from "./confirmStrategy";
-import { FlightPlan } from "../../api/FlightPlan";
 import { initShipMachine } from "./initShipMachine";
+import { travelToLocation } from "./travelToLocation";
 
 export const debug = (_: string) => {
   return () => {
@@ -41,7 +40,6 @@ export type Context = ShipBaseContext & {
   probe?: IProbe;
   lastProbe?: DateTime;
   system: string;
-  flightPlan?: FlightPlan;
 };
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -60,7 +58,7 @@ export const probeMachine = createMachine<Context, any, any>({
     system: "",
   },
   states: {
-    [States.Init]: initShipMachine("probe", States.ConfirmStrategy),
+    [States.Init]: initShipMachine<Context>("probe", States.ConfirmStrategy),
     [States.Idle]: {
       entry: debug("probe"),
       after: {
@@ -82,31 +80,10 @@ export const probeMachine = createMachine<Context, any, any>({
         10000: [{ target: States.ConfirmStrategy }],
       },
     },
-    [States.TravelToLocation]: {
-      invoke: {
-        src: (c) =>
-          travelToLocationMachine.withContext({
-            id: c.id,
-            username: c.username,
-            token: c.token,
-            to: c.probe!,
-            ship: c.ship!,
-            shipName: c.shipName,
-          }),
-        onDone: {
-          target: States.Idle,
-          actions: assign<Context>({
-            ship: (c, e: any) => e.data,
-            flightPlan: undefined,
-          }),
-        },
-      },
-      on: {
-        FLIGHTPLAN_UPDATE: {
-          actions: assign<Context>({ flightPlan: (c, e: any) => e.data }),
-        },
-      },
-    },
+    [States.TravelToLocation]: travelToLocation<Context>(
+      (c) => c.probe!.location,
+      States.Idle
+    ),
     [States.Done]: {
       entry: debug("probe"),
       type: "final",

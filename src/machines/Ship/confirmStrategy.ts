@@ -15,11 +15,6 @@ export function confirmStrategy(
         const currentStrategy: IShipStrategy = (await db.strategies
           .where({ shipId: c.id })
           .first())!;
-        console.log(
-          `desired strategy: ${ShipStrategy[desired]}, current strategy: ${
-            ShipStrategy[currentStrategy.strategy]
-          }`
-        );
         if (currentStrategy.strategy === desired) return nextState;
         console.log("updating strategy");
         await updateStrategy(c.id, desired, currentStrategy);

@@ -13,7 +13,6 @@ import * as api from "../../api";
 import { DateTime } from "luxon";
 import { getFuelNeeded } from "../../data/getFuelNeeded";
 import { getDistance } from "../getDistance";
-import { IProbe } from "../../data/IProbe";
 import { debug } from "./debug";
 import { ShipContext } from "./ShipBaseContext";
 
@@ -37,7 +36,7 @@ export type Context = {
   token: string;
   username: string;
   ship: Ship;
-  to: IProbe;
+  destination: string;
   flightPlan?: FlightPlan;
   boughtFuel?: boolean;
   neededFuel?: number;
@@ -54,7 +53,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
     username: "",
     shipName: "",
     ship: {} as Ship,
-    to: {} as IProbe,
+    destination: "",
     boughtFuel: false,
   },
   states: {
@@ -64,7 +63,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
         1: [
           {
             target: States.Done,
-            cond: (c) => c.to.location === c.ship?.location,
+            cond: (c) => c.destination === c.ship?.location,
           },
           {
             target: States.CalculateNeededFuel,
@@ -95,7 +94,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
           const from = await db.probes.get(c.ship.location!);
           if (!from) throwError("Couldn't find departure");
           else {
-            const to = await db.probes.get(c.to.location);
+            const to = await db.probes.get(c.destination);
             if (!to) throwError("Couldn't find destination");
             else {
               const distance = getDistance(from.x, from.y, to.x, to.y);
@@ -164,8 +163,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
     },
     [States.CreateFlightPlan]: {
       invoke: {
-        src: (c) =>
-          api.newFlightPlan(c.token, c.username, c.id, c.to.location!),
+        src: (c) => api.newFlightPlan(c.token, c.username, c.id, c.destination),
         onDone: {
           target: States.InTransit,
           actions: [
@@ -201,7 +199,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
           const from = await db.probes.get(c.ship.location!);
           if (!from) throwError("Couldn't find departure");
           else {
-            const to = await db.probes.get(c.to.location);
+            const to = await db.probes.get(c.destination);
             if (!to) throwError("Couldn't find destination");
             else {
               const distance = getDistance(from.x, from.y, to.x, to.y);

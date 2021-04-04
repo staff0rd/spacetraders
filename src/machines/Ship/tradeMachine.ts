@@ -7,19 +7,23 @@ import {
   StateMachine,
 } from "xstate";
 import * as api from "../../api";
-import { Cargo, Ship } from "../../api/Ship";
+import { Ship } from "../../api/Ship";
 import { Location } from "../../api/Location";
-import { getDistance } from "../getDistance";
 import { FlightPlan } from "../../api/FlightPlan";
 import { DateTime } from "luxon";
-import { determineCargo, MAX_CARGO_MOVE } from "../determineCargo";
 import db from "../../data";
 import { TradeType } from "../../data/ITrade";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
-import { ShipBaseContext } from "./ShipBaseContext";
 import { confirmStrategy } from "./confirmStrategy";
 import { initShipMachine } from "./initShipMachine";
-import { determineBestTradeRoute } from "./determineBestTradeRoute";
+import { determineBestTradeRouteByCurrentLocation } from "./determineBestTradeRoute";
+import { TradeRoute } from "./TradeRoute";
+import { debug } from "./debug";
+import { travelToLocation } from "./travelToLocation";
+import { ShipBaseContext } from "./ShipBaseContext";
+import { printErrorAction } from "./printError";
+
+const MAX_CARGO_MOVE = 300;
 
 export type LocationWithDistance = Location & { distance: number };
 
@@ -37,22 +41,21 @@ enum States {
   SellCargo = "sellCargo",
   Done = "done",
   ConfirmStrategy = "confirmStrategy",
+  DetermineTradeRoute = "determineTradeRoute",
+  InFlight = "inFlight",
+  GetMarket = "getMarket",
+  GetTradeRoute = "getTradeRoute",
+  TravelToLocation = "travelToLocation",
 }
 
 export type Context = ShipBaseContext & {
   location?: Location;
   locations: LocationWithDistance[];
-  destination?: string;
-  shouldBuy?: ShouldBuy;
-  flightPlan?: FlightPlan;
   credits: number;
-  hasSold?: boolean;
+  tradeRoute?: TradeRoute;
 };
 
 export type ShipActor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
-
-const fuelAmountNeeded = (s: Ship) =>
-  10 - (s.cargo.find((c) => c.good === "FUEL")?.quantity || 0);
 
 const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -73,29 +76,78 @@ export const tradeMachine = createMachine<Context, any, any>(
       strategy: { strategy: ShipStrategy.Trade },
     },
     states: {
-      [States.Init]: initShipMachine("trade", States.ConfirmStrategy),
+      [States.Init]: initShipMachine<Context>("trade", States.GetTradeRoute),
+      [States.GetTradeRoute]: {
+        entry: debug("trade"),
+        invoke: {
+          src: async (c) => {
+            const route = await db.tradeRoutes
+              .where("shipId")
+              .equals(c.id)
+              .reverse();
+            return route.first();
+          },
+          onDone: {
+            actions: assign<Context>({ tradeRoute: (c, e: any) => e.data }),
+            target: States.ConfirmStrategy,
+          },
+        },
+      },
       [States.Idle]: {
+        entry: debug("trade"),
         after: {
           1: [
-            { target: "inFlight", cond: "hasFlightPlan" },
-            { target: "getMarket", cond: "noLocation" },
-            { target: States.SellCargo, cond: "shouldSell" },
-            // {
-            //   target: States.BuyCargo,
-            //   cond: "needFuel",
-            //   actions: "assignNeededFuel",
-            // },
-            { target: "determineDestination", cond: "noDestination" },
-            { target: "determineCargo", cond: "shouldDetermineCargo" },
-            // { target: States.BuyCargo, cond: "shouldBuyCargo" },
-            // { target: "createFlightPlan", cond: "noFlightPlan" },
+            { target: States.InFlight, cond: (c) => !!c.flightPlan },
+            { target: States.GetMarket, cond: "noLocation" },
+            {
+              target: States.SellCargo,
+              cond: (c) =>
+                atSellLocationWithSellableGoods(c) ||
+                atBuyLocationWithTooMuchFuel(c),
+            },
+            {
+              target: States.DetermineTradeRoute,
+              cond: (c) =>
+                !!c.ship?.location &&
+                (!c.tradeRoute ||
+                  c.tradeRoute?.sellLocation === c.ship?.location),
+            },
+            {
+              target: States.BuyCargo,
+              cond: (c) => atBuyLocationWaitingToBuy(c),
+            },
+            {
+              target: States.TravelToLocation,
+              cond: (c) => !c.flightPlan && !!c.tradeRoute,
+            },
+            {
+              target: States.Done,
+              actions: debug("trade", "Nothing left to do"),
+            },
           ],
         },
       },
+      [States.TravelToLocation]: travelToLocation(
+        (c) => c.tradeRoute!.sellLocation,
+        States.Idle
+      ),
+      [States.DetermineTradeRoute]: {
+        entry: debug("trade"),
+        invoke: {
+          src: async (c) =>
+            (await determineBestTradeRouteByCurrentLocation(c))[0],
+          onDone: {
+            target: States.Idle,
+            actions: assign<Context>({ tradeRoute: (c, e: any) => e.data }),
+          },
+        },
+      },
       [States.Done]: {
+        entry: debug("trade"),
         type: "final",
       },
       [States.SellCargo]: {
+        entry: debug("trade"),
         invoke: {
           src: async (c) => {
             let result: Partial<api.PurchaseOrderResponse> = {
@@ -103,7 +155,7 @@ export const tradeMachine = createMachine<Context, any, any>(
               credits: c.credits,
             };
             const sellableCargo = c.ship!.cargo.filter(
-              (cargo) => cargo.good !== "FUEL"
+              (cargo) => cargo.good === c.tradeRoute?.good
             );
             for (const sellOrder of sellableCargo) {
               const quantity = Math.min(MAX_CARGO_MOVE, sellOrder.quantity);
@@ -141,7 +193,7 @@ export const tradeMachine = createMachine<Context, any, any>(
             return result;
           },
           onError: {
-            actions: "printError",
+            actions: printErrorAction,
             target: States.Idle,
           },
           onDone: {
@@ -150,10 +202,6 @@ export const tradeMachine = createMachine<Context, any, any>(
               assign({
                 credits: (c, e: any) => e.data.credits,
                 ship: (c, e: any) => e.data.ship,
-                hasSold: (c, e: any) =>
-                  e.data.ship.cargo.filter((p: Cargo) => p.good !== "FUEL")
-                    .length === 0,
-                shouldCheckStrategy: true,
               }) as any,
               "shipUpdate",
               sendParent((context, event) => ({
@@ -164,16 +212,8 @@ export const tradeMachine = createMachine<Context, any, any>(
           },
         },
       },
-      determineCargo: {
-        invoke: {
-          src: determineCargo,
-          onDone: {
-            target: States.Idle,
-            actions: assign({ shouldBuy: (c, e: any) => e.data }),
-          },
-        },
-      },
-      inFlight: {
+      [States.InFlight]: {
+        entry: debug("trade"),
         invoke: {
           src: async (c) => {
             await sleep(
@@ -195,25 +235,23 @@ export const tradeMachine = createMachine<Context, any, any>(
                     location: c.flightPlan!.destination,
                   };
                 },
-                destination: undefined,
                 flightPlan: undefined,
                 location: undefined,
-                hasSold: false,
               }) as any,
             ],
           },
         },
       },
-      determineDestination: {
-        entry: ["determineDestination"],
-        invoke: {
-          src: determineBestTradeRoute,
-        },
-      },
       createFlightPlan: {
+        entry: debug("trade"),
         invoke: {
           src: (c) =>
-            api.newFlightPlan(c.token, c.username, c.id, c.destination!),
+            api.newFlightPlan(
+              c.token,
+              c.username,
+              c.id,
+              c.tradeRoute!.sellLocation
+            ),
           onDone: {
             target: "inFlight",
             actions: [
@@ -243,12 +281,13 @@ export const tradeMachine = createMachine<Context, any, any>(
           },
         },
       },
-      getMarket: {
+      [States.GetMarket]: {
+        entry: debug("trade"),
         invoke: {
           src: (context: Context) =>
             api.getMarket(context.token, context.ship!.location!),
           onError: {
-            actions: "printError",
+            actions: printErrorAction,
             target: States.Idle,
           },
           onDone: {
@@ -257,7 +296,6 @@ export const tradeMachine = createMachine<Context, any, any>(
               assign({
                 location: (c, e: any) =>
                   (e.data as api.GetMarketResponse).location,
-                hasSold: false,
               }) as any,
               sendParent((c, e: any) => ({
                 type: "UPDATE_LOCATION",
@@ -273,17 +311,31 @@ export const tradeMachine = createMachine<Context, any, any>(
         States.Done
       ),
       [States.BuyCargo]: {
+        entry: debug("trade"),
         invoke: {
-          src: async (context: Context) => {
-            const { good, quantity, profit } = context.shouldBuy!;
-            const result = await api.purchaseOrder(
-              context.token,
-              context.username,
-              context.id,
-              good,
-              quantity,
-              context.location!.symbol,
-              profit
+          src: async (c: Context) => {
+            let result: Partial<api.PurchaseOrderResponse> = {
+              ship: c.ship,
+              credits: c.credits,
+            };
+
+            do {
+              const quantity = Math.min(
+                MAX_CARGO_MOVE,
+                c.tradeRoute!.quantityToBuy
+              );
+              result = await api.purchaseOrder(
+                c.token,
+                c.username,
+                c.id,
+                c.tradeRoute!.good,
+                quantity,
+                c.tradeRoute!.buyLocation,
+                c.tradeRoute!.profitPerUnit * quantity
+              );
+            } while (
+              result.ship!.cargo.find((g) => g.good === c.tradeRoute!.good)!
+                .quantity < c.tradeRoute!.quantityToBuy
             );
 
             return result;
@@ -291,8 +343,8 @@ export const tradeMachine = createMachine<Context, any, any>(
           onError: {
             //{code: 2004, message: "User has insufficient credits for transaction."},
             //{code: 2006, message: "Good quantity is not available on planet." },
-            actions: ["printError", "clearShouldBuy"],
-            target: "getMarket",
+            actions: printErrorAction,
+            target: States.GetMarket,
           },
           onDone: {
             target: States.Idle,
@@ -301,7 +353,6 @@ export const tradeMachine = createMachine<Context, any, any>(
                 ship: (c, e: any) => e.data.ship,
                 credits: (c, e: any) => e.data.credits,
               }) as any,
-              "clearShouldBuy",
               sendParent((context, event) => ({
                 type: "UPDATE_CREDITS",
                 data: event.data.credits,
@@ -315,48 +366,47 @@ export const tradeMachine = createMachine<Context, any, any>(
   },
   {
     actions: {
-      clearShouldBuy: assign<Context>({ shouldBuy: undefined }),
-      printError: (c, e: any) =>
-        console.warn(`[${c.shipName}] caught an error`, e),
-      assignNeededFuel: assign({
-        shouldBuy: (c) => ({
-          good: "FUEL",
-          quantity: fuelAmountNeeded(c.ship!),
-          profit: 0,
-        }),
-      }),
       shipUpdate: sendParent((c: Context) => ({
         type: "SHIP_UPDATE",
         data: c.ship,
       })),
-      determineDestination: assign({
-        destination: (c) => {
-          const locationsByDistance = c.locations
-            .map((lo) => ({
-              ...lo,
-              distance: getDistance(c.location!.x, c.location!.y, lo.x, lo.y),
-            }))
-            .sort((a, b) => a.distance - b.distance)
-            .filter((p) => p.distance !== 0);
-
-          return locationsByDistance[0].symbol;
-        },
-      }),
     },
     guards: {
-      needFuel: (c) => fuelAmountNeeded(c.ship!) > 0,
       noLocation: (c) => !c.location,
-      noDestination: (c) => !c.destination,
-      noFlightPlan: (c) => !c.flightPlan,
-      hasFlightPlan: (c) => !!c.flightPlan,
-      shouldDetermineCargo: (c) => !c.shouldBuy || c.shouldBuy.good === "FUEL",
-      shouldBuyCargo: (c) =>
-        c.shouldBuy !== undefined &&
-        c.shouldBuy.good !== "NONE" &&
-        c.ship!.spaceAvailable > 0,
-      shouldSell: (c) => !c.hasSold,
       shouldDone: (c) => c.strategy.strategy !== ShipStrategy.Trade,
-      shouldCheckStrategy: (c) => !!c.shouldCheckStrategy,
     },
   }
 );
+function atSellLocationWithSellableGoods(c: Context): boolean {
+  const hasLocation = !!c.ship?.location;
+  const atSellLocation = c.tradeRoute?.sellLocation === c.ship?.location;
+  return (
+    hasLocation && atSellLocation && getCargoQuantity(c, c.tradeRoute!.good) > 0
+  );
+}
+
+function getCargoQuantity(c: Context, good: string): number {
+  return c.ship?.cargo.find((o) => o.good === good)?.quantity || 0;
+}
+
+function atBuyLocationWithTooMuchFuel(c: Context): boolean {
+  const hasLocation = !!c.ship?.location;
+  const hasTradeRoute = !!c.tradeRoute;
+  return (
+    hasLocation &&
+    hasTradeRoute &&
+    getCargoQuantity(c, "FUEL") > c.tradeRoute!.fuelNeeded
+  );
+}
+
+function atBuyLocationWaitingToBuy(c: Context): boolean {
+  const hasTradeRoute = !!c.tradeRoute;
+  const hasLocation = !!c.ship?.location;
+  const atBuyLocation = c.tradeRoute?.buyLocation === c.ship?.location;
+  return (
+    hasTradeRoute &&
+    hasLocation &&
+    atBuyLocation &&
+    getCargoQuantity(c, c.tradeRoute!.good) < c.tradeRoute!.quantityToBuy
+  );
+}

@@ -1,50 +1,25 @@
 import db from "../../data";
 import { getFuelNeeded } from "../../data/getFuelNeeded";
-import { IMarketNow } from "../../data/IMarket";
 import { getDistance } from "../getDistance";
+import { groupByGood } from "./groupByGood";
 import { ShipBaseContext } from "./ShipBaseContext";
+import { TradeRoute } from "./TradeRoute";
 
-type TradeRoute = {
-  good: string;
-  buyLocation: string;
-  sellLocation: string;
-  distance: number;
-  volume: number;
-  profitPerUnit: number;
-  totalProfit: number;
-  costVolumeDistance: number;
-  quantityAvailable: number;
-  quantityToBuy: number;
-  fuelNeeded: number;
-};
-
-type GroupByGood = {
-  [key: string]: { locations: IMarketNow[]; good: string };
-};
-
-function groupByGood(market: IMarketNow[] | undefined) {
-  const grouped: GroupByGood = {};
-  market?.reduce(function (res: GroupByGood, value: IMarketNow) {
-    if (!res[value.good]) {
-      res[value.good] = {
-        good: value.good,
-        locations: [],
-      };
-      grouped[value.good] = res[value.good];
-    }
-    res[value.good].locations.push(value);
-    return res;
-  }, {});
-  return Object.values(grouped);
+export async function determineBestTradeRouteByCurrentLocation(
+  c: ShipBaseContext
+) {
+  return (await determineBestTradeRoute(c)).filter(
+    (dest) => dest.buyLocation === c.ship!.location
+  );
 }
 
 export async function determineBestTradeRoute(
   c: ShipBaseContext
-): Promise<any> {
+): Promise<TradeRoute[]> {
   const goodLocation = await db.goodLocation.toArray();
   const grouped = groupByGood(goodLocation);
 
-  grouped
+  return grouped
     .map((g) =>
       g.locations
         .map((depart) =>
@@ -56,11 +31,15 @@ export async function determineBestTradeRoute(
               const volume = depart.volumePerUnit;
               const distance = getDistance(depart.x, depart.y, dest.x, dest.y);
               const fuelNeeded = getFuelNeeded(distance, depart.type);
-              const quantityToBuy = c.ship!.maxCargo - fuelNeeded;
+              const quantityToBuy = Math.floor(
+                (c.ship!.maxCargo - fuelNeeded) / volume
+              );
               const totalProfit = quantityToBuy * profitPerUnit;
               const result: TradeRoute = {
                 buyLocation: depart.location,
+                purchasePricePerUnit: depart.purchasePricePerUnit,
                 sellLocation: dest.location,
+                sellPricePerUnit: dest.sellPricePerUnit,
                 distance,
                 good: g.good,
                 profitPerUnit,
@@ -78,7 +57,5 @@ export async function determineBestTradeRoute(
         .flat()
     )
     .flat()
-    .sort((a, b) => b.costVolumeDistance - a.costVolumeDistance)
-    .slice(0, 10)
-    .forEach((x) => console.log(x));
+    .sort((a, b) => b.costVolumeDistance - a.costVolumeDistance);
 }
