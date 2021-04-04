@@ -376,7 +376,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
     noAvailableShips: (c) => !c.availableShips.length,
     noShipActors: (c) => !c.actors.length,
     shouldBuyShip: (c) =>
-      (c.user?.credits || 0) > 100000 && c.user!.ships.length < 30,
+      (c.user?.credits || 0) > 100000 && c.user!.ships.length < 70,
   },
 };
 
