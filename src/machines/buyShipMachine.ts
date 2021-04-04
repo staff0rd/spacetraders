@@ -3,6 +3,7 @@ import * as api from "../api";
 import { AvailableShip } from "../api/AvailableShip";
 import db from "../data";
 import { IShip } from "../data/IShip";
+import { getShipName } from "../data/names";
 
 type Context = {
   token: string;
@@ -37,6 +38,7 @@ export const buyShipMachine = createMachine<Context, any, any>({
             cheapestShip.purchaseLocations[0].location,
             cheapestShip.type
           );
+          await Promise.all(response.user.ships.map((p) => getShipName(p.id)));
           const shipNames = await db.ships.toArray();
           return { response, shipNames };
         },
