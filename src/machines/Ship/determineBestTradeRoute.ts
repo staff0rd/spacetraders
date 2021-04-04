@@ -25,6 +25,7 @@ export async function determineBestTradeRoute(
         .map((depart) =>
           g.locations
             .filter((dest) => dest.location !== depart.location)
+            .filter((x) => x.good !== "RESEARCH")
             .map((dest) => {
               const profitPerUnit =
                 dest.sellPricePerUnit - depart.purchasePricePerUnit;
