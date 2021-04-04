@@ -130,6 +130,6 @@ const config: MachineConfig<Context, any, any> = {
   },
 };
 
-export const probeMachine = createMachine<Context, any, any>(
-  debugShipMachineStates(config)
+export const probeMachine = createMachine(
+  debugShipMachineStates(config, false)
 );

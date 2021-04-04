@@ -335,7 +335,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
           return true;
         });
 
-        console.warn(`Spawning ${toSpawn.length} actor(s)`);
+        if (toSpawn.length) console.warn(`Spawning ${toSpawn.length} actor(s)`);
 
         return [...c.actors, ...toSpawn.map(spawnShipMachine(c))] as any;
       },
