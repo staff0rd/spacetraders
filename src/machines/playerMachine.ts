@@ -19,6 +19,7 @@ import db from "../data";
 import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
 import { IShip } from "../data/IShip";
+import { getLocalUser } from "../data/getLocalUser";
 
 const BUY_MAX_SHIPS = 80;
 
@@ -53,6 +54,7 @@ export type Event =
 
 export type Context = {
   token?: string;
+  username?: string;
   user?: User;
   systems?: SystemContext;
   availableShips: AvailableShip[];
@@ -62,19 +64,7 @@ export type Context = {
   strategies?: IShipStrategy[];
   ships?: Ship[];
   shipNames?: IShip[];
-};
-
-const getCachedPlayer = (): Context => {
-  const player = localStorage.getItem("player");
-  if (player) return JSON.parse(player);
-  else
-    return {
-      systems: {},
-      availableShips: [],
-      netWorth: [],
-      flightPlans: [],
-      actors: [],
-    };
+  resetDetected?: boolean;
 };
 
 const config: MachineConfig<Context, any, Event> = {
@@ -89,7 +79,10 @@ const config: MachineConfig<Context, any, Event> = {
   } as Context,
   states: {
     [States.CheckStorage]: {
-      entry: "assignCachedPlayer",
+      entry: assign<Context>({
+        token: getLocalUser()?.token,
+        username: getLocalUser()?.username,
+      }),
       after: { 1: States.Idle },
     },
     [States.Idle]: {
@@ -125,15 +118,24 @@ const config: MachineConfig<Context, any, Event> = {
     [States.GetToken]: {
       invoke: {
         src: "getToken",
-        onError: States.Idle,
+        onDone: {
+          target: States.Idle,
+          actions: assign<Context>({
+            token: () => getLocalUser()?.token,
+            username: () => getLocalUser()?.username,
+          }),
+        },
       },
     },
     [States.GetUser]: {
       invoke: {
         src: "getUser",
-        onError: {
-          target: States.Idle,
-        },
+        onError: [
+          {
+            cond: (c, e: any) => e.data.code === 40101,
+            actions: assign<Context>({ resetDetected: true }),
+          },
+        ],
         onDone: {
           target: States.Initialising,
           actions: assign<Context, any>({
@@ -163,7 +165,7 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.Tick]: {
       entry: [
-        (c) => api.getFlightPlans(c.token!, c.user!.username, "OE") as any,
+        (c) => api.getFlightPlans(c.token!, c.username!, "OE") as any,
         (c) => {
           const doneActors = c.actors.filter((a) => a.state.value === "done");
 
@@ -186,7 +188,7 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.GetFlightPlans]: {
       invoke: {
-        src: (c) => api.getFlightPlans(c.token!, c.user!.username, "OE"),
+        src: (c) => api.getFlightPlans(c.token!, c.username!, "OE"),
         onDone: {
           target: States.GetShips,
           actions: assign<Context>({
@@ -222,7 +224,7 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.GetShips]: {
       invoke: {
-        src: (c) => api.getShips(c.token!, c.user!.username),
+        src: (c) => api.getShips(c.token!, c.username!),
         onDone: {
           target: States.GetStrategies,
           actions: assign<Context>({
@@ -272,7 +274,7 @@ const config: MachineConfig<Context, any, Event> = {
         src: getLoanMachine,
         data: {
           token: (context: Context) => context.token,
-          username: (context: Context) => context.user!.username,
+          username: (context: Context) => context.username,
         },
         onDone: {
           target: States.Initialising,
@@ -296,7 +298,7 @@ const config: MachineConfig<Context, any, Event> = {
         src: buyShipMachine,
         data: {
           token: (context: Context) => context.token,
-          username: (context: Context) => context.user!.username,
+          username: (context: Context) => context.username,
           availableShips: (context: Context) => context.availableShips,
         },
         onError: {
@@ -342,7 +344,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
         return [...c.actors, ...toSpawn.map(spawnShipMachine(c))] as any;
       },
     }) as any,
-    assignCachedPlayer: assign<Context>(() => getCachedPlayer()) as any,
     clearPlayer: assign<Context>({
       token: undefined,
       user: undefined,
@@ -361,12 +362,9 @@ const options: Partial<MachineOptions<Context, Event>> = {
     }) as any,
   },
   services: {
-    getUser: (c: Context) => getUser(c.token!, c.user!.username),
+    getUser: (c: Context) => getUser(c.token!, c.username!),
     getSystems: (c: Context) => api.getSystems(c.token!),
-    getToken: async () => {
-      const result = await getToken(newPlayerName());
-      localStorage.setItem("player", JSON.stringify(result));
-    },
+    getToken: async () => getToken(newPlayerName()),
   },
   guards: {
     noLoans: (c) => c.user?.loans.length === 0,
@@ -383,6 +381,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
 };
 
 export const playerMachine = createMachine(
-  debugMachineStates(config, false),
+  debugMachineStates(config, true),
   options
 );

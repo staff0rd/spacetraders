@@ -26,6 +26,7 @@ import { ShipBaseContext } from "./ShipBaseContext";
 import { printErrorAction, printError } from "./printError";
 import { debugShipMachineStates } from "../debugStates";
 import { getCargoQuantity } from "./getCargoQuantity";
+import { persistStrategy } from "../../components/Strategy/persistStrategy";
 
 const MAX_CARGO_MOVE = 300;
 
@@ -137,6 +138,11 @@ const config: MachineConfig<Context, any, any> = {
       invoke: {
         src: async (c) => {
           const tradeRoutes = await determineBestTradeRouteByCurrentLocation(c);
+          if (!tradeRoutes.length) {
+            console.warn("No trade routes, switching to probe");
+            persistStrategy(c.id, ShipStrategy.Probe, ShipStrategy.Trade);
+            throw new Error("No trade routes, switching to probe");
+          }
           const tradeRoute = tradeRoutes[0];
           db.tradeRoutes.put({
             ...tradeRoute,
@@ -145,6 +151,7 @@ const config: MachineConfig<Context, any, any> = {
           });
           return tradeRoute;
         },
+        onError: States.Done,
         onDone: {
           target: States.Idle,
           actions: assign<Context>({ tradeRoute: (c, e: any) => e.data }),

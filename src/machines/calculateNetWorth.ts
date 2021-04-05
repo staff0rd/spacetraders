@@ -18,9 +18,10 @@ export const calculateNetWorth = (
   ...scs
     .filter((sc) => !!sc.ship)
     .map((sc) => ({
-      value:
+      value: Math.floor(
         (availableShips.find((av) => av.type === sc.ship!.type)
-          ?.purchaseLocations[0].price || 0) * 0.25,
+          ?.purchaseLocations[0].price || 0) * 0.25
+      ),
       category: "asset" as Category,
       description: sc.ship!.type,
       quantity: 1,

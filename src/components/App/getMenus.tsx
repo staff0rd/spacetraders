@@ -28,7 +28,8 @@ import StrategyIcon from "@material-ui/icons/Directions";
 import IntelIcon from "@material-ui/icons/Visibility";
 
 export function getMenus(
-  state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null
+  state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null,
+  stop: () => any
 ) {
   const shipCount = state?.context.user?.ships?.length || 0;
   const menu = [
@@ -109,7 +110,12 @@ export function getMenus(
       icon: <SettingsIcon />,
       title: "Settings",
       to: "/settings",
-      component: <Settings />,
+      component: (
+        <Settings
+          resetDetected={state?.context.resetDetected || false}
+          stop={stop}
+        />
+      ),
     },
   ];
   return menu;

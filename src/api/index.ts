@@ -15,6 +15,7 @@ import { GetFlightPlansResponse } from "./GetFlightPlansResponse";
 import { getCachedResponse, createCache } from "./getCachedResponse";
 import { getShipName } from "../data/names";
 import { TradeType } from "../data/ITrade";
+import { setLocalUser } from "../data/getLocalUser";
 
 class ApiError extends Error {
   code: number;
@@ -78,7 +79,7 @@ const get = (path: string, headers = {}) => {
   return limiter.schedule(() => makeRequest(path, "GET", headers));
 };
 
-const post = (path: string, data?: any, headers = {}) => {
+const post = <T>(path: string, data?: any, headers = {}): Promise<T> => {
   return limiter.schedule(() => makeRequest(path, "POST", headers, data));
 };
 
@@ -88,8 +89,9 @@ export interface GetTokenResponse {
 }
 
 export const getToken = async (username: string): Promise<GetTokenResponse> => {
-  const json = await post(`users/${username}/token`);
-  return json;
+  const result = await post<GetTokenResponse>(`users/${username}/token`);
+  setLocalUser(result);
+  return result;
 };
 
 const postSecure = async <T>(
@@ -188,20 +190,24 @@ export const getSystems = async (
   token: string
 ): Promise<GetSystemsResponse> => {
   const result = await getSecure<GetSystemsResponse>(token, "game/systems");
-  result.systems.map((s) =>
-    s.locations.map(async (location) => {
-      if (
-        (await db.probes.where("location").equals(location.symbol).count()) ===
-        0
-      ) {
-        db.probes.put({
-          location: location.symbol,
-          x: location.x,
-          y: location.y,
-          type: location.type,
-        });
-      }
-    })
+  await Promise.all(
+    result.systems.map((s) =>
+      s.locations.map(async (location) => {
+        if (
+          (await db.probes
+            .where("location")
+            .equals(location.symbol)
+            .count()) === 0
+        ) {
+          db.probes.put({
+            location: location.symbol,
+            x: location.x,
+            y: location.y,
+            type: location.type,
+          });
+        }
+      })
+    )
   );
   return result;
 };

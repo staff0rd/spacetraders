@@ -9,7 +9,14 @@ import {
   createMuiTheme,
   ThemeProvider,
 } from "@material-ui/core/styles";
-import { Switch, Route, Link, useLocation, Redirect } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  Link,
+  useLocation,
+  Redirect,
+  useHistory,
+} from "react-router-dom";
 import clsx from "clsx";
 import Drawer from "@material-ui/core/Drawer";
 import AppBar from "@material-ui/core/AppBar";
@@ -210,7 +217,13 @@ export function App() {
 
   const { pathname } = useLocation() as any;
 
-  const menu = getMenus(state);
+  const history = useHistory();
+
+  if (pathname !== "/settings" && state?.context.resetDetected) {
+    history.push("/settings");
+  }
+
+  const menu = getMenus(state, () => interpreter.stop());
 
   const [queued, setQueued] = useState(0);
 

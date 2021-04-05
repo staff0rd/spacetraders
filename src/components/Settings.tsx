@@ -3,18 +3,29 @@ import { CircularProgress, Button } from "@material-ui/core";
 import useInterval from "@use-it/interval";
 import React, { useState, useEffect } from "react";
 import { ConfirmDialog } from "./ConfirmDialog";
-import db from "../data";
+import Alert from "@material-ui/lab/Alert";
+import { clearPersistence } from "./clearPersistence";
 
 const useStyles = makeStyles((theme) => ({
+  resetDetected: {
+    marginTop: theme.spacing(3),
+  },
   resetButton: {
-    marginTop: theme.spacing(6),
+    marginTop: theme.spacing(3),
   },
 }));
 
-export const Settings = () => {
+type Props = {
+  resetDetected: boolean;
+  stop: () => any;
+};
+
+export const Settings = ({ resetDetected, stop }: Props) => {
   const classes = useStyles();
   const [dbSize, setDbSize] = useState<string | undefined>();
   const [estimate, setEstimate] = useState<StorageEstimate | undefined>();
+  const [resetting, setResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
 
   const getSize = async () => {
     setDbSize(undefined);
@@ -37,11 +48,11 @@ export const Settings = () => {
   ] = useState(false);
 
   const handleClearPlayer = async () => {
-    console.log("Clearing localStorage...");
-    localStorage.removeItem("player");
-    console.log("Clearing IndexedDB...");
-    await Promise.all(db.tables.map((table) => table.clear()));
-    console.log("Everything cleared");
+    setResetting(true);
+    stop();
+    await clearPersistence();
+    setResetting(false);
+    setResetMessage("Reset complete, you should refresh the browser");
   };
 
   return (
@@ -59,22 +70,42 @@ export const Settings = () => {
       <Typography variant="h6">IndexedDB size</Typography>
       {dbSize ? <Typography>{dbSize}</Typography> : <CircularProgress />}
 
-      <Button
-        className={classes.resetButton}
-        variant="contained"
-        color="secondary"
-        onClick={() => setConfirmClearPlayerDialogOpen(true)}
-      >
-        Reset everything
-      </Button>
+      {resetDetected && !resetMessage && (
+        <Alert className={classes.resetDetected} severity="warning">
+          Server reset detected - you should reset
+        </Alert>
+      )}
 
-      <ConfirmDialog
-        header="Reset everything?"
-        content="API key will be lost! All data will be wiped!"
-        setOpen={setConfirmClearPlayerDialogOpen}
-        open={confirmClearPlayerDialogOpen}
-        action={handleClearPlayer}
-      />
+      {resetMessage && (
+        <Alert className={classes.resetDetected} severity="info">
+          {resetMessage}
+        </Alert>
+      )}
+
+      {resetting || resetMessage ? (
+        !resetMessage && (
+          <CircularProgress className={classes.resetButton} size={48} />
+        )
+      ) : (
+        <>
+          <Button
+            className={classes.resetButton}
+            variant="contained"
+            color="secondary"
+            onClick={() => setConfirmClearPlayerDialogOpen(true)}
+          >
+            Reset everything
+          </Button>
+
+          <ConfirmDialog
+            header="Reset everything?"
+            content="API key will be lost! All data will be wiped!"
+            setOpen={setConfirmClearPlayerDialogOpen}
+            open={confirmClearPlayerDialogOpen}
+            action={handleClearPlayer}
+          />
+        </>
+      )}
     </>
   );
 };
