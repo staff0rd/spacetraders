@@ -161,7 +161,10 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
     [States.CreateFlightPlan]: {
       invoke: {
         src: (c) => api.newFlightPlan(c.token, c.username, c.id, c.destination),
-        onError: printError(),
+        onError: {
+          actions: printErrorAction(),
+          target: States.Idle,
+        },
         onDone: {
           target: States.InTransit,
           actions: [

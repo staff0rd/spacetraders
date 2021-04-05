@@ -23,7 +23,7 @@ import { TradeRoute } from "./TradeRoute";
 import { debugShipMachine } from "./debugMachine";
 import { travelToLocation } from "./travelToLocation";
 import { ShipBaseContext } from "./ShipBaseContext";
-import { printErrorAction, printError } from "./printError";
+import { printErrorAction } from "./printError";
 import { debugShipMachineStates } from "../debugStates";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { persistStrategy } from "../../components/Strategy/persistStrategy";
@@ -333,7 +333,10 @@ const config: MachineConfig<Context, any, any> = {
       invoke: {
         src: (context: Context) =>
           api.getMarket(context.token, context.ship!.location!),
-        onError: printError(),
+        onError: {
+          actions: printErrorAction(),
+          target: States.Done,
+        },
         onDone: {
           target: States.Idle,
           actions: [
