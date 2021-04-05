@@ -21,7 +21,7 @@ import { debugMachineStates } from "./debugStates";
 import { IShipDetail } from "../data/IShipDetail";
 import { getLocalUser } from "../data/getLocalUser";
 
-const BUY_MAX_SHIPS = 80;
+const BUY_MAX_SHIPS = 40;
 
 export enum States {
   CheckStorage = "checkStorage",
