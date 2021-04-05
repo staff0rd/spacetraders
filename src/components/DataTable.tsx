@@ -30,6 +30,7 @@ export type Props = {
   columns: React.ReactNode[];
   rows: React.ReactNode[][];
   rowClassName?: (index: number) => string;
+  lastColumnIsRowKey?: boolean;
 };
 
 const convertCell = (cell: React.ReactNode, index: number, classes: any) => {
@@ -48,7 +49,13 @@ const convertCell = (cell: React.ReactNode, index: number, classes: any) => {
   );
 };
 
-export const DataTable = ({ title, columns, rows, rowClassName }: Props) => {
+export const DataTable = ({
+  title,
+  columns,
+  rows,
+  rowClassName,
+  lastColumnIsRowKey,
+}: Props) => {
   const classes = useStyles();
   return (
     <TableContainer component={Paper}>
@@ -60,8 +67,15 @@ export const DataTable = ({ title, columns, rows, rowClassName }: Props) => {
         </TableHead>
         <TableBody>
           {rows.map((row, ix) => (
-            <TableRow className={rowClassName ? rowClassName(ix) : ""} key={ix}>
-              {row.map((cell, ix) => convertCell(cell, ix, classes))}
+            <TableRow
+              className={rowClassName ? rowClassName(ix) : ""}
+              key={lastColumnIsRowKey ? String(row[row.length - 1]) : ix}
+            >
+              {row
+                .filter((cell, ix) =>
+                  lastColumnIsRowKey ? ix !== row.length - 1 : true
+                )
+                .map((cell, ix) => convertCell(cell, ix, classes))}
             </TableRow>
           ))}
         </TableBody>
