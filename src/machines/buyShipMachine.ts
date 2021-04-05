@@ -39,7 +39,7 @@ export const buyShipMachine = createMachine<Context, any, any>({
             cheapestShip.type
           );
           await Promise.all(response.user.ships.map((p) => getShipName(p.id)));
-          const shipNames = await db.ships.toArray();
+          const shipNames = await db.shipNames.toArray();
           return { response, shipNames };
         },
         onError: {

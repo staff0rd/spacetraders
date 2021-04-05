@@ -115,7 +115,7 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.GetShipNames]: {
       invoke: {
-        src: async () => db.ships.toArray(),
+        src: async () => db.shipNames.toArray(),
         onDone: {
           target: States.Initialising,
           actions: assign<Context>({ shipNames: (c, e: any) => e.data }),
@@ -163,7 +163,7 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.Tick]: {
       entry: [
-        (c) => api.getFlightPlans(c.token!, "OE") as any,
+        (c) => api.getFlightPlans(c.token!, c.user!.username, "OE") as any,
         (c) => {
           const doneActors = c.actors.filter((a) => a.state.value === "done");
 
@@ -186,7 +186,7 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.GetFlightPlans]: {
       invoke: {
-        src: (c) => api.getFlightPlans(c.token!, "OE"),
+        src: (c) => api.getFlightPlans(c.token!, c.user!.username, "OE"),
         onDone: {
           target: States.GetShips,
           actions: assign<Context>({

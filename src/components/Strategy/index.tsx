@@ -45,7 +45,7 @@ export const Strategy = ({ state }: Props) => {
 
   const strategies = useLiveQuery(async () => {
     const strats = await db.strategies.toArray();
-    const names = await db.ships.toArray();
+    const names = await db.shipNames.toArray();
     const shipsWithoutNames = strats.filter(
       (p) => !names.map((n) => n.shipId).includes(p.shipId)
     );

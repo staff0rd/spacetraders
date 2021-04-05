@@ -7,6 +7,7 @@ import { IIntel } from "./IIntel";
 import { IProbe } from "./IProbe";
 import { IShip } from "./IShip";
 import { ITradeRoute } from "./ITradeRoute";
+import { FlightPlan } from "../api/FlightPlan";
 
 class Database extends Dexie {
   apiErrors: Dexie.Table<IApiError, number>; // number = type of the primkey
@@ -16,12 +17,13 @@ class Database extends Dexie {
   strategies: Dexie.Table<IShipStrategy, string>;
   intel: Dexie.Table<IIntel, string>;
   probes: Dexie.Table<IProbe, string>;
-  ships: Dexie.Table<IShip, string>;
+  shipNames: Dexie.Table<IShip, string>;
   tradeRoutes: Dexie.Table<ITradeRoute, number>;
+  flightPlans: Dexie.Table<FlightPlan, string>;
 
   constructor() {
     super("Database");
-    this.version(38).stores({
+    this.version(41).stores({
       apiErrors: "++id, code",
       trades: "++id, good, shipId, location, type, timestamp",
       market: "++id,location,good,created",
@@ -29,8 +31,9 @@ class Database extends Dexie {
       strategies: "&shipId",
       intel: "&shipId,username",
       probes: "&location,shipId",
-      ships: "&shipId, name",
+      shipNames: "&shipId, name",
       tradeRoutes: "++id, shipId",
+      flightPlans: "shipId",
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -40,9 +43,10 @@ class Database extends Dexie {
     this.strategies = this.table("strategies");
     this.intel = this.table("intel");
     this.probes = this.table("probes");
-    this.ships = this.table("ships");
+    this.shipNames = this.table("shipNames");
     this.goodLocation = this.table("goodLocation");
     this.tradeRoutes = this.table("tradeRoutes");
+    this.flightPlans = this.table("flightPlans");
   }
 }
 

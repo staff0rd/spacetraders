@@ -135,12 +135,18 @@ export const getDockedShips = async (token: string, location: string) => {
   return result;
 };
 
-export const getFlightPlan = (
+export const getFlightPlan = async (
   token: string,
   username: string,
   flightPlanId: string
-): Promise<GetFlightPlanResponse> =>
-  getSecure(token, `users/${username}/flight-plans/${flightPlanId}`);
+): Promise<GetFlightPlanResponse> => {
+  const result = await getSecure<GetFlightPlanResponse>(
+    token,
+    `users/${username}/flight-plans/${flightPlanId}`
+  );
+  db.flightPlans.put(result.flightPlan);
+  return result;
+};
 
 export interface GetAvailableLoansResponse {
   loans: AvailableLoan[];
@@ -333,6 +339,7 @@ const flightPlansCache = createCache<GetFlightPlansResponse>();
 
 export const getFlightPlans = async (
   token: string,
+  username: string,
   symbol: string
 ): Promise<GetFlightPlansResponse> => {
   return getCachedResponse(
@@ -343,7 +350,7 @@ export const getFlightPlans = async (
         token,
         `game/systems/${symbol}/flight-plans`
       ),
-    (result) =>
+    async (result) => {
       result.flightPlans.map((fp) =>
         db.intel.put({
           shipId: fp.shipId,
@@ -353,17 +360,28 @@ export const getFlightPlans = async (
           shipType: fp.shipType!,
           username: fp.username!,
         })
-      )
+      );
+      result.flightPlans
+        .filter((fp) => fp.username === username)
+        .map((fp) => db.flightPlans.put(fp));
+    }
   );
 };
 
-export const newFlightPlan = (
+export const newFlightPlan = async (
   token: string,
   username: string,
   shipId: string,
   destination: string
-): Promise<{ flightPlan: FlightPlan }> =>
-  postSecure(token, `users/${username}/flight-plans`, { shipId, destination });
+): Promise<{ flightPlan: FlightPlan }> => {
+  const result = await postSecure<{ flightPlan: FlightPlan }>(
+    token,
+    `users/${username}/flight-plans`,
+    { shipId, destination }
+  );
+  db.flightPlans.put(result.flightPlan);
+  return result;
+};
 
 export type GetUserResponse = {
   user: {
