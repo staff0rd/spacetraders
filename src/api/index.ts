@@ -170,7 +170,7 @@ export const requestNewLoan = (
   username: string,
   type: LoanType
 ): Promise<GetUserResponse> =>
-  postSecure(token, `users/${username}/loans`, { type });
+  persistUserResponse(postSecure(token, `users/${username}/loans`, { type }));
 
 interface GetAvailableShipsResponse {
   ships: AvailableShip[];
@@ -247,21 +247,40 @@ export interface GetShipResponse {
   ship: Ship;
 }
 
-export const getShip = (
+export const getShip = async (
   token: string,
   username: string,
   shipId: string
-): Promise<GetShipResponse> =>
-  getSecure(token, `users/${username}/ships/${shipId}`);
+): Promise<GetShipResponse> => {
+  const flightPlan = await db.flightPlans.get(shipId);
+  if (flightPlan && DateTime.fromISO(flightPlan.arrivesAt) > DateTime.now()) {
+    const ship = await db.ships.get(shipId);
+    if (ship) return { ship };
+  }
+
+  const result = await getSecure<GetShipResponse>(
+    token,
+    `users/${username}/ships/${shipId}`
+  );
+  db.ships.put(result.ship);
+  return result;
+};
 
 export interface GetShipsResponse {
   ships: Ship[];
 }
 
-export const getShips = (
+export const getShips = async (
   token: string,
   username: string
-): Promise<GetShipsResponse> => getSecure(token, `users/${username}/ships`);
+): Promise<GetShipsResponse> => {
+  const result = await getSecure<GetShipsResponse>(
+    token,
+    `users/${username}/ships`
+  );
+  result.ships.map((ship) => db.ships.put(ship));
+  return result;
+};
 
 export const buyShip = async (
   token: string,
@@ -269,10 +288,11 @@ export const buyShip = async (
   location: string,
   type: string
 ): Promise<GetUserResponse> => {
-  const result = await postSecure<GetUserResponse>(
-    token,
-    `users/${username}/ships`,
-    { location, type }
+  const result = await persistUserResponse(
+    postSecure<GetUserResponse>(token, `users/${username}/ships`, {
+      location,
+      type,
+    })
   );
   result.user.ships.map((s) => getShipName(s.id));
   return result;
@@ -392,7 +412,15 @@ export type GetUserResponse = {
   };
 };
 
-export const getUser = (
+export const getUser = async (
   token: string,
   username: string
-): Promise<GetUserResponse> => getSecure(token, `users/${username}`);
+): Promise<GetUserResponse> =>
+  persistUserResponse(getSecure<GetUserResponse>(token, `users/${username}`));
+
+const persistUserResponse = async (promise: Promise<GetUserResponse>) => {
+  const result = await promise;
+  result.user.ships.map((ship) => getShipName(ship.id));
+  result.user.ships.map((ship) => db.ships.put(ship));
+  return result;
+};
