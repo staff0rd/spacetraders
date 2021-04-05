@@ -9,13 +9,11 @@ import { Trades } from "../Trades";
 import Badge from "@material-ui/core/Badge";
 import { SpaceshipIcon } from "./SpaceshipIcon";
 import { Ships } from "../Ships";
-import { AvailableShips } from "../AvailableShips";
 import { Markets } from "../Markets";
 import { Errors } from "../Errors";
 import { Locations } from "../Locations";
 import { Settings } from "../Settings";
 import { NetWorth } from "../NetWorth";
-import { Strategy } from "../Strategy";
 import { Map } from "../Map";
 import { Intel } from "../Intel";
 import ErrorIcon from "@material-ui/icons/Error";
@@ -24,7 +22,6 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import LocationsIcon from "@material-ui/icons/Language";
 import MapIcon from "@material-ui/icons/Explore";
-import StrategyIcon from "@material-ui/icons/Directions";
 import IntelIcon from "@material-ui/icons/Visibility";
 
 export function getMenus(
@@ -41,28 +38,12 @@ export function getMenus(
       ),
       title: "Ships",
       to: "/ships",
-      component: <Ships ships={state?.context.actors || []} />,
-    },
-    {
-      icon: (
-        <Badge
-          color="primary"
-          badgeContent={state?.context.availableShips.length || 0}
-        >
-          <SpaceshipIcon />
-        </Badge>
-      ),
-      title: "Available",
-      to: "/available-ships",
       component: (
-        <AvailableShips availableShips={state?.context.availableShips || []} />
+        <Ships
+          state={state}
+          availableShips={state?.context.availableShips || []}
+        />
       ),
-    },
-    {
-      icon: <StrategyIcon />,
-      title: "Strategy",
-      to: "/strategy",
-      component: <Strategy state={state} />,
     },
     {
       icon: <LocationsIcon />,

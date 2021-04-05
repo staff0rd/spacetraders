@@ -8,9 +8,7 @@ import ForwardIcon from "@material-ui/icons/Forward";
 import { makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    textAlign: "right",
-  },
+  root: {},
   forwardIcon: {
     verticalAlign: "bottom",
   },

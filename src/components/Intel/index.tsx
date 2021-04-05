@@ -9,8 +9,18 @@ import { IIntel } from "../../data/IIntel";
 import { Summary } from "./Summary";
 import { Link } from "react-router-dom";
 import { filterToIntelWindow } from "./filterToIntelWindow";
+import { makeStyles, Typography } from "@material-ui/core";
+
+const useStyles = makeStyles((theme) => ({
+  link: {
+    "& a": {
+      color: "white",
+    },
+  },
+}));
 
 export const Intel = () => {
+  const classes = useStyles();
   const [username, setUsername] = useState("");
 
   const intel = useLiveQuery(() => {
@@ -46,7 +56,9 @@ export const Intel = () => {
   const columns = ["Username", "ShipType", "From", "To", "Last seen"];
 
   const rows = intel.map((i) => [
-    <Link to={`intel/${i.username}`}>{i.username}</Link>,
+    <Typography className={classes.link}>
+      <Link to={`intel/${i.username}`}>{i.username}</Link>
+    </Typography>,
     i.shipType,
     i.departure ?? "-",
     i.destination,

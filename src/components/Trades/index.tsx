@@ -1,38 +1,22 @@
 import { useState, useEffect } from "react";
-import db from "../data";
-import { DataTable, right } from "./DataTable";
-import Tooltip from "@material-ui/core/Tooltip";
+import db from "../../data";
+
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { DateTime } from "luxon";
-import { ITrade, TradeType } from "../data/ITrade";
+import { ITrade, TradeType } from "../../data/ITrade";
 import NumberFormat from "react-number-format";
-import green from "@material-ui/core/colors/green";
-import blue from "@material-ui/core/colors/blue";
+
 import { makeStyles, Typography } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
-import { fade } from "@material-ui/core/styles/colorManipulator";
-import { CustomSelect } from "./CustomSelect";
-import BuyIcon from "@material-ui/icons/AddCircle";
-import SellIcon from "@material-ui/icons/RemoveCircle";
-import clsx from "clsx";
+import { CustomSelect } from "../CustomSelect";
+
 import { useLiveQuery } from "dexie-react-hooks";
+import { TradesDataTable } from "./TradesDataTable";
 
 const useStyles = makeStyles((theme) => ({
-  buyIcon: {
-    color: fade(blue[500], 0.3),
-  },
-  buy: {
-    backgroundColor: fade(blue[500], 0.15),
-  },
-  sellIcon: {
-    color: fade(green[500], 0.3),
-  },
-  sell: {
-    backgroundColor: fade(green[500], 0.15),
-  },
   formControl: {
     margin: theme.spacing(1),
     minWidth: 60,
@@ -92,65 +76,6 @@ export const Trades = () => {
   }, [type, good, shipId]);
 
   if (!trades) return <CircularProgress color="primary" size={24} />;
-  const columns = [
-    "",
-    "Ship",
-    "Location",
-    "Qty",
-    "Good",
-    right("Cost"),
-    right("Profit"),
-    "When",
-  ];
-  const rows = trades.map((trade) => [
-    trade.type === TradeType.Buy ? (
-      <Tooltip title="Buy">
-        <BuyIcon className={classes.buyIcon} />
-      </Tooltip>
-    ) : (
-      <Tooltip title="Sell">
-        <SellIcon className={classes.sellIcon} />
-      </Tooltip>
-    ),
-    ships?.find((s) => s.shipId === trade.shipId)?.name,
-    trade.location,
-    <NumberFormat
-      value={trade.quantity}
-      thousandSeparator=","
-      displayType="text"
-    />,
-    trade.good,
-    right(
-      <NumberFormat
-        value={trade.cost}
-        thousandSeparator=","
-        displayType="text"
-        prefix="$"
-      />
-    ),
-    right(
-      <>
-        {trade.type === TradeType.Buy && (
-          <Tooltip title="Estimated">
-            <span>*</span>
-          </Tooltip>
-        )}
-        <NumberFormat
-          value={trade.profit}
-          thousandSeparator=","
-          displayType="text"
-          prefix="$"
-        />
-      </>
-    ),
-    DateTime.fromISO(trade.timestamp).toRelative(),
-  ]);
-
-  const rowClassName = (index: number): string =>
-    clsx({
-      [classes.sell]: trades[index].type === TradeType.Sell,
-      [classes.buy]: trades[index].type === TradeType.Buy,
-    });
 
   const profit = trades
     .filter((t) => t.type === TradeType.Sell)
@@ -238,11 +163,9 @@ export const Trades = () => {
           prefix="$"
         />
       </FormControl>
-      <DataTable
-        title="Locations"
-        columns={columns}
-        rows={rows}
-        rowClassName={rowClassName}
+      <TradesDataTable
+        trades={trades}
+        getShipName={(shipId) => ships?.find((s) => s.shipId === shipId)?.name}
       />
     </>
   );

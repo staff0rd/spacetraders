@@ -45,6 +45,7 @@ import {
 import { useTableCap } from "../../data/useTableCap";
 import db from "../../data";
 import { User } from "../Intel/User";
+import { inherits } from "node:util";
 
 const drawerWidth = 180;
 
@@ -91,6 +92,12 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     drawerContainer: {
       overflow: "auto",
+      "& .MuiList-padding": {
+        paddingTop: 0,
+      },
+      "& .MuiMenuItem-root": {
+        minHeight: 48,
+      },
     },
     drawerOpen: {
       width: drawerWidth,

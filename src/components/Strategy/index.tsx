@@ -22,6 +22,7 @@ import { DataTable, right } from "../DataTable";
 import { FlightPlan } from "../../api/FlightPlan";
 import FlightProgress from "../FlightProgress";
 import NumberFormat from "react-number-format";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   playerStrategy: {
@@ -30,6 +31,11 @@ const useStyles = makeStyles((theme) => ({
   shipState: {
     display: "inline",
     marginLeft: theme.spacing(2),
+  },
+  link: {
+    "& a": {
+      color: "white",
+    },
   },
 }));
 
@@ -133,7 +139,11 @@ export const Strategy = ({ state }: Props) => {
         }
         size="small"
       />,
-      shipDetail?.find((sd) => sd.shipId === actor.state.context.id)?.name,
+      <Typography className={classes.link}>
+        <Link to={`/ships/owned/${actor.state.context.id}`}>
+          {shipDetail?.find((sd) => sd.shipId === actor.state.context.id)?.name}
+        </Link>
+      </Typography>,
       actor.state.context.ship?.type,
       actor.state.value,
       right(
