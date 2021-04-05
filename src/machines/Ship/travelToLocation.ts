@@ -18,13 +18,15 @@ export function travelToLocation<TContext extends ShipBaseContext>(
           ship: c.ship!,
           shipName: c.shipName,
         }),
-      onError: printError(),
+      onError: printError<TContext>(),
       onDone: {
         target: nextState,
+        // @ts-ignore
         actions: assign<TContext>({
           ship: (c, e: any) => e.data.ship,
           flightPlan: undefined,
           location: undefined,
+          shouldCheckStrategy: true,
         }) as any,
       },
     },

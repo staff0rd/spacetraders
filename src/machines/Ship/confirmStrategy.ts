@@ -3,6 +3,7 @@ import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { updateStrategy } from "./updateStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
+import { assign } from "xstate";
 
 export function confirmStrategy(
   desired: ShipStrategy,
@@ -24,6 +25,9 @@ export function confirmStrategy(
         {
           target: nextState,
           cond: (c: ShipBaseContext, e: any) => e.data === nextState,
+          actions: assign<ShipBaseContext>({
+            shouldCheckStrategy: false,
+          }),
         },
         {
           target: doneState,

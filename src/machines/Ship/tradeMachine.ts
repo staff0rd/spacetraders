@@ -111,6 +111,10 @@ const config: MachineConfig<Context, any, any> = {
               haveExcessCargo(c),
           },
           {
+            target: States.ConfirmStrategy,
+            cond: (c) => !!c.shouldCheckStrategy,
+          },
+          {
             target: States.DetermineTradeRoute,
             cond: (c) =>
               !!c.ship?.location &&
@@ -238,7 +242,10 @@ const config: MachineConfig<Context, any, any> = {
             } as Partial<IShipDetail>);
           return result;
         },
-        onError: printError(),
+        onError: {
+          actions: printErrorAction(),
+          target: States.Wait,
+        },
         onDone: {
           target: States.ConfirmStrategy,
           actions: [
@@ -432,7 +439,7 @@ const options: Partial<MachineOptions<Context, any>> = {
 };
 
 export const tradeMachine = createMachine(
-  debugShipMachineStates(config),
+  debugShipMachineStates(config, false),
   options
 );
 

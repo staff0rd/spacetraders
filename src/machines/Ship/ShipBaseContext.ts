@@ -10,7 +10,6 @@ export type ShipResponseContext = {
 export type ShipBaseContext = ShipContext & {
   token: string;
   username: string;
-
   strategy: IStrategy;
   shouldCheckStrategy?: boolean;
   flightPlan?: FlightPlan;
