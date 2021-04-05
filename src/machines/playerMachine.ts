@@ -20,7 +20,7 @@ import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
 import { IShip } from "../data/IShip";
 
-const BUY_MAX_SHIPS = 70;
+const BUY_MAX_SHIPS = 80;
 
 export enum States {
   CheckStorage = "checkStorage",

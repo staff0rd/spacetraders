@@ -29,6 +29,10 @@ const getStrategy = (
 export function spawnShipMachine(c: Context): any {
   return (ship: Ship) => {
     const flightPlan = c.flightPlans.find((fp) => fp.shipId === ship.id);
+    if (!flightPlan && !ship.location) {
+      // api bug
+      throw new Error("No flightPlan or ship.location for shipId " + ship.id);
+    }
     const system = (ship.location || flightPlan!.destination).substring(0, 2);
     const markets = c.systems![system]!;
     const shipName = c.shipNames?.find((s) => s.shipId === ship.id)?.name || "";
