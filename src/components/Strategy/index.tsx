@@ -6,7 +6,7 @@ import {
   Event as PlayerEvent,
 } from "../../machines/playerMachine";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { makeStyles, Typography } from "@material-ui/core";
+import { makeStyles, Typography, Grid } from "@material-ui/core";
 import { DateTime } from "luxon";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import db from "../../data";
@@ -136,17 +136,22 @@ export const Strategy = ({ state }: Props) => {
 
   return (
     <>
-      <div className={classes.playerStrategy}>
-        <StrategyToggle
-          strategy={strategy}
-          handleStrategy={handlePlayerStrategyChange}
-          disabled={
-            strategies.filter((p) => p.strategy === ShipStrategy.Change)
-              .length > 0
-          }
-        />
-        <Probes />
-      </div>
+      <Grid container className={classes.playerStrategy}>
+        <Grid item xs={6}>
+          <StrategyToggle
+            strategy={strategy}
+            handleStrategy={handlePlayerStrategyChange}
+            disabled={
+              strategies.filter((p) => p.strategy === ShipStrategy.Change)
+                .length > 0
+            }
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <Probes />
+        </Grid>
+      </Grid>
+
       <DataTable title="Strategy" columns={columns} rows={rows} />
     </>
   );
