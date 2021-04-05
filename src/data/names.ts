@@ -28,10 +28,10 @@ export const newShipName: () => string = () => {
 };
 
 export const getShipName = async (shipId: string): Promise<string> => {
-  const name = await db.shipNames.get(shipId);
+  const name = await db.shipDetail.get(shipId);
   if (!name) {
     const newName = newShipName();
-    db.shipNames.put({ shipId, name: newName });
+    db.shipDetail.put({ shipId, name: newName });
     return newName;
   }
   return name.name;

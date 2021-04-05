@@ -6,7 +6,7 @@ import {
   Event as PlayerEvent,
 } from "../../machines/playerMachine";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { makeStyles, Typography, Grid } from "@material-ui/core";
+import { makeStyles, Typography, Grid, Tooltip } from "@material-ui/core";
 import { DateTime } from "luxon";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import db from "../../data";
@@ -16,12 +16,12 @@ import {
   setPlayerStrategy,
 } from "../../data/Strategy/PlayerStrategy";
 import { StrategyToggle } from "./StrategyToggle";
-import { getShipName } from "../../data/names";
 import { Probes } from "./Probes";
 import { persistStrategy } from "./persistStrategy";
-import { DataTable } from "../DataTable";
+import { DataTable, right } from "../DataTable";
 import { FlightPlan } from "../../api/FlightPlan";
 import FlightProgress from "../FlightProgress";
+import NumberFormat from "react-number-format";
 
 const useStyles = makeStyles((theme) => ({
   playerStrategy: {
@@ -43,23 +43,9 @@ export const Strategy = ({ state }: Props) => {
     getPlayerStrategy().strategy
   );
 
-  const strategies = useLiveQuery(async () => {
-    const strats = await db.strategies.toArray();
-    const names = await db.shipNames.toArray();
-    const shipsWithoutNames = strats.filter(
-      (p) => !names.map((n) => n.shipId).includes(p.shipId)
-    );
-    for (const nameless of shipsWithoutNames) {
-      names.push({
-        shipId: nameless.shipId,
-        name: await getShipName(nameless.shipId),
-      });
-    }
-    return strats.map((s) => ({
-      ...s,
-      name: names.find((p) => p.shipId === s.shipId)!.name,
-    }));
-  });
+  const shipDetail = useLiveQuery(() => db.shipDetail.toArray());
+
+  const strategies = useLiveQuery(() => db.strategies.toArray());
 
   if (!state || !state.context.actors.length || !strategies)
     return <CircularProgress size={48} />;
@@ -90,15 +76,10 @@ export const Strategy = ({ state }: Props) => {
     }
   };
 
-  const getShip = (shipId: string) =>
-    strategies!.find((s) => s.shipId === shipId);
-
   const getStrategy = (shipId: string) => {
-    const result = getShip(shipId)?.strategy;
+    const result = strategies!.find((s) => s.shipId === shipId)?.strategy;
     return result;
   };
-
-  const columns = ["Strategy", "Name", "Type", "State", "Location"];
 
   const flightPlanToRelative = (flightPlan?: FlightPlan) => {
     if (flightPlan)
@@ -113,26 +94,66 @@ export const Strategy = ({ state }: Props) => {
       );
   };
 
-  const rows = state.context.actors.map((actor) => [
-    <StrategyToggle
-      disabled={getStrategy(actor.state.context.id) === ShipStrategy.Change}
-      strategy={getStrategy(actor.state.context.id)}
-      handleStrategy={(_, value) =>
-        handleShipStrategyChange(
-          actor.state.context.id,
-          value,
-          getStrategy(actor.state.context.id)!
-        )
-      }
-      size="small"
-    />,
-    getShip(actor.state.context.id)!.name,
-    actor.state.context.ship?.type,
-    actor.state.value,
-    actor.state.context.flightPlan
-      ? flightPlanToRelative(actor.state.context.flightPlan)
-      : actor.state.context.ship?.location,
-  ]);
+  const getLastProfitCreated = (shipId: string) => {
+    const created = shipDetail?.find((sd) => sd.shipId === shipId)
+      ?.lastProfitCreated;
+    if (created) return DateTime.fromISO(created).toRelative()!;
+    return "";
+  };
+
+  const columns = [
+    "Strategy",
+    "Name",
+    "Type",
+    "State",
+    right("Last Profit"),
+    "Location",
+  ];
+
+  const rows = state.context.actors
+    .sort((a, b) =>
+      (
+        shipDetail?.find((sd) => sd.shipId === b.state.context.id)
+          ?.lastProfitCreated || ""
+      ).localeCompare(
+        shipDetail?.find((sd) => sd.shipId === a.state.context.id)
+          ?.lastProfitCreated || ""
+      )
+    )
+    .map((actor) => [
+      <StrategyToggle
+        disabled={getStrategy(actor.state.context.id) === ShipStrategy.Change}
+        strategy={getStrategy(actor.state.context.id)}
+        handleStrategy={(_, value) =>
+          handleShipStrategyChange(
+            actor.state.context.id,
+            value,
+            getStrategy(actor.state.context.id)!
+          )
+        }
+        size="small"
+      />,
+      shipDetail?.find((sd) => sd.shipId === actor.state.context.id)?.name,
+      actor.state.context.ship?.type,
+      actor.state.value,
+      right(
+        <Tooltip title={getLastProfitCreated(actor.state.context.id)}>
+          <NumberFormat
+            value={
+              shipDetail?.find((sd) => sd.shipId === actor.state.context.id)
+                ?.lastProfit
+            }
+            thousandSeparator=","
+            displayType="text"
+            prefix="$"
+          />
+        </Tooltip>
+      ),
+      actor.state.context.flightPlan
+        ? flightPlanToRelative(actor.state.context.flightPlan)
+        : actor.state.context.ship?.location,
+      actor.state.context.id,
+    ]);
 
   return (
     <>
@@ -152,7 +173,12 @@ export const Strategy = ({ state }: Props) => {
         </Grid>
       </Grid>
 
-      <DataTable title="Strategy" columns={columns} rows={rows} />
+      <DataTable
+        title="Strategy"
+        lastColumnIsRowKey
+        columns={columns}
+        rows={rows}
+      />
     </>
   );
 };

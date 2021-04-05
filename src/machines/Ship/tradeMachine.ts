@@ -27,6 +27,7 @@ import { printErrorAction, printError } from "./printError";
 import { debugShipMachineStates } from "../debugStates";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { persistStrategy } from "../../components/Strategy/persistStrategy";
+import { IShipDetail } from "../../data/IShipDetail";
 
 const MAX_CARGO_MOVE = 300;
 
@@ -186,7 +187,7 @@ const config: MachineConfig<Context, any, any> = {
               (p) => p.good !== "FUEL" && p.good !== c.tradeRoute?.good
             ).forEach((cargo) => sellableCargo.push(cargo));
           }
-
+          const runningProfit: number[] = [];
           for (const sellOrder of sellableCargo) {
             const quantity = Math.min(
               MAX_CARGO_MOVE,
@@ -209,6 +210,12 @@ const config: MachineConfig<Context, any, any> = {
                   p.type === TradeType.Buy
               )
               .last();
+            const profit = lastBuy
+              ? (result!.order!.pricePerUnit -
+                  lastBuy.cost / lastBuy.quantity) *
+                quantity
+              : undefined;
+            runningProfit.push(profit || 0);
             db.trades.put({
               cost: result!.order!.total,
               type: TradeType.Sell,
@@ -217,13 +224,17 @@ const config: MachineConfig<Context, any, any> = {
               location: c.location!.symbol,
               shipId: c.id,
               timestamp: DateTime.now().toISO(),
-              profit: lastBuy
-                ? (result!.order!.pricePerUnit -
-                    lastBuy.cost / lastBuy.quantity) *
-                  quantity
-                : undefined,
+              profit,
             });
           }
+          const totalProfit = runningProfit.reduce((a, b) => a + b, 0);
+          db.shipDetail
+            .where("shipId")
+            .equals(c.id)
+            .modify({
+              lastProfit: totalProfit,
+              lastProfitCreated: DateTime.now().toISO(),
+            } as Partial<IShipDetail>);
           return result;
         },
         onError: printError(),

@@ -2,7 +2,7 @@ import { assign, createMachine } from "xstate";
 import * as api from "../api";
 import { AvailableShip } from "../api/AvailableShip";
 import db from "../data";
-import { IShip } from "../data/IShip";
+import { IShipDetail } from "../data/IShipDetail";
 import { getShipName } from "../data/names";
 
 type Context = {
@@ -10,7 +10,7 @@ type Context = {
   username: string;
   availableShips: AvailableShip[];
   response?: api.GetUserResponse;
-  shipNames?: IShip[];
+  shipNames?: IShipDetail[];
 };
 
 export const buyShipMachine = createMachine<Context, any, any>({
@@ -39,7 +39,7 @@ export const buyShipMachine = createMachine<Context, any, any>({
             cheapestShip.type
           );
           await Promise.all(response.user.ships.map((p) => getShipName(p.id)));
-          const shipNames = await db.shipNames.toArray();
+          const shipNames = await db.shipDetail.toArray();
           return { response, shipNames };
         },
         onError: {

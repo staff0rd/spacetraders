@@ -46,7 +46,7 @@ export const Trades = () => {
   const [shipId, setShipId] = useState("");
   const [trades, setTrades] = useState<ITrade[] | null>(null);
 
-  const ships = useLiveQuery(() => db.shipNames.orderBy("name").toArray());
+  const ships = useLiveQuery(() => db.shipDetail.orderBy("name").toArray());
   const goods = useLiveQuery(() => db.trades.orderBy("good").uniqueKeys());
 
   const getIndex = () => {

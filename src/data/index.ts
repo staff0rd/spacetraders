@@ -5,7 +5,7 @@ import { IMarket, IMarketNow as IGoodLocation } from "./IMarket";
 import { IShipStrategy } from "./Strategy/IShipStrategy";
 import { IIntel } from "./IIntel";
 import { IProbe } from "./IProbe";
-import { IShip } from "./IShip";
+import { IShipDetail } from "./IShipDetail";
 import { ITradeRoute } from "./ITradeRoute";
 import { FlightPlan } from "../api/FlightPlan";
 import { Ship } from "../api/Ship";
@@ -18,14 +18,14 @@ class Database extends Dexie {
   strategies: Dexie.Table<IShipStrategy, string>;
   intel: Dexie.Table<IIntel, string>;
   probes: Dexie.Table<IProbe, string>;
-  shipNames: Dexie.Table<IShip, string>;
+  shipDetail: Dexie.Table<IShipDetail, string>;
   tradeRoutes: Dexie.Table<ITradeRoute, number>;
   flightPlans: Dexie.Table<FlightPlan, string>;
   ships: Dexie.Table<Ship, string>;
 
   constructor() {
     super("Database");
-    this.version(44).stores({
+    this.version(46).stores({
       apiErrors: "++id, code",
       trades: "++id, good, shipId, location, type, timestamp",
       market: "++id,location,good,created",
@@ -33,7 +33,7 @@ class Database extends Dexie {
       strategies: "&shipId",
       intel: "&shipId,username",
       probes: "&location,shipId",
-      shipNames: "&shipId, name",
+      shipDetail: "&shipId, name",
       tradeRoutes: "++id, shipId",
       flightPlans: "&shipId",
       ships2: "&id",
@@ -46,7 +46,7 @@ class Database extends Dexie {
     this.strategies = this.table("strategies");
     this.intel = this.table("intel");
     this.probes = this.table("probes");
-    this.shipNames = this.table("shipNames");
+    this.shipDetail = this.table("shipDetail");
     this.goodLocation = this.table("goodLocation");
     this.tradeRoutes = this.table("tradeRoutes");
     this.flightPlans = this.table("flightPlans");

@@ -18,7 +18,7 @@ import { spawnShipMachine } from "./Ship/spawnShipMachine";
 import db from "../data";
 import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
-import { IShip } from "../data/IShip";
+import { IShipDetail } from "../data/IShipDetail";
 import { getLocalUser } from "../data/getLocalUser";
 
 const BUY_MAX_SHIPS = 80;
@@ -63,7 +63,7 @@ export type Context = {
   flightPlans: FlightPlan[];
   strategies?: IShipStrategy[];
   ships?: Ship[];
-  shipNames?: IShip[];
+  shipNames?: IShipDetail[];
   resetDetected?: boolean;
 };
 
@@ -108,7 +108,7 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.GetShipNames]: {
       invoke: {
-        src: async () => db.shipNames.toArray(),
+        src: async () => db.shipDetail.toArray(),
         onDone: {
           target: States.Initialising,
           actions: assign<Context>({ shipNames: (c, e: any) => e.data }),
