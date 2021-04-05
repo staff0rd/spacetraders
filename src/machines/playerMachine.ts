@@ -381,6 +381,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
 };
 
 export const playerMachine = createMachine(
-  debugMachineStates(config, true),
+  debugMachineStates(config, false),
   options
 );

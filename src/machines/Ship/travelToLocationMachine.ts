@@ -97,7 +97,6 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
               `Fuel: Have ${currentFuel}, need ${neededFuel}, not enough space for fuel`
             );
           else {
-            console.warn(`Buying ${neededFuel} fuel`);
             const result = await api.purchaseOrder(
               c.token,
               c.username,
