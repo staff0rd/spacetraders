@@ -347,7 +347,7 @@ export function App() {
                 {item.component}
               </Route>
             ))}
-            <Redirect from="/" to="ships" />
+            <Redirect from="/" to="/ships/owned" />
           </Switch>
         </main>
       </div>
