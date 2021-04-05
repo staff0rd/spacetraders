@@ -29,7 +29,7 @@ export const getUrl = (path: string) => `https://api.spacetraders.io/${path}`;
 
 const limiter = new Bottleneck({
   maxConcurrent: 2,
-  minTime: 500,
+  minTime: 550,
 });
 
 (window as any).limiter = limiter;
@@ -71,15 +71,15 @@ const makeRequest = async (
         created: DateTime.now().toISO(),
       })
       .catch((reason) => console.error("Cound not save error: ", reason));
-    if (result.error.code === 42901) {
-      // throttle
-      if (retry < 3) {
-        console.log(`Hit rate limit, will retry for attempt ${retry + 2}}`);
-        return limiter.schedule(() =>
-          makeRequest(path, method, headers, data, retry + 1)
-        );
-      }
-    }
+    // if (result.error.code === 42901) {
+    //   // throttle
+    //   if (retry < 3) {
+    //     console.log(`Hit rate limit, will retry for attempt ${retry + 2}}`);
+    //     return limiter.schedule(() =>
+    //       makeRequest(path, method, headers, data, retry + 1)
+    //     );
+    //   }
+    // }
     throw new ApiError(result.error.message, result.error.code);
   }
   return result;
@@ -152,6 +152,12 @@ export const getFlightPlan = async (
   username: string,
   flightPlanId: string
 ): Promise<GetFlightPlanResponse> => {
+  const flightPlan = await db.flightPlans
+    .where("id")
+    .equals(flightPlanId)
+    .first();
+  if (flightPlan) return { flightPlan };
+
   const result = await getSecure<GetFlightPlanResponse>(
     token,
     `users/${username}/flight-plans/${flightPlanId}`
@@ -400,9 +406,11 @@ export const getFlightPlans = async (
           username: fp.username!,
         })
       );
-      result.flightPlans
-        .filter((fp) => fp.username === username)
-        .map((fp) => db.flightPlans.put(fp));
+      await Promise.all(
+        result.flightPlans
+          .filter((fp) => fp.username === username)
+          .map((fp) => db.flightPlans.put(fp))
+      );
     }
   );
 };
@@ -418,7 +426,7 @@ export const newFlightPlan = async (
     `users/${username}/flight-plans`,
     { shipId, destination }
   );
-  db.flightPlans.put(result.flightPlan);
+  await db.flightPlans.put(result.flightPlan);
   return result;
 };
 
