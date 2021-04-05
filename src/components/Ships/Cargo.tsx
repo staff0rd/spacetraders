@@ -1,6 +1,6 @@
-import { Ship } from "../api/Ship";
+import { Ship } from "../../api/Ship";
 import { CircularProgress } from "@material-ui/core";
-import { DataTable } from "./DataTable";
+import { DataTable } from "../DataTable";
 
 type Props = {
   ship?: Ship;

@@ -37,7 +37,7 @@ export function getMenus(
         </Badge>
       ),
       title: "Ships",
-      to: "/ships/owned",
+      to: "/ships",
       component: (
         <Ships
           state={state}

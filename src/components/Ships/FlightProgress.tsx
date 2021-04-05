@@ -1,5 +1,5 @@
 import React from "react";
-import { FlightPlan } from "../api/FlightPlan";
+import { FlightPlan } from "../../api/FlightPlan";
 import { DateTime } from "luxon";
 import { LinearProgress } from "@material-ui/core";
 

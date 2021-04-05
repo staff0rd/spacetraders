@@ -71,8 +71,8 @@ export const TradesDataTable = ({ trades, getShipName }: Props) => {
               value={trade.quantity}
               thousandSeparator=","
               displayType="text"
-            />
-            x{trade.good}
+            />{" "}
+            x {trade.good}
           </>,
         ]
       : [

@@ -1,9 +1,9 @@
 import React from "react";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
-import { FlightPlan as FlightPlanType } from "../api/FlightPlan";
+import { FlightPlan as FlightPlanType } from "../../api/FlightPlan";
 import FlightProgress from "./FlightProgress";
-import { getLocation } from "../machines/locationCache";
+import { getLocation } from "../../machines/locationCache";
 import ForwardIcon from "@material-ui/icons/Forward";
 import { makeStyles } from "@material-ui/core";
 

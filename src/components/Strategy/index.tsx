@@ -20,7 +20,7 @@ import { Probes } from "./Probes";
 import { persistStrategy } from "./persistStrategy";
 import { DataTable, right } from "../DataTable";
 import { FlightPlan } from "../../api/FlightPlan";
-import FlightProgress from "../FlightProgress";
+import FlightProgress from "../Ships/FlightProgress";
 import NumberFormat from "react-number-format";
 import { Link } from "react-router-dom";
 

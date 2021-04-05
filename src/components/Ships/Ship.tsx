@@ -4,10 +4,10 @@ import { FlightPlan } from "./FlightPlan";
 import { Grid } from "@material-ui/core";
 import { Box } from "@material-ui/core";
 import Cargo from "./Cargo";
-import { ShipActor } from "../machines/Ship/tradeMachine";
+import { ShipActor } from "../../machines/Ship/tradeMachine";
 import { useLiveQuery } from "dexie-react-hooks";
-import db from "../data";
-import { TradesDataTable } from "./Trades/TradesDataTable";
+import db from "../../data";
+import { TradesDataTable } from "../Trades/TradesDataTable";
 
 const useStyles = makeStyles((theme) => ({
   paper: {

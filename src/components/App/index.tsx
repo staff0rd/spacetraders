@@ -45,7 +45,6 @@ import {
 import { useTableCap } from "../../data/useTableCap";
 import db from "../../data";
 import { User } from "../Intel/User";
-import { inherits } from "node:util";
 
 const drawerWidth = 180;
 
@@ -347,7 +346,7 @@ export function App() {
                 {item.component}
               </Route>
             ))}
-            <Redirect from="/" to="/ships/owned" />
+            {/* <Redirect from="/" to="/ships" /> */}
           </Switch>
         </main>
       </div>

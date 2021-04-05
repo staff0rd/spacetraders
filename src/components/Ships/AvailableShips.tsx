@@ -1,9 +1,9 @@
 import Typography from "@material-ui/core/Typography";
 import Tooltip from "@material-ui/core/Tooltip";
-import { DataTable, right } from "./DataTable";
+import { DataTable, right } from "../DataTable";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import NumberFormat from "react-number-format";
-import { AvailableShip } from "../api/AvailableShip";
+import { AvailableShip } from "../../api/AvailableShip";
 import { useMediaQuery, useTheme } from "@material-ui/core";
 
 type Props = {
