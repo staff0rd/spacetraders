@@ -47,8 +47,9 @@ const makeRequest = async (
   path: string,
   method: "GET" | "POST",
   headers: any,
-  data: any = undefined
-) => {
+  data: any = undefined,
+  retry = 0
+): Promise<any> => {
   const body = data ? JSON.stringify(data) : undefined;
   const response = await fetch(getUrl(path), {
     method,
@@ -70,6 +71,15 @@ const makeRequest = async (
         created: DateTime.now().toISO(),
       })
       .catch((reason) => console.error("Cound not save error: ", reason));
+    if (result.error.code === 42901) {
+      // throttle
+      if (retry < 3) {
+        console.log(`Hit rate limit, will retry for attempt ${retry + 2}}`);
+        return limiter.schedule(() =>
+          makeRequest(path, method, headers, data, retry + 1)
+        );
+      }
+    }
     throw new ApiError(result.error.message, result.error.code);
   }
   return result;
