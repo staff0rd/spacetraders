@@ -261,7 +261,10 @@ export const getShip = async (
   const flightPlan = await db.flightPlans.get(shipId);
   if (flightPlan && DateTime.fromISO(flightPlan.arrivesAt) > DateTime.now()) {
     const ship = await db.ships.get(shipId);
-    if (ship) return { ship };
+    if (ship) {
+      ship.location = undefined;
+      return { ship };
+    }
   }
 
   const result = await getSecure<GetShipResponse>(
