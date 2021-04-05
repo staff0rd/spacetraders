@@ -52,6 +52,7 @@ enum States {
   GetMarket = "getMarket",
   GetTradeRoute = "getTradeRoute",
   TravelToLocation = "travelToLocation",
+  Wait = "wait",
 }
 
 export type Context = ShipBaseContext & {
@@ -93,7 +94,7 @@ const config: MachineConfig<Context, any, any> = {
         },
         onDone: {
           actions: assign<Context>({ tradeRoute: (c, e: any) => e.data }),
-          target: States.ConfirmStrategy,
+          target: States.Idle,
         },
       },
     },
@@ -346,6 +347,14 @@ const config: MachineConfig<Context, any, any> = {
       States.Idle,
       States.Done
     ),
+    [States.Wait]: {
+      after: {
+        10000: {
+          target: States.Idle,
+          //cond: (c, e: any) => e.data.code === 2004,
+        },
+      },
+    },
     [States.BuyCargo]: {
       invoke: {
         src: async (c: Context) => {
@@ -376,12 +385,20 @@ const config: MachineConfig<Context, any, any> = {
 
           return result;
         },
-        onError: {
+        onError: [
           //{code: 2004, message: "User has insufficient credits for transaction."},
-          //{code: 2006, message: "Good quantity is not available on planet." },
-          actions: printErrorAction(),
-          //target: States.GetMarket,
-        },
+          // {
+          //   cond: (c, e: any) => e.data.code === 2004,
+          //   target: States.Wait,
+          // },
+          {
+            actions: printErrorAction(),
+            target: States.Wait,
+          },
+        ],
+        //{code: 2006, message: "Good quantity is not available on planet." },
+
+        //target: States.GetMarket,
         onDone: {
           target: States.Idle,
           actions: [

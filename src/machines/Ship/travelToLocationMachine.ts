@@ -14,7 +14,7 @@ import { DateTime } from "luxon";
 import { getFuelNeeded } from "../../data/getFuelNeeded";
 import { getDistance } from "../getDistance";
 import { ShipContext } from "./ShipBaseContext";
-import { printError } from "./printError";
+import { printError, printErrorAction } from "./printError";
 import { getCargoQuantity } from "./getCargoQuantity";
 
 const throwError = (message: string) => {
@@ -31,6 +31,7 @@ enum States {
   CreateFlightPlan = "createFlightPlan",
   CalculateNeededFuel = "calculateNeededFuel",
   Done = "done",
+  Wait = "wait",
 }
 
 export type Context = {
@@ -56,6 +57,14 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
     destination: "",
   },
   states: {
+    [States.Wait]: {
+      after: {
+        10000: {
+          target: States.Idle,
+          //cond: (c, e: any) => e.data.code === 2004,
+        },
+      },
+    },
     [States.Idle]: {
       after: {
         1: [
@@ -110,7 +119,10 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
             return result;
           }
         },
-        onError: printError(),
+        onError: {
+          target: States.Wait,
+          actions: printErrorAction(),
+        },
         onDone: {
           target: States.Idle,
           actions: assign<Context>({
