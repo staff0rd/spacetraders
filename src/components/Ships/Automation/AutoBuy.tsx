@@ -8,10 +8,10 @@ import {
   Switch,
 } from "@material-ui/core";
 import { useEffect, useState } from "react";
-import { AvailableShip } from "../../api/AvailableShip";
-import { CustomSelect } from "../CustomSelect";
+import { AvailableShip } from "../../../api/AvailableShip";
+import { CustomSelect } from "../../CustomSelect";
 import NumberFormat from "react-number-format";
-import { getAutomation, setAutomation } from "../../data/IAutomation";
+import { getAutomation, setAutomation } from "../../../data/IAutomation";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
