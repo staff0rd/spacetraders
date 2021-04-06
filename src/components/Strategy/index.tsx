@@ -32,7 +32,11 @@ const useStyles = makeStyles((theme) => ({
     display: "inline",
     marginLeft: theme.spacing(2),
   },
+  flightPlanText: {
+    fontSize: 14,
+  },
   link: {
+    fontSize: 14,
     "& a": {
       color: "white",
     },
@@ -91,7 +95,7 @@ export const Strategy = ({ state }: Props) => {
     if (flightPlan)
       return (
         <>
-          <Typography>
+          <Typography className={classes.flightPlanText}>
             {flightPlan.destination}{" "}
             {DateTime.fromISO(flightPlan.arrivesAt).toRelative()}
           </Typography>
