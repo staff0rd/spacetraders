@@ -46,9 +46,13 @@ export const Settings = ({ resetDetected, stop }: Props) => {
   const getSize = async () => {
     setDbSize(undefined);
     setEstimate(undefined);
-    const response = await navigator.storage.estimate();
-    setEstimate(response);
-    setDbSize(bytesToSize((response as any).usageDetails.indexedDB));
+    try {
+      const response = await navigator.storage.estimate();
+      setEstimate(response);
+      setDbSize(bytesToSize((response as any).usageDetails.indexedDB));
+    } catch (e) {
+      console.error("Couldn't get db size", e);
+    }
   };
   useEffect(() => {
     getSize();

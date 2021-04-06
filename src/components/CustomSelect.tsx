@@ -3,6 +3,7 @@ import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
+import { ReactNode } from "react";
 
 type Props<T> = {
   name: string;
@@ -10,7 +11,7 @@ type Props<T> = {
   setValue: (value: string) => void;
   values: T[];
   hideAll?: boolean;
-  displayMap?: (value: T) => string;
+  displayMap?: (value: T) => ReactNode;
   valueMap?: (value: T) => string;
 };
 const useStyles = makeStyles((theme) => ({

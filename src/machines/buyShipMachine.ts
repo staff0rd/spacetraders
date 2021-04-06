@@ -11,6 +11,7 @@ type Context = {
   availableShips: AvailableShip[];
   response?: api.GetUserResponse;
   shipNames?: IShipDetail[];
+  shipType: string;
 };
 
 export const buyShipMachine = createMachine<Context, any, any>({
@@ -21,22 +22,21 @@ export const buyShipMachine = createMachine<Context, any, any>({
     username: "",
     availableShips: [],
     response: undefined,
+    shipType: "",
   },
   states: {
     buyShip: {
       invoke: {
         src: async (context) => {
-          const orderedShips = context.availableShips.sort(
-            (a, b) =>
-              a.purchaseLocations[0].price - b.purchaseLocations[0].price
-          );
-          const cheapestShip = orderedShips[0];
-
+          if (!context.shipType) throw new Error("No ship type");
+          const location = context.availableShips.find(
+            (p) => p.type === context.shipType
+          )?.purchaseLocations[0]?.location;
           const response = await api.buyShip(
             context.token,
             context.username,
-            cheapestShip.purchaseLocations[0].location,
-            cheapestShip.type
+            location!,
+            context.shipType
           );
           await Promise.all(response.user.ships.map((p) => getShipName(p.id)));
           const shipNames = await db.shipDetail.toArray();

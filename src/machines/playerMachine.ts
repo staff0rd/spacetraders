@@ -20,8 +20,7 @@ import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
 import { IShipDetail } from "../data/IShipDetail";
 import { getLocalUser } from "../data/getLocalUser";
-
-const BUY_MAX_SHIPS = 40;
+import { getAutomation, IAutomation } from "../data/IAutomation";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -65,18 +64,22 @@ export type Context = {
   ships?: Ship[];
   shipNames?: IShipDetail[];
   resetDetected?: boolean;
+  automation: IAutomation;
 };
+
+export const initialContext = {
+  systems: {},
+  availableShips: [],
+  netWorth: [],
+  flightPlans: [],
+  actors: [],
+  automation: {} as IAutomation,
+} as Context;
 
 const config: MachineConfig<Context, any, Event> = {
   id: "player",
   initial: States.CheckStorage,
-  context: {
-    systems: {},
-    availableShips: [],
-    netWorth: [],
-    flightPlans: [],
-    actors: [],
-  } as Context,
+  context: initialContext,
   states: {
     [States.CheckStorage]: {
       entry: assign<Context>({
@@ -300,6 +303,7 @@ const config: MachineConfig<Context, any, Event> = {
           token: (context: Context) => context.token,
           username: (context: Context) => context.username,
           availableShips: (context: Context) => context.availableShips,
+          shipType: () => getAutomation().autoBuy.shipType,
         },
         onError: {
           target: States.Ready,
@@ -375,8 +379,14 @@ const options: Partial<MachineOptions<Context, Event>> = {
     },
     noAvailableShips: (c) => !c.availableShips.length,
     noShipActors: (c) => !c.actors.length,
-    shouldBuyShip: (c) =>
-      (c.user?.credits || 0) > 100000 && c.user!.ships.length < BUY_MAX_SHIPS,
+    shouldBuyShip: (c) => {
+      const { autoBuy } = getAutomation();
+      return (
+        autoBuy.on &&
+        (c.user?.credits || 0) > autoBuy.credits &&
+        c.user!.ships.length < autoBuy.maxShips
+      );
+    },
   },
 };
 

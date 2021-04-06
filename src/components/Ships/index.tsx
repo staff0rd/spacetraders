@@ -12,6 +12,7 @@ import { useLocation } from "react-router-dom";
 import Ship from "./Ship";
 import db from "../../data";
 import { TabPanel, TabProps } from "../TabPanel";
+import { Automation } from "./Automation";
 
 type Props = {
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null;
@@ -44,6 +45,11 @@ export const Ships = ({ state, availableShips }: Props) => {
       label: "Available",
       path: "/ships/available",
       component: <AvailableShips availableShips={availableShips} />,
+    },
+    {
+      label: "Automation",
+      path: "/ships/automation",
+      component: <Automation availableShips={availableShips} />,
     },
     ...(shipId
       ? [

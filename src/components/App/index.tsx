@@ -1,5 +1,5 @@
 import MainToolbar from "./MainToolbar";
-import { playerMachine } from "../../machines/playerMachine";
+import { playerMachine, initialContext } from "../../machines/playerMachine";
 import * as xstate from "xstate";
 import React, { useEffect, useState } from "react";
 import {
@@ -45,13 +45,20 @@ import {
 import { useTableCap } from "../../data/useTableCap";
 import db from "../../data";
 import { User } from "../Intel/User";
+import { getAutomation } from "../../data/IAutomation";
 
 const drawerWidth = 180;
 
 const themeColor = (theme: Theme, color: PaletteColor) =>
   theme.palette.type === "dark" ? color.dark : color.light;
 
-const interpreter = xstate.interpret(playerMachine);
+const interpreter = xstate.interpret(
+  playerMachine.withContext({
+    ...initialContext,
+    automation: getAutomation(),
+  })
+);
+
 interpreter.start();
 
 const useStyles = makeStyles((theme: Theme) =>
