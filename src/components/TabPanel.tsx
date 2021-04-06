@@ -4,14 +4,7 @@ import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Box from "@material-ui/core/Box";
-import {
-  Link,
-  Switch,
-  useLocation,
-  Route,
-  Redirect,
-  useRouteMatch,
-} from "react-router-dom";
+import { Link, Switch, useLocation, Route, Redirect } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -42,12 +35,10 @@ type Props = {
 export const TabPanel = ({ tabs }: Props) => {
   const { pathname } = useLocation() as any;
   const classes = useStyles();
-  const match = useRouteMatch();
-  console.warn("pathname", pathname, "match", match);
   return (
     <div className={classes.root}>
       <AppBar className={classes.appBar} position="static">
-        <Tabs value={pathname}>
+        <Tabs value={pathname} scrollButtons="auto" variant="scrollable">
           {tabs.map((tab) => (
             <Tab
               key={tab.path}

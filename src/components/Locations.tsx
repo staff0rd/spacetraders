@@ -18,9 +18,6 @@ export const Locations = ({ systems }: Props) => {
     .map((systemSymbol) =>
       Object.keys(systems[systemSymbol]).map((key) => {
         const location = systems[systemSymbol][key];
-        console.log("sys", systemSymbol);
-        console.log("key", key);
-        console.log("result", systems[systemSymbol]);
         return [
           systemSymbol,
           location.name,
