@@ -1,21 +1,21 @@
 import {
+  makeStyles,
+  TextField,
+  FormControl,
+  IconButton,
   Grid,
   Typography,
   Paper,
-  Divider,
-  makeStyles,
   Box,
-  CircularProgress,
   Switch,
 } from "@material-ui/core";
+import DeleteIcon from "@material-ui/icons/DeleteForever";
+import AddIcon from "@material-ui/icons/AddCircle";
 import { useEffect, useState } from "react";
 import { AvailableShip } from "../../../api/AvailableShip";
-import {
-  getAutomation,
-  IUpgrade,
-  setAutomation,
-} from "../../../data/IAutomation";
-import { Upgrade } from "./Upgrade";
+import { CustomSelect } from "../../CustomSelect";
+import { IAutoUpgrade } from "../../../data/IAutomation";
+import NumberFormat from "react-number-format";
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -28,67 +28,53 @@ const useStyles = makeStyles((theme) => ({
   switchGrid: {
     flexWrap: "nowrap",
   },
-  divider: {
-    margin: theme.spacing(2, 0),
+  formControl: {
+    margin: theme.spacing(1),
+    width: 120,
+  },
+  button: {
+    marginTop: theme.spacing(1),
   },
 }));
 
 type Props = {
+  upgrade: IAutoUpgrade;
   availableShips: AvailableShip[];
-};
-
-export const AutoUpgrade = ({ availableShips }: Props) => {
-  const { autoUpgrade } = getAutomation();
-  const classes = useStyles();
-  const [on, setOn] = useState(autoUpgrade.on);
-  const [upgrades, setUpgrades] = useState(autoUpgrade.upgrades);
-
-  useEffect(() => {
-    setAutomation({
-      ...getAutomation(),
-      autoUpgrade: {
-        on,
-        upgrades,
-      },
-    });
-  }, [on, upgrades]);
-
-  const addUpgrade = (
+  addUpgrade: (
     role: string,
     fromShipType: string,
     toShipType: string,
     credits: number,
     maxShips: number
-  ) => {
-    setUpgrades([
-      ...upgrades,
-      {
-        role,
-        fromShipType,
-        toShipType,
-        credits,
-        maxShips,
-      },
-    ]);
-  };
+  ) => unknown;
+  removeUpgrade: () => unknown;
+  updateUpgrade: (upgrade: IAutoUpgrade) => unknown;
+  canDelete: boolean;
+  canAdd: boolean;
+};
 
-  const removeUpgrade = (index: number) => {
-    setUpgrades([
-      ...upgrades.filter((_, ix) => ix < index),
-      ...upgrades.filter((_, ix) => ix > index),
-    ]);
-  };
+export const AutoUpgrade = ({
+  upgrade,
+  availableShips,
+  addUpgrade,
+  removeUpgrade,
+  updateUpgrade,
+  canDelete,
+  canAdd,
+}: Props) => {
+  const classes = useStyles();
+  const roles = ["Trade"];
+  const [role, setRole] = useState(upgrade.role);
+  const [on, setOn] = useState(upgrade.on);
+  const [fromShipType, setFromShipType] = useState(upgrade.fromShipType);
+  const [toShipType, setToShipType] = useState(upgrade.toShipType);
+  const [credits, setCredits] = useState(upgrade.credits);
+  const [maxShips, setMaxShips] = useState(upgrade.maxShips);
 
-  const updateUpgrade = (upgrade: IUpgrade, index: number) => {
-    setUpgrades([
-      ...upgrades.filter((_, ix) => ix < index),
-      { ...upgrade },
-      ...upgrades.filter((_, ix) => ix > index),
-    ]);
-  };
-
-  if (!availableShips.length)
-    return <CircularProgress color="primary" size={24} />;
+  useEffect(() => {
+    updateUpgrade({ role, fromShipType, toShipType, credits, maxShips, on });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role, fromShipType, toShipType, credits, maxShips, on]);
 
   return (
     <Paper className={classes.paper}>
@@ -107,7 +93,7 @@ export const AutoUpgrade = ({ availableShips }: Props) => {
               <Switch
                 checked={on}
                 title="Not yet implemented"
-                // onChange={(event) => setOn(event.target.checked)}
+                onChange={(event) => setOn(event.target.checked)}
                 name="automationOn"
                 inputProps={{ "aria-label": "secondary checkbox" }}
               />
@@ -116,23 +102,70 @@ export const AutoUpgrade = ({ availableShips }: Props) => {
           </Grid>
         </Typography>
       </Box>
-      {upgrades
-        .map((upgrade, index) => (
-          <Upgrade
-            availableShips={availableShips}
-            upgrade={upgrade}
-            updateUpgrade={(u) => updateUpgrade(u, index)}
-            addUpgrade={addUpgrade}
-            removeUpgrade={() => removeUpgrade(index)}
-            canDelete={upgrades.length > 1}
-            canAdd={index === upgrades.length - 1}
-          />
-        ))
-        .flatMap((value, index, array) =>
-          array.length - 1 !== index // check for the last item
-            ? [value, <Divider className={classes.divider} />]
-            : value
-        )}
+      <CustomSelect
+        name="Role"
+        value={role}
+        setValue={setRole}
+        values={roles}
+        hideAll
+      />
+      <CustomSelect
+        name="From"
+        value={fromShipType}
+        setValue={setFromShipType}
+        values={availableShips
+          .map((av) => av.type)
+          .sort((a, b) => a.localeCompare(b))}
+        hideAll
+      />
+      <CustomSelect
+        name="To"
+        value={toShipType}
+        setValue={setToShipType}
+        values={availableShips
+          .map((av) => av.type)
+          .sort((a, b) => a.localeCompare(b))}
+        hideAll
+      />
+      <FormControl className={classes.formControl}>
+        <NumberFormat
+          value={credits}
+          customInput={TextField}
+          prefix={"$"}
+          type="text"
+          label="Credits"
+          thousandSeparator
+          onValueChange={({ value: v }) => setCredits(Number(v))}
+        />
+      </FormControl>
+      <FormControl className={classes.formControl}>
+        <TextField
+          type="number"
+          label="Max ships"
+          value={maxShips}
+          onChange={(e) => setMaxShips(Number(e.target.value))}
+        />
+      </FormControl>
+      {canDelete && (
+        <IconButton
+          className={classes.button}
+          title="Delete"
+          onClick={() => removeUpgrade()}
+        >
+          <DeleteIcon />
+        </IconButton>
+      )}
+      {canAdd && (
+        <IconButton
+          className={classes.button}
+          title="Add"
+          onClick={() =>
+            addUpgrade(role, fromShipType, toShipType, credits, maxShips)
+          }
+        >
+          <AddIcon />
+        </IconButton>
+      )}
     </Paper>
   );
 };

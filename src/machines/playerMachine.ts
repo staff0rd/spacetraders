@@ -21,6 +21,8 @@ import { debugMachineStates } from "./debugStates";
 import { IShipDetail } from "../data/IShipDetail";
 import { getLocalUser } from "../data/getLocalUser";
 import { getAutomation, IAutomation } from "../data/IAutomation";
+import { log } from "xstate/lib/actions";
+import { ShipStrategy } from "../data/Strategy/ShipStrategy";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -208,8 +210,39 @@ const config: MachineConfig<Context, any, Event> = {
           return actorsNotDone;
         },
       }) as any,
-      after: {
-        1: { target: States.GetStrategies },
+      invoke: {
+        src: async (c) => {
+          const { autoUpgrades } = getAutomation();
+          for (const upgrade of autoUpgrades.filter((p) => p.on)) {
+            const strats = await db.strategies.toArray();
+            const ships = await db.ships.toArray();
+
+            const role: ShipStrategy =
+              ShipStrategy[upgrade.role as keyof typeof ShipStrategy];
+            const haveFrom = ships
+              .map((a) => ({
+                shipType: a.type,
+                shipId: a.id,
+                strategy: strats.find((p) => p.shipId === a.id)!,
+              }))
+              .filter(
+                (s) =>
+                  s.shipType === upgrade.fromShipType &&
+                  s.strategy.strategy === role
+              );
+            const haveTo = ships.filter((p) => p.type === upgrade.toShipType);
+            const shouldUpgrade =
+              c.user!.credits >= upgrade.credits &&
+              haveTo.length < upgrade.maxShips &&
+              haveFrom.length > 0;
+            console.log(`Should upgrade: ${shouldUpgrade}`);
+          }
+        },
+        onDone: States.GetStrategies,
+        onError: {
+          actions: log(undefined, "error"),
+          target: States.GetStrategies,
+        },
       },
     },
     [States.GetFlightPlans]: {
@@ -386,7 +419,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
         c.user!.ships.length < autoBuy.maxShips
       );
     },
-    shouldUpgrade: (c) => {},
   },
 };
 

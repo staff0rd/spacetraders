@@ -70,8 +70,8 @@ export const Strategy = ({ state }: Props) => {
       state!.context.actors.forEach((actor) =>
         persistStrategy(
           actor.state.context.id,
-          parseInt(newStrategy),
-          getStrategy(actor.state.context.id)!
+          getStrategy(actor.state.context.id)!,
+          parseInt(newStrategy)
         )
       );
     }
@@ -82,7 +82,7 @@ export const Strategy = ({ state }: Props) => {
     oldStrategy: ShipStrategy
   ) => {
     if (newStrategy != null) {
-      persistStrategy(shipId, parseInt(newStrategy), oldStrategy);
+      persistStrategy(shipId, oldStrategy, parseInt(newStrategy));
     }
   };
 

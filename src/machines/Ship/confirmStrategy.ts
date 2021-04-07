@@ -1,7 +1,7 @@
 import db from "../../data";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { updateStrategy } from "./updateStrategy";
-import { ShipBaseContext } from "./ShipBaseContext";
+import { ShipStrategyContext } from "./ShipBaseContext";
 import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
 import { assign } from "xstate";
 
@@ -12,7 +12,7 @@ export function confirmStrategy(
 ) {
   return {
     invoke: {
-      src: async (c: ShipBaseContext) => {
+      src: async (c: ShipStrategyContext) => {
         const currentStrategy: IShipStrategy = (await db.strategies
           .where({ shipId: c.id })
           .first())!;
@@ -24,14 +24,14 @@ export function confirmStrategy(
       onDone: [
         {
           target: nextState,
-          cond: (c: ShipBaseContext, e: any) => e.data === nextState,
-          actions: assign<ShipBaseContext>({
+          cond: (c: ShipStrategyContext, e: any) => e.data === nextState,
+          actions: assign<ShipStrategyContext>({
             shouldCheckStrategy: false,
           }),
         },
         {
           target: doneState,
-          cond: (c: ShipBaseContext, e: any) => e.data === doneState,
+          cond: (c: ShipStrategyContext, e: any) => e.data === doneState,
         },
       ],
     },

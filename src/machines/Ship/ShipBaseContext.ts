@@ -7,14 +7,23 @@ export type ShipResponseContext = {
   ship?: Ship;
 };
 
-export type ShipBaseContext = ShipContext & {
+export type UserContext = {
   token: string;
   username: string;
+};
+
+export type ShipStrategyContext = {
+  id: string;
   strategy: IStrategy;
   shouldCheckStrategy?: boolean;
-  flightPlan?: FlightPlan;
-  location?: Location;
-} & ShipResponseContext;
+};
+
+export type ShipBaseContext = UserContext &
+  ShipContext &
+  ShipStrategyContext & {
+    flightPlan?: FlightPlan;
+    location?: Location;
+  } & ShipResponseContext;
 
 export type ShipContext = {
   id: string;

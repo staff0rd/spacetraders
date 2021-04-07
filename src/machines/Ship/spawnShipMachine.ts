@@ -5,9 +5,10 @@ import { Ship } from "../../api/Ship";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { Context } from "../playerMachine";
 import { getPlayerStrategy } from "../../data/Strategy/PlayerStrategy";
-import { ChangePayload } from "../../data/Strategy/StrategyPayloads";
+import { ChangeStrategyPayload } from "../../data/Strategy/StrategyPayloads";
 import { haltMachine } from "./haltMachine";
 import { probeMachine } from "./probeMachine";
+import { upgradeShipMachine } from "./upgradeShipMachine";
 
 const getStrategy = (
   c: Context,
@@ -83,7 +84,11 @@ export function spawnShipMachine(c: Context): any {
         })
       );
 
-    throw new Error("Unknown strategy: " + strategy + ", data: " + data);
+    throw new Error(
+      `Unknown strategy: [${
+        ShipStrategy[strategy]
+      } (${strategy})] data: ${JSON.stringify(data)}`
+    );
   };
 }
 function IsStrategy(
@@ -94,6 +99,6 @@ function IsStrategy(
   return (
     shipStrategy === strategy ||
     (shipStrategy === ShipStrategy.Change &&
-      (data as ChangePayload).from.strategy === strategy)
+      (data as ChangeStrategyPayload).from.strategy === strategy)
   );
 }

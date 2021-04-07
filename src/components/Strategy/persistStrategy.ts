@@ -1,11 +1,12 @@
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import db from "../../data";
-import { ChangePayload } from "../../data/Strategy/StrategyPayloads";
+import { ChangeStrategyPayload } from "../../data/Strategy/StrategyPayloads";
 
 export const persistStrategy = async (
   shipId: string,
+  oldStrategy: ShipStrategy,
   newStrategy: ShipStrategy,
-  oldStrategy: ShipStrategy
+  newStrategyData?: any
 ) => {
   db.strategies.put({
     shipId,
@@ -14,8 +15,8 @@ export const persistStrategy = async (
       from: {
         strategy: oldStrategy,
       },
-      to: { strategy: newStrategy },
-    } as ChangePayload,
+      to: { strategy: newStrategy, data: newStrategyData },
+    } as ChangeStrategyPayload,
   });
 
   if (oldStrategy === ShipStrategy.Probe) {

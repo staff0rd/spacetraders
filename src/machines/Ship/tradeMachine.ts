@@ -146,7 +146,7 @@ const config: MachineConfig<Context, any, any> = {
           const tradeRoutes = await determineBestTradeRouteByCurrentLocation(c);
           if (!tradeRoutes.length) {
             console.warn("No trade routes, switching to probe");
-            persistStrategy(c.id, ShipStrategy.Probe, ShipStrategy.Trade);
+            persistStrategy(c.id, ShipStrategy.Trade, ShipStrategy.Probe);
             throw new Error("No trade routes, switching to probe");
           }
           const tradeRoute = tradeRoutes[0];

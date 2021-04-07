@@ -1,6 +1,6 @@
 import { IStrategy } from "./IStrategy";
 
-export type ChangePayload = {
+export type ChangeStrategyPayload = {
   from: IStrategy;
   to: IStrategy;
 };

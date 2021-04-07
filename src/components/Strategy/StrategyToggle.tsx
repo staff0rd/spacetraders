@@ -18,9 +18,7 @@ export const StrategyToggle = ({
   handleStrategy,
   size,
 }: Props) => {
-  const strats = Object.keys(ShipStrategy)
-    .filter((p) => !isNaN(+p))
-    .filter((p) => ShipStrategy[(p as unknown) as number] !== "Change");
+  const strats = Object.keys(ShipStrategy).filter((p) => !isNaN(+p));
 
   return (
     <ToggleButtonGroup
@@ -35,7 +33,7 @@ export const StrategyToggle = ({
           key={ix}
           value={parseInt(strat)}
           aria-label="halt"
-          disabled={disabled}
+          disabled={disabled || strat === "Change"}
         >
           {ShipStrategy[(strat as unknown) as number]}
         </ToggleButton>

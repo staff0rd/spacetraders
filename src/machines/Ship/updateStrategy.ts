@@ -10,7 +10,7 @@ export const updateStrategy = async (
   console.log(
     `Current strategy: ${ShipStrategy[current.strategy]}, desired: ${
       ShipStrategy[desired]
-    }`
+    }, ${desired}`
   );
   if (current.strategy === ShipStrategy.Change) {
     await db.strategies.put({
