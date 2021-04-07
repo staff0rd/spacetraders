@@ -80,6 +80,29 @@ const config: MachineConfig<Context, any, Event> = {
   id: "player",
   initial: States.CheckStorage,
   context: initialContext,
+  on: {
+    SHIP_UPDATE: {
+      actions: ["netWorth"],
+    },
+    UPDATE_CREDITS: {
+      actions: [
+        assign<Context>({
+          user: (c: Context, e: any) => ({ ...c.user, credits: e.data } as any),
+        }) as any, // why does this type error not appear in vscode?
+        "netWorth",
+      ],
+    },
+    UPDATE_LOCATION: {
+      actions: assign<Context>({
+        systems: (c, e: any) => {
+          cacheLocation(e.data);
+          const symbol = (e.data as Location).symbol.substr(0, 2);
+          c.systems![symbol]![e.data.symbol] = e.data;
+          return { ...c.systems };
+        },
+      }) as any,
+    },
+  },
   states: {
     [States.CheckStorage]: {
       entry: assign<Context>({
@@ -247,30 +270,6 @@ const config: MachineConfig<Context, any, Event> = {
           target: States.Tick,
         },
       },
-      on: {
-        SHIP_UPDATE: {
-          actions: ["netWorth"],
-        },
-        UPDATE_CREDITS: {
-          actions: [
-            assign<Context>({
-              user: (c: Context, e: any) =>
-                ({ ...c.user, credits: e.data } as any),
-            }) as any, // why does this type error not appear in vscode?
-            "netWorth",
-          ],
-        },
-        UPDATE_LOCATION: {
-          actions: assign<Context>({
-            systems: (c, e: any) => {
-              cacheLocation(e.data);
-              const symbol = (e.data as Location).symbol.substr(0, 2);
-              c.systems![symbol]![e.data.symbol] = e.data;
-              return { ...c.systems };
-            },
-          }) as any,
-        },
-      },
     },
     [States.GetLoan]: {
       invoke: {
@@ -387,6 +386,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
         c.user!.ships.length < autoBuy.maxShips
       );
     },
+    shouldUpgrade: (c) => {},
   },
 };
 
