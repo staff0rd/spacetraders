@@ -5,6 +5,7 @@ import SellIcon from "@material-ui/icons/RemoveCircle";
 import clsx from "clsx";
 import {
   makeStyles,
+  Typography,
   CircularProgress,
   useTheme,
   useMediaQuery,
@@ -15,6 +16,7 @@ import { fade } from "@material-ui/core/styles/colorManipulator";
 import { ITrade, TradeType } from "../../data/ITrade";
 import NumberFormat from "react-number-format";
 import { DateTime } from "luxon";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   buyIcon: {
@@ -28,6 +30,12 @@ const useStyles = makeStyles((theme) => ({
   },
   sell: {
     backgroundColor: fade(green[500], 0.15),
+  },
+  link: {
+    fontSize: 14,
+    "& a": {
+      color: "white",
+    },
   },
 }));
 
@@ -62,7 +70,11 @@ export const TradesDataTable = ({ trades, getShipName }: Props) => {
         <SellIcon className={classes.sellIcon} />
       </Tooltip>
     ),
-    getShipName(trade.shipId),
+    <Typography className={classes.link}>
+      <Link to={`/ships/owned/${trade.shipId}`}>
+        {getShipName(trade.shipId)}
+      </Link>
+    </Typography>,
     trade.location,
     ...(isMdDown
       ? [
