@@ -4,7 +4,7 @@ import { Ship } from "../../api/Ship";
 import { IStrategy } from "../../data/Strategy/IStrategy";
 
 export type ShipResponseContext = {
-  ship?: Ship;
+  ship: Ship;
 };
 
 export type UserContext = {

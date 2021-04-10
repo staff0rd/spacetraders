@@ -1,7 +1,7 @@
 import * as xstate from "xstate";
 import { tradeMachine, Context as ShipContext } from "./tradeMachine";
 import * as api from "../../api";
-import { Cargo } from "../../api/Ship";
+import { Cargo } from "../../api/Cargo";
 import { MarketContext } from "../MarketContext";
 import {
   fromLocation,

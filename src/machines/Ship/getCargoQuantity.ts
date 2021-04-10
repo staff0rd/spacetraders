@@ -1,11 +1,11 @@
-import { ShipResponseContext } from "./ShipBaseContext";
+import { Cargo } from "../../api/Cargo";
 
-export function getCargoQuantity(c: ShipResponseContext, good: string): number {
-  return c.ship?.cargo.find((o) => o.good === good)?.quantity || 0;
+export function getCargoQuantity(c: Cargo[], good: string): number {
+  return c.find((o) => o.good === good)?.quantity || 0;
 }
 
-export const getNonFuelCargoQuantity = (c: ShipResponseContext): number =>
+export const getNonFuelCargoQuantity = (c: Cargo[]): number =>
   c
-    .ship!.cargo.filter((o) => o.good !== "FUEL")
+    .filter((o) => o.good !== "FUEL")
     .map((c) => c.quantity)
     .reduce((a, b) => a + b);

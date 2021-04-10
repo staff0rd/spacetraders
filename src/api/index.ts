@@ -393,21 +393,31 @@ export const purchaseOrder = async (
     timestamp: DateTime.now().toISO(),
     profit,
   });
+  await db.ships.put(result.ship);
   return result;
 };
 
-export const sellOrder = (
+export const sellOrder = async (
   token: string,
   username: string,
   shipId: string,
   good: string,
   quantity: number
-): Promise<PurchaseOrderResponse> =>
-  postSecure(token, `users/${username}/sell-orders`, {
-    shipId,
-    good,
-    quantity,
-  });
+): Promise<PurchaseOrderResponse> => {
+  const result = await postSecure<PurchaseOrderResponse>(
+    token,
+    `users/${username}/sell-orders`,
+    {
+      shipId,
+      good,
+      quantity,
+    }
+  );
+
+  await db.ships.put(result.ship);
+
+  return result;
+};
 
 const flightPlansCache = createCache<GetFlightPlansResponse>();
 

@@ -85,7 +85,7 @@ const config: MachineConfig<Context, any, any> = {
           { target: States.InTransit, cond: (c) => !!c.flightPlan },
           {
             target: States.BuyFuel,
-            cond: (c) => getCargoQuantity(c, "FUEL") < c.neededFuel!,
+            cond: (c) => getCargoQuantity(c.ship.cargo, "FUEL") < c.neededFuel!,
           },
           { target: States.CreateFlightPlan, cond: (c) => !!c.ship.location },
         ],
@@ -100,7 +100,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.BuyFuel]: {
       invoke: {
         src: async (c) => {
-          const currentFuel = getCargoQuantity(c, "FUEL");
+          const currentFuel = getCargoQuantity(c.ship.cargo, "FUEL");
           const neededFuel = c.neededFuel! - currentFuel;
 
           if (neededFuel > c.ship.spaceAvailable)
