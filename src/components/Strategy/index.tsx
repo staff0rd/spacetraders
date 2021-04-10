@@ -41,6 +41,9 @@ const useStyles = makeStyles((theme) => ({
       color: "white",
     },
   },
+  probes: {
+    textAlign: "end",
+  },
 }));
 
 type Props = {
@@ -182,7 +185,7 @@ export const Strategy = ({ state }: Props) => {
             }
           />
         </Grid>
-        <Grid item xs={6}>
+        <Grid item xs={6} className={classes.probes}>
           <Probes />
         </Grid>
       </Grid>
