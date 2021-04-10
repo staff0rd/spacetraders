@@ -206,7 +206,11 @@ const config: MachineConfig<Context, any, any> = {
             if (!to) throwError("Couldn't find destination");
             else {
               const distance = getDistance(from.x, from.y, to.x, to.y);
-              const neededFuel = getFuelNeeded(distance, from.type);
+              const neededFuel = getFuelNeeded(
+                distance,
+                from.type,
+                c.ship.type
+              );
               return neededFuel;
             }
           }
