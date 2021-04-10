@@ -45,7 +45,7 @@ export const getStatus = async () => {
 
 const makeRequest = async (
   path: string,
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "DELETE",
   headers: any,
   data: any = undefined,
   retry = 0
@@ -85,8 +85,12 @@ const makeRequest = async (
   return result;
 };
 
-const get = (path: string, headers = {}) => {
+const get = <T>(path: string, headers = {}): Promise<T> => {
   return limiter.schedule(() => makeRequest(path, "GET", headers));
+};
+
+const del = <T>(path: string, headers = {}): Promise<T> => {
+  return limiter.schedule(() => makeRequest(path, "DELETE", headers));
 };
 
 const post = <T>(path: string, data?: any, headers = {}): Promise<T> => {
@@ -116,6 +120,14 @@ const postSecure = async <T>(
 
 const getSecure = async <T>(token: string, urlSegment: string): Promise<T> => {
   return get(urlSegment, {
+    Authorization: `Bearer ${token}`,
+  });
+};
+const deleteSecure = async <T>(
+  token: string,
+  urlSegment: string
+): Promise<T> => {
+  return del<T>(urlSegment, {
     Authorization: `Bearer ${token}`,
   });
 };
@@ -307,6 +319,21 @@ export const getShips = async (
   return result;
 };
 
+export const scrapShip = async (
+  token: string,
+  username: string,
+  shipId: string
+): Promise<GetUserResponse> => {
+  const result = await deleteSecure<GetUserResponse>(
+    token,
+    `users/${username}/ships/${shipId}`
+  );
+  db.strategies.where("shipId").equals(shipId).delete();
+  db.ships.where("shipId").equals(shipId).delete();
+  db.flightPlans.where("shipId").equals(shipId).delete();
+  return result;
+};
+
 export const buyShip = async (
   token: string,
   username: string,
@@ -319,7 +346,8 @@ export const buyShip = async (
       type,
     })
   );
-  result.user.ships.map((s) => getShipName(s.id));
+  await Promise.all(result.user.ships.map((s) => getShipName(s.id)));
+  // TODO db.ships.put(result.ship);
   return result;
 };
 

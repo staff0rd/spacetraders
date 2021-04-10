@@ -3,11 +3,11 @@ import { Ship } from "./Ship";
 
 export interface User {
   // from getToken
-  createdAt: Date;
+  createdAt?: Date;
   email?: any;
-  id: string;
+  id?: string;
   picture?: any;
-  updatedAt: Date;
+  updatedAt?: Date;
   // from getUser
   credits: number;
   username: string;
