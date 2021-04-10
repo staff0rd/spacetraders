@@ -4,11 +4,9 @@ import { LocationWithDistance, tradeMachine } from "./tradeMachine";
 import { Ship } from "../../api/Ship";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { Context } from "../playerMachine";
-import { getPlayerStrategy } from "../../data/Strategy/PlayerStrategy";
 import { ChangeStrategyPayload } from "../../data/Strategy/StrategyPayloads";
 import { haltMachine } from "./haltMachine";
 import { probeMachine } from "./probeMachine";
-import { upgradeShipMachine } from "./upgradeShipMachine";
 
 const getStrategy = (
   c: Context,
@@ -16,13 +14,12 @@ const getStrategy = (
 ): { strategy: ShipStrategy; data?: any } => {
   const strategy = c.strategies!.find((s) => s.shipId === ship.id);
   if (!strategy) {
-    const { strategy: playerStrategy, data } = getPlayerStrategy();
+    //const { strategy: playerStrategy, data } = getPlayerStrategy();
     db.strategies.put({
       shipId: ship.id,
-      strategy: playerStrategy,
-      data,
+      strategy: ShipStrategy.Trade,
     });
-    return { strategy: playerStrategy, data };
+    return { strategy: ShipStrategy.Trade };
   }
   return strategy;
 };

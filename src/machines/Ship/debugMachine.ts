@@ -6,7 +6,7 @@ export function debugShipMachine<TContext extends ShipContext>(
   message?: string
 ) {
   return (c: TContext, e: any, d: ActionMeta<TContext, any>) => {
-    console.warn(
+    console.log(
       ` ${machineName} [${c.shipName}]: ${d.state.value}` +
         (message !== undefined ? ` - ${message}` : ""),
       c
@@ -15,8 +15,10 @@ export function debugShipMachine<TContext extends ShipContext>(
 }
 export function debugMachine<TContext>(machineName: string, message?: string) {
   return (c: TContext, e: any, d: ActionMeta<TContext, any>) => {
-    console.warn(
-      `${machineName}: ${d.state.value}` +
+    const shipName = (c as any).shipName;
+    const printShipName = shipName ? ` [${shipName}] ` : "";
+    console.log(
+      `${machineName}${printShipName}: ${d.state.value}` +
         (message !== undefined ? ` - ${message}` : ""),
       c
     );

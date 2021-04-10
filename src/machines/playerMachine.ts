@@ -23,6 +23,8 @@ import { getLocalUser } from "../data/getLocalUser";
 import { getAutomation, IAutomation } from "../data/IAutomation";
 import { log } from "xstate/lib/actions";
 import { upgradeShipMachine } from "./Ship/upgradeShipMachine";
+import { getUpgradingShip } from "../data/getUpgradingShip";
+import { BoughtShipEvent } from "./BoughtShipEvent";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -50,7 +52,9 @@ export type Schema = {
 
 export type Event =
   | { type: "SHIP_UPDATE" }
+  | { type: "STOP_ACTOR"; data: string }
   | { type: "UPDATE_CREDITS"; data: number }
+  | BoughtShipEvent
   | { type: "UPDATE_LOCATION" };
 
 export type Context = {
@@ -94,6 +98,19 @@ const config: MachineConfig<Context, any, Event> = {
         "netWorth",
       ],
     },
+    STOP_ACTOR: {
+      actions: (c, e: any) => {
+        const actor = c.actors.find((a) => a.state!.context.id === e.data);
+        if (actor !== undefined && actor.stop) actor.stop();
+      },
+    },
+    BOUGHT_SHIP: {
+      actions: assign<Context, BoughtShipEvent>({
+        user: (c, e) => e.data.response.user,
+        ships: (c, e) => e.data.response.user.ships,
+        shipNames: (c, e) => e.data.shipNames,
+      }) as any,
+    },
     UPDATE_LOCATION: {
       actions: assign<Context>({
         systems: (c, e: any) => {
@@ -110,7 +127,7 @@ const config: MachineConfig<Context, any, Event> = {
       entry: assign<Context>({
         token: getLocalUser()?.token,
         username: getLocalUser()?.username,
-      }),
+      }) as any,
       after: { 1: States.Idle },
     },
     [States.Idle]: {
@@ -139,7 +156,7 @@ const config: MachineConfig<Context, any, Event> = {
         src: async () => db.shipDetail.toArray(),
         onDone: {
           target: States.Initialising,
-          actions: assign<Context>({ shipNames: (c, e: any) => e.data }),
+          actions: assign<Context>({ shipNames: (c, e: any) => e.data }) as any,
         },
       },
     },
@@ -151,7 +168,7 @@ const config: MachineConfig<Context, any, Event> = {
           actions: assign<Context>({
             token: () => getLocalUser()?.token,
             username: () => getLocalUser()?.username,
-          }),
+          }) as any,
         },
       },
     },
@@ -161,7 +178,7 @@ const config: MachineConfig<Context, any, Event> = {
         onError: [
           {
             cond: (c, e: any) => e.data.code === 40101,
-            actions: assign<Context>({ resetDetected: true }),
+            actions: assign<Context>({ resetDetected: true }) as any,
           },
         ],
         onDone: {
@@ -211,13 +228,15 @@ const config: MachineConfig<Context, any, Event> = {
         },
       }) as any,
       invoke: {
-        src: (c) =>
+        src: (c: Context) =>
           upgradeShipMachine.withContext({
             credits: c.user!.credits,
             username: c.username!,
             token: c.token!,
+            available: c.availableShips,
+            shipNames: c.shipNames || [],
+            ships: c.ships!,
           }),
-
         onDone: States.GetStrategies,
         onError: {
           actions: log(undefined, "error"),
@@ -321,17 +340,7 @@ const config: MachineConfig<Context, any, Event> = {
           target: States.Ready,
           actions: (c, e) => console.error(e),
         },
-        onDone: {
-          target: States.GetStrategies,
-          actions: [
-            "assignUser",
-            assign<Context>({
-              ships: (c, e: any) =>
-                (e.data.response as api.GetUserResponse).user.ships,
-              shipNames: (c, e: any) => e.data.shipNames,
-            }),
-          ],
-        },
+        onDone: States.GetStrategies,
       },
     },
   },
@@ -354,6 +363,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
           }
           return true;
         });
+        //.filter((p) => p.id === "ckn4ep7vl1934991ds6f9zlmqdl");
 
         if (toSpawn.length) console.warn(`Spawning ${toSpawn.length} actor(s)`);
 
@@ -394,6 +404,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
     shouldBuyShip: (c) => {
       const { autoBuy } = getAutomation();
       return (
+        !getUpgradingShip() &&
         autoBuy.on &&
         (c.user?.credits || 0) > autoBuy.credits &&
         c.user!.ships.length < autoBuy.maxShips

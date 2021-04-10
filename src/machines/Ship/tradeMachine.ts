@@ -146,7 +146,7 @@ const config: MachineConfig<Context, any, any> = {
           const tradeRoutes = await determineBestTradeRouteByCurrentLocation(c);
           if (!tradeRoutes.length) {
             console.warn("No trade routes, switching to probe");
-            persistStrategy(c.id, ShipStrategy.Trade, ShipStrategy.Probe);
+            persistStrategy(c.id, ShipStrategy.Probe, ShipStrategy.Trade);
             throw new Error("No trade routes, switching to probe");
           }
           const tradeRoute = tradeRoutes[0];
@@ -188,16 +188,18 @@ const config: MachineConfig<Context, any, any> = {
             });
 
           if (c.tradeRoute) {
-            c.ship!.cargo.filter(
-              (p) => p.good !== "FUEL" && p.good !== c.tradeRoute?.good
-            ).forEach((cargo) => sellableCargo.push(cargo));
+            c.ship!.cargo.filter((p) => p.good !== "FUEL").forEach((cargo) =>
+              sellableCargo.push(cargo)
+            );
           }
           const runningProfit: number[] = [];
           for (const sellOrder of sellableCargo) {
             const quantity = Math.min(
               MAX_CARGO_MOVE,
-              sellOrder.quantity,
               getCargoQuantity(c, sellOrder.good)
+            );
+            console.log(
+              `[${c.shipName}] Selling ${quantity}x${sellOrder.good}`
             );
             result = await api.sellOrder(
               c.token,

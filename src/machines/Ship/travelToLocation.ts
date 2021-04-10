@@ -10,7 +10,7 @@ export function travelToLocation<TContext extends ShipBaseContext>(
   return {
     invoke: {
       src: (c: TContext) =>
-        travelToLocationMachine.withContext({
+        travelToLocationMachine(false).withContext({
           id: c.id,
           username: c.username,
           token: c.token,

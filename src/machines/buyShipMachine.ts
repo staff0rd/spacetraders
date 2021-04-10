@@ -1,9 +1,8 @@
-import { assign, createMachine } from "xstate";
+import { createMachine, sendParent } from "xstate";
 import * as api from "../api";
 import { AvailableShip } from "../api/AvailableShip";
 import db from "../data";
 import { IShipDetail } from "../data/IShipDetail";
-import { getShipName } from "../data/names";
 
 type Context = {
   token: string;
@@ -38,7 +37,6 @@ export const buyShipMachine = createMachine<Context, any, any>({
             location!,
             context.shipType
           );
-          await Promise.all(response.user.ships.map((p) => getShipName(p.id)));
           const shipNames = await db.shipDetail.toArray();
           return { response, shipNames };
         },
@@ -47,10 +45,13 @@ export const buyShipMachine = createMachine<Context, any, any>({
         },
         onDone: {
           target: "done",
-          actions: assign<Context>({
-            response: (c: any, e: any) => e.data.response,
-            shipNames: (_, e: any) => e.data.shipNames,
-          }) as any,
+          actions: sendParent((c: Context, e) => ({
+            type: "BOUGHT_SHIP",
+            data: {
+              response: e.data.response,
+              shipNames: e.data.shipNames,
+            },
+          })),
         },
       },
     },
@@ -59,10 +60,6 @@ export const buyShipMachine = createMachine<Context, any, any>({
     },
     done: {
       type: "final",
-      data: {
-        response: (context: Context) => context.response,
-        shipNames: (context: Context) => context.shipNames,
-      },
     },
   },
 });

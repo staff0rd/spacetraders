@@ -27,7 +27,7 @@ export function confirmStrategy(
           cond: (c: ShipStrategyContext, e: any) => e.data === nextState,
           actions: assign<ShipStrategyContext>({
             shouldCheckStrategy: false,
-          }),
+          }) as any,
         },
         {
           target: doneState,

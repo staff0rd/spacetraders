@@ -3,6 +3,7 @@ import {
   assign,
   createMachine,
   EventObject,
+  MachineConfig,
   sendParent,
   StateMachine,
 } from "xstate";
@@ -16,6 +17,7 @@ import { getDistance } from "../getDistance";
 import { ShipContext } from "./ShipBaseContext";
 import { printError, printErrorAction } from "./printError";
 import { getCargoQuantity } from "./getCargoQuantity";
+import { debugMachineStates } from "../debugStates";
 
 const throwError = (message: string) => {
   console.warn(message);
@@ -45,7 +47,7 @@ export type Context = {
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
-export const travelToLocationMachine = createMachine<Context, any, any>({
+const config: MachineConfig<Context, any, any> = {
   id: "travel",
   initial: States.Idle,
   context: {
@@ -135,7 +137,7 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
       invoke: {
         src: (c) => api.getShip(c.token, c.username, c.id),
         onDone: {
-          actions: assign<Context>({ ship: (c, e: any) => e.data.ship }),
+          actions: assign<Context>({ ship: (c, e: any) => e.data.ship }) as any,
           target: States.Idle,
         },
       },
@@ -230,4 +232,12 @@ export const travelToLocationMachine = createMachine<Context, any, any>({
       ],
     },
   },
-});
+};
+
+export const travelToLocationMachine = (shouldDebug: boolean = false) =>
+  createMachine(
+    debugMachineStates(
+      { ...config, id: `${config.id}-debug-${shouldDebug}` },
+      shouldDebug
+    )
+  );

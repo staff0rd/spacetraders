@@ -7,6 +7,7 @@ import {
 } from "xstate";
 import { debugMachine, debugShipMachine } from "./Ship/debugMachine";
 import { ShipContext } from "./Ship/ShipBaseContext";
+import { cloneDeep } from "lodash";
 
 export function debugShipMachineStates<
   TContext extends ShipContext,
@@ -41,20 +42,21 @@ function debugStates<
   debugOn: boolean
 ): MachineConfig<TContext, TStateSchema, TEvent> {
   if (!debugOn) return config;
-  Object.entries(config.states!).forEach((value) => {
+  const clone = cloneDeep(config);
+  Object.entries(clone.states!).forEach((value) => {
     const [, state] = value;
     const node = state as StateNodeConfig<TContext, any, TEvent>;
 
     if (node.entry) {
       if (Array.isArray(node.entry)) {
-        node.entry.push(debugHandler(config.id!));
+        node.entry.push(debugHandler(clone.id!));
       } else {
-        node.entry = [node.entry, debugHandler(config.id!)];
+        node.entry = [node.entry, debugHandler(clone.id!)];
       }
     } else {
-      node.entry = debugHandler(config.id!);
+      node.entry = debugHandler(clone.id!);
     }
   });
 
-  return config;
+  return clone;
 }

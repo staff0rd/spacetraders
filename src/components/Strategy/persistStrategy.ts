@@ -5,8 +5,7 @@ import { ChangeStrategyPayload } from "../../data/Strategy/StrategyPayloads";
 export const persistStrategy = async (
   shipId: string,
   oldStrategy: ShipStrategy,
-  newStrategy: ShipStrategy,
-  newStrategyData?: any
+  newStrategy: ShipStrategy
 ) => {
   db.strategies.put({
     shipId,
@@ -15,7 +14,7 @@ export const persistStrategy = async (
       from: {
         strategy: oldStrategy,
       },
-      to: { strategy: newStrategy, data: newStrategyData },
+      to: { strategy: newStrategy },
     } as ChangeStrategyPayload,
   });
 

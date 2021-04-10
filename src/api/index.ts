@@ -315,7 +315,8 @@ export const getShips = async (
     token,
     `users/${username}/ships`
   );
-  result.ships.map((ship) => db.ships.put(ship));
+  await db.ships.clear();
+  await Promise.all(result.ships.map((ship) => db.ships.put(ship)));
   return result;
 };
 
@@ -329,7 +330,7 @@ export const scrapShip = async (
     `users/${username}/ships/${shipId}`
   );
   db.strategies.where("shipId").equals(shipId).delete();
-  db.ships.where("shipId").equals(shipId).delete();
+  db.ships.where("id").equals(shipId).delete();
   db.flightPlans.where("shipId").equals(shipId).delete();
   return result;
 };

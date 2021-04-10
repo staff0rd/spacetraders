@@ -19,7 +19,6 @@ import { StrategyToggle } from "./StrategyToggle";
 import { Probes } from "./Probes";
 import { persistStrategy } from "./persistStrategy";
 import { DataTable, right } from "../DataTable";
-import { FlightPlan } from "../../api/FlightPlan";
 import FlightProgress from "../Ships/FlightProgress";
 import NumberFormat from "react-number-format";
 import { Link } from "react-router-dom";
@@ -60,6 +59,8 @@ export const Strategy = ({ state }: Props) => {
 
   const strategies = useLiveQuery(() => db.strategies.toArray());
 
+  const flightPlans = useLiveQuery(() => db.flightPlans.toArray());
+
   if (!state || !state.context.actors.length || !strategies)
     return <CircularProgress size={48} />;
 
@@ -94,8 +95,12 @@ export const Strategy = ({ state }: Props) => {
     return result;
   };
 
-  const flightPlanToRelative = (flightPlan?: FlightPlan) => {
-    if (flightPlan)
+  const flightPlanToRelative = (shipId: string) => {
+    const flightPlan = flightPlans?.find((fp) => fp.shipId === shipId);
+    if (
+      flightPlan &&
+      DateTime.fromISO(flightPlan.arrivesAt) < DateTime.local()
+    ) {
       return (
         <>
           <Typography className={classes.flightPlanText}>
@@ -105,6 +110,7 @@ export const Strategy = ({ state }: Props) => {
           <FlightProgress flightPlan={flightPlan} />
         </>
       );
+    }
   };
 
   const getLastProfitCreated = (shipId: string) => {
@@ -166,9 +172,10 @@ export const Strategy = ({ state }: Props) => {
           />
         </Tooltip>
       ),
-      actor.state.context.flightPlan
-        ? flightPlanToRelative(actor.state.context.flightPlan)
-        : actor.state.context.ship?.location,
+
+      flightPlanToRelative(actor.state.context.id) ||
+        actor.state.context.ship?.location,
+
       actor.state.context.id,
     ]);
 
