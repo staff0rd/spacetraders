@@ -177,7 +177,7 @@ const config: MachineConfig<Context, any, Event> = {
           const closest = dist[0].location;
           return closest;
         },
-      }),
+      }) as any,
       invoke: {
         src: travelToLocationMachine(true),
         data: {

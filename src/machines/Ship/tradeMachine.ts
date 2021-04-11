@@ -162,7 +162,9 @@ const config: MachineConfig<Context, any, any> = {
         onError: States.Done,
         onDone: {
           target: States.Idle,
-          actions: assign<Context>({ tradeRoute: (c, e: any) => e.data }),
+          actions: assign<Context>({
+            tradeRoute: (c, e: any) => e.data,
+          }) as any,
         },
       },
     },

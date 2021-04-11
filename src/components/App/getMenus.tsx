@@ -14,14 +14,12 @@ import { Errors } from "../Errors";
 import { Locations } from "../Locations";
 import { Settings } from "../Settings";
 import { NetWorth } from "../NetWorth";
-import { Map } from "../Map";
 import { Intel } from "../Intel";
 import ErrorIcon from "@material-ui/icons/Error";
 import MarketsIcon from "@material-ui/icons/Timeline";
 import SettingsIcon from "@material-ui/icons/Settings";
 import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import LocationsIcon from "@material-ui/icons/Language";
-import MapIcon from "@material-ui/icons/Explore";
 import IntelIcon from "@material-ui/icons/Visibility";
 
 export function getMenus(
@@ -50,12 +48,6 @@ export function getMenus(
       title: "Locations",
       to: "/locations",
       component: <Locations systems={state?.context.systems || {}} />,
-    },
-    {
-      icon: <MapIcon />,
-      title: "Map",
-      to: "/map",
-      component: <Map systems={state?.context.systems || {}} />,
     },
     {
       icon: <TradeIcon />,

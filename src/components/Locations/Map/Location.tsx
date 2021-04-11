@@ -1,8 +1,8 @@
 import LocationIcon from "@material-ui/icons/FiberManualRecord";
 import { makeStyles, Popover, Typography } from "@material-ui/core";
 import { useState } from "react";
-import db from "../../data";
-import { Location as LocationSchema } from "../../api/Location";
+import db from "../../../data";
+import { Location as LocationSchema } from "../../../api/Location";
 import { useLiveQuery } from "dexie-react-hooks";
 import { groupByLocation } from "./groupByLocation";
 

@@ -1,14 +1,14 @@
 import { CircularProgress } from "@material-ui/core";
 import React from "react";
 
-import { SystemContext } from "../machines/MarketContext";
-import { DataTable } from "./DataTable";
+import { SystemContext } from "../../machines/MarketContext";
+import { DataTable } from "../DataTable";
 
 type Props = {
   systems?: SystemContext;
 };
 
-export const Locations = ({ systems }: Props) => {
+export const LocationList = ({ systems }: Props) => {
   if (!systems || !Object.keys(systems).length)
     return <CircularProgress size={48} />;
 

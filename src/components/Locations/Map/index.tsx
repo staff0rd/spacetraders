@@ -1,7 +1,7 @@
 import { CircularProgress, makeStyles } from "@material-ui/core";
 import { useRef, useState } from "react";
-import { SystemContext } from "../../machines/MarketContext";
-import { CustomSelect } from "../CustomSelect";
+import { SystemContext } from "../../../machines/MarketContext";
+import { CustomSelect } from "../../CustomSelect";
 import { Location } from "./Location";
 import { drawMap } from "./drawMap";
 

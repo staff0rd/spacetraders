@@ -224,7 +224,9 @@ const config: MachineConfig<Context, any, any> = {
         },
         onError: printError(),
         onDone: {
-          actions: assign<Context>({ neededFuel: (_, e: any) => e.data }),
+          actions: assign<Context>({
+            neededFuel: (_, e: any) => e.data,
+          }) as any,
           target: States.Idle,
         },
       },
