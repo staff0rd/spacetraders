@@ -9,14 +9,12 @@ import { Trades } from "../Trades";
 import Badge from "@material-ui/core/Badge";
 import { SpaceshipIcon } from "./SpaceshipIcon";
 import { Ships } from "../Ships";
-import { Markets } from "../Markets";
 import { Errors } from "../Errors";
 import { Locations } from "../Locations";
 import { Settings } from "../Settings";
 import { NetWorth } from "../NetWorth";
 import { Intel } from "../Intel";
 import ErrorIcon from "@material-ui/icons/Error";
-import MarketsIcon from "@material-ui/icons/Timeline";
 import SettingsIcon from "@material-ui/icons/Settings";
 import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import LocationsIcon from "@material-ui/icons/Language";
@@ -54,12 +52,6 @@ export function getMenus(
       title: "Trades",
       to: "/trades",
       component: <Trades />,
-    },
-    {
-      icon: <MarketsIcon />,
-      title: "Markets",
-      to: "/markets",
-      component: <Markets />,
     },
     {
       icon: <NetWorthIcon />,

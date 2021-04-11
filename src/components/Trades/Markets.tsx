@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import db from "../data";
-import { DataTable, right } from "./DataTable";
+import db from "../../data";
+import { DataTable, right } from "../DataTable";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { DateTime } from "luxon";
 import NumberFormat from "react-number-format";
