@@ -18,6 +18,8 @@ import NumberFormat from "react-number-format";
 import { DateTime } from "luxon";
 import { Link } from "react-router-dom";
 import { GoodIcon } from "./GoodIcon";
+import { getLocationName } from "./getLocations";
+import { SystemContext } from "machines/MarketContext";
 
 const useStyles = makeStyles((theme) => ({
   buyIcon: {
@@ -48,14 +50,16 @@ const useStyles = makeStyles((theme) => ({
 type Props = {
   trades: ITrade[] | null | undefined;
   getShipName: (shipId: string) => string | undefined;
+  systems?: SystemContext;
 };
 
-export const TradesDataTable = ({ trades, getShipName }: Props) => {
+export const TradesDataTable = ({ trades, getShipName, systems }: Props) => {
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
-  if (!trades) return <CircularProgress color="primary" size={24} />;
+  if (!trades || !systems)
+    return <CircularProgress color="primary" size={24} />;
 
   const columns = [
     "",
@@ -81,7 +85,7 @@ export const TradesDataTable = ({ trades, getShipName }: Props) => {
         {getShipName(trade.shipId)}
       </Link>
     </Typography>,
-    trade.location,
+    getLocationName(systems, trade.location),
     ...(isMdDown
       ? [
           <div className={classes.center}>

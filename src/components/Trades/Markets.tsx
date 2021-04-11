@@ -10,15 +10,26 @@ import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
+import { SystemContext } from "machines/MarketContext";
+import { getLocationName } from "./getLocations";
+import { GoodIcon } from "./GoodIcon";
+import { CustomSelect } from "components/CustomSelect";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
     margin: theme.spacing(1),
     minWidth: 120,
   },
+  center: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
 }));
 
-export const Markets = () => {
+type Props = { systems?: SystemContext };
+
+export const Markets = ({ systems }: Props) => {
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
@@ -38,15 +49,16 @@ export const Markets = () => {
   }, [location, good]);
 
   const locations = useLiveQuery(() =>
-    db.trades.orderBy("location").uniqueKeys()
+    db.markets.orderBy("location").uniqueKeys()
   );
   const goods = useLiveQuery(() => db.markets.orderBy("good").uniqueKeys());
 
-  if (!markets) return <CircularProgress color="primary" size={24} />;
+  if (!markets || !systems)
+    return <CircularProgress color="primary" size={24} />;
 
   const columns = [
     "Location",
-    ...(isMdDown ? ["Qty x Good"] : [right("Qty"), "Good"]),
+    ...(isMdDown ? ["Qty"] : [right("Qty"), "Good"]),
     "㎥",
     right("Buy"),
     right("Sell"),
@@ -54,17 +66,17 @@ export const Markets = () => {
     "When",
   ];
   const rows = markets.map((market) => [
-    market.location,
+    getLocationName(systems, market.location),
     ...(isMdDown
       ? [
-          <>
+          <div className={classes.center}>
+            <GoodIcon good={market.good} />
             <NumberFormat
               value={market.quantityAvailable}
               thousandSeparator=","
               displayType="text"
-            />{" "}
-            x {market.good}
-          </>,
+            />
+          </div>,
         ]
       : [
           right(
@@ -74,7 +86,7 @@ export const Markets = () => {
               displayType="text"
             />
           ),
-          market.good,
+          <GoodIcon good={market.good} />,
         ]),
     market.volumePerUnit,
     right(
@@ -107,22 +119,13 @@ export const Markets = () => {
   return (
     <>
       {locations && (
-        <FormControl className={classes.formControl}>
-          <InputLabel id="select-type-label">Location</InputLabel>
-          <Select
-            labelId="select-type-label"
-            id="select-type"
-            value={location}
-            onChange={(e) => setLocation(e.target.value as string)}
-          >
-            <MenuItem value={""}>All</MenuItem>
-            {locations.map((location) => (
-              <MenuItem key={location as string} value={location as string}>
-                {location}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <CustomSelect
+          name="Location"
+          setValue={setLocation}
+          value={location}
+          values={locations}
+          displayMap={(value) => getLocationName(systems, value as string)}
+        />
       )}
       {goods && (
         <FormControl className={classes.formControl}>

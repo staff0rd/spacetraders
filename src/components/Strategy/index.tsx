@@ -31,6 +31,7 @@ import FlightProgress from "../Ships/FlightProgress";
 import NumberFormat from "react-number-format";
 import { Link } from "react-router-dom";
 import { CustomSelect } from "../CustomSelect";
+import { getLocationName } from "components/Trades/getLocations";
 
 const useStyles = makeStyles((theme) => ({
   playerStrategy: {
@@ -72,7 +73,12 @@ export const Strategy = ({ state }: Props) => {
 
   const flightPlans = useLiveQuery(() => db.flightPlans.toArray());
 
-  if (!state || !state.context.actors.length || !strategies)
+  if (
+    !state ||
+    !state.context.actors.length ||
+    !strategies ||
+    !state.context.systems
+  )
     return <CircularProgress size={48} />;
 
   const handlePlayerStrategyChange = (
@@ -223,7 +229,10 @@ export const Strategy = ({ state }: Props) => {
       ),
 
       flightPlanToRelative(actor.state.context.id) ||
-        actor.state.context.ship?.location,
+        getLocationName(
+          state.context.systems!,
+          actor.state.context.ship?.location
+        ),
 
       actor.state.context.id,
     ]);

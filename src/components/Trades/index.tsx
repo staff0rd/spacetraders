@@ -2,23 +2,26 @@ import { TabPanel, TabProps } from "../TabPanel";
 import { TradeList } from "./TradeList";
 import { Markets } from "./Markets";
 import { Current } from "./Current";
+import { SystemContext } from "machines/MarketContext";
 
-export const Trades = () => {
+type Props = { systems?: SystemContext };
+
+export const Trades = ({ systems }: Props) => {
   const tabs: TabProps[] = [
     {
       label: "Trades",
       path: "/trades",
-      component: <TradeList />,
+      component: <TradeList systems={systems} />,
     },
     {
       label: "Markets",
       path: "/trades/markets",
-      component: <Markets />,
+      component: <Markets systems={systems} />,
     },
     {
       label: "Current",
       path: "/trades/current",
-      component: <Current />,
+      component: <Current systems={systems} />,
     },
   ];
   return <TabPanel tabs={tabs} />;

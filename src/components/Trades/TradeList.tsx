@@ -14,6 +14,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import { CustomSelect } from "../CustomSelect";
 import { useLiveQuery } from "dexie-react-hooks";
 import { TradesDataTable } from "./TradesDataTable";
+import { SystemContext } from "machines/MarketContext";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -22,7 +23,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export const TradeList = () => {
+type Props = { systems?: SystemContext };
+
+export const TradeList = ({ systems }: Props) => {
   const classes = useStyles();
   const [type, setType] = useState<string | number>("");
   const [good, setGood] = useState("");
@@ -164,6 +167,7 @@ export const TradeList = () => {
       </FormControl>
       <TradesDataTable
         trades={trades}
+        systems={systems}
         getShipName={(shipId) => ships?.find((s) => s.shipId === shipId)?.name}
       />
     </>

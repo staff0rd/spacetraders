@@ -51,7 +51,7 @@ export function getMenus(
       icon: <TradeIcon />,
       title: "Trades",
       to: "/trades",
-      component: <Trades />,
+      component: <Trades systems={state?.context.systems} />,
     },
     {
       icon: <NetWorthIcon />,
