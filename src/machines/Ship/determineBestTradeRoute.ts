@@ -17,7 +17,8 @@ export async function determineBestTradeRouteByCurrentLocation(
 export async function determineBestTradeRoute(
   shipType: string,
   maxCargo: number,
-  excludeResearch = true
+  excludeResearch = true,
+  excludeLoss = true
 ): Promise<TradeRoute[]> {
   const goodLocation = await db.goodLocation.toArray();
   const grouped = groupByGood(goodLocation);
@@ -61,6 +62,6 @@ export async function determineBestTradeRoute(
         .flat()
     )
     .flat()
-    .filter((a) => a.costVolumeDistance > 0)
+    .filter((a) => !excludeLoss || a.costVolumeDistance > 0)
     .sort((a, b) => b.costVolumeDistance - a.costVolumeDistance);
 }

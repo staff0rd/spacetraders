@@ -43,23 +43,52 @@ const useStyles = makeStyles((theme) => ({
 
 type Props = { systems?: SystemContext };
 
+type TradeRouteWithCount = TradeRoute & {
+  shipCount: number;
+};
+
 export const Best = ({ systems }: Props) => {
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
-  const [routes, setRoutes] = useState<TradeRoute[]>([]);
+  const [routes, setRoutes] = useState<TradeRouteWithCount[]>([]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [good, setGood] = useState("");
   const goods = useLiveQuery(() => db.markets.orderBy("good").uniqueKeys());
 
+  const getGroupLabel = (value: TradeRoute) =>
+    `${value.buyLocation}-${value.sellLocation}-${value.good}`;
+
   useEffect(() => {
     const getRoutes = async () => {
-      let result = await determineBestTradeRoute("GR-MK-III", 1000, true);
+      type GroupByLabel = {
+        [key: string]: number;
+      };
+      const grouped: GroupByLabel = {};
+      const current = await db.tradeRoutes.toArray();
+      current.forEach((value) => {
+        const label = getGroupLabel(value);
+        if (!grouped[label]) {
+          grouped[label] = 0;
+        }
+        grouped[label] += 1;
+      });
+      let result = await determineBestTradeRoute(
+        "GR-MK-III",
+        1000,
+        false,
+        false
+      );
       if (from) result = result.filter((x) => x.buyLocation === from);
       if (to) result = result.filter((x) => x.sellLocation === to);
       if (good) result = result.filter((x) => x.good === good);
-      setRoutes(result.slice(0, 50));
+      setRoutes(
+        result.slice(0, 50).map((r) => ({
+          ...r,
+          shipCount: grouped[getGroupLabel(r)] || 0,
+        }))
+      );
     };
     getRoutes();
     const interval = setInterval(() => {
@@ -82,6 +111,7 @@ export const Best = ({ systems }: Props) => {
         <Typography className={classes.text}>CDV</Typography>
       </Tooltip>
     ),
+    "Ships",
   ];
   const rows = routes.map((route) => [
     ...(isMdDown
@@ -122,14 +152,41 @@ export const Best = ({ systems }: Props) => {
       ? [
           <div className={classes.right}>
             <Typography className={classes.text}>
-              {route.purchasePricePerUnit}
+              <NumberFormat
+                value={route.purchasePricePerUnit}
+                thousandSeparator=","
+                displayType="text"
+                prefix="$"
+              />
             </Typography>
             <Typography className={classes.text}>
-              {route.sellPricePerUnit}
+              <NumberFormat
+                value={route.sellPricePerUnit}
+                thousandSeparator=","
+                displayType="text"
+                prefix="$"
+              />
             </Typography>
           </div>,
         ]
-      : [right(route.purchasePricePerUnit), right(route.sellPricePerUnit)]),
+      : [
+          right(
+            <NumberFormat
+              value={route.purchasePricePerUnit}
+              thousandSeparator=","
+              displayType="text"
+              prefix="$"
+            />
+          ),
+          right(
+            <NumberFormat
+              value={route.sellPricePerUnit}
+              thousandSeparator=","
+              displayType="text"
+              prefix="$"
+            />
+          ),
+        ]),
     right(
       <NumberFormat
         value={route.profitPerUnit}
@@ -156,6 +213,7 @@ export const Best = ({ systems }: Props) => {
         prefix="$"
       />
     ),
+    route.shipCount,
   ]);
   return (
     <>

@@ -25,7 +25,7 @@ class Database extends Dexie {
 
   constructor() {
     super("Database");
-    this.version(47).stores({
+    this.version(48).stores({
       apiErrors: "++id, code",
       trades: "++id, good, shipId, location, type, timestamp",
       market: "++id,location,good,created",
@@ -34,7 +34,7 @@ class Database extends Dexie {
       intel: "&shipId,username",
       probes: "&location,shipId",
       shipDetail: "&shipId, name",
-      tradeRoutes: "++id, shipId",
+      tradeRoutes2: "&shipId",
       flightPlans: "&shipId, &id",
       ships2: "&id",
     });
@@ -48,7 +48,7 @@ class Database extends Dexie {
     this.probes = this.table("probes");
     this.shipDetail = this.table("shipDetail");
     this.goodLocation = this.table("goodLocation");
-    this.tradeRoutes = this.table("tradeRoutes");
+    this.tradeRoutes = this.table("tradeRoutes2");
     this.flightPlans = this.table("flightPlans");
     this.ships = this.table("ships2");
   }

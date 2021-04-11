@@ -10,5 +10,5 @@ export const getLocations = (systems: SystemContext) =>
     .flat();
 export const getLocationName = (systems: SystemContext, symbol?: string) =>
   symbol
-    ? getLocations(systems).find((lo) => lo.symbol === symbol)!.name
+    ? getLocations(systems).find((lo) => lo.symbol === symbol)?.name
     : symbol;
