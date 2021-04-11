@@ -6,7 +6,15 @@ import {
   Event as PlayerEvent,
 } from "../../machines/playerMachine";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { makeStyles, Typography, Grid, Tooltip } from "@material-ui/core";
+import {
+  makeStyles,
+  Typography,
+  Grid,
+  Tooltip,
+  Box,
+  useTheme,
+  useMediaQuery,
+} from "@material-ui/core";
 import { DateTime } from "luxon";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import db from "../../data";
@@ -22,6 +30,7 @@ import { DataTable, right } from "../DataTable";
 import FlightProgress from "../Ships/FlightProgress";
 import NumberFormat from "react-number-format";
 import { Link } from "react-router-dom";
+import { CustomSelect } from "../CustomSelect";
 
 const useStyles = makeStyles((theme) => ({
   playerStrategy: {
@@ -51,6 +60,8 @@ type Props = {
 
 export const Strategy = ({ state }: Props) => {
   const classes = useStyles();
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const [strategy, setStrategy] = React.useState<ShipStrategy>(
     getPlayerStrategy().strategy
   );
@@ -122,13 +133,13 @@ export const Strategy = ({ state }: Props) => {
 
   const columns = [
     "Strategy",
-    "Name",
-    "Type",
-    "State",
+    ...(isMdDown ? ["Ship"] : ["Name", "Type"]),
     right("Last Profit"),
     "Location",
   ];
 
+  const strats = Object.keys(ShipStrategy).filter((p) => isNaN(+p));
+  console.log("strats", strats);
   const rows = state.context.actors
     .sort((a, b) =>
       (
@@ -140,25 +151,60 @@ export const Strategy = ({ state }: Props) => {
       )
     )
     .map((actor) => [
-      <StrategyToggle
-        disabled={getStrategy(actor.state.context.id) === ShipStrategy.Change}
-        strategy={getStrategy(actor.state.context.id)}
-        handleStrategy={(_, value) =>
-          handleShipStrategyChange(
-            actor.state.context.id,
-            value,
-            getStrategy(actor.state.context.id)!
-          )
-        }
-        size="small"
-      />,
-      <Typography className={classes.link}>
-        <Link to={`/ships/owned/${actor.state.context.id}`}>
-          {shipDetail?.find((sd) => sd.shipId === actor.state.context.id)?.name}
-        </Link>
-      </Typography>,
-      actor.state.context.ship?.type,
-      actor.state.value,
+      `${
+        ShipStrategy[
+          (getStrategy(actor.state.context.id)! as unknown) as number
+        ]
+      }: ${actor.state.value}`,
+      // <CustomSelect
+      //   key={actor.state.context.id}
+      //   name="Strategy"
+      //   values={strats}
+      //   value={
+      //     ShipStrategy[
+      //       (getStrategy(actor.state.context.id)! as unknown) as number
+      //     ]
+      //   }
+      //   setValue={(s) => {}}
+      // />,
+      // <StrategyToggle
+      //   disabled={getStrategy(actor.state.context.id) === ShipStrategy.Change}
+      //   strategy={getStrategy(actor.state.context.id)}
+      //   handleStrategy={(_, value) =>
+      //     handleShipStrategyChange(
+      //       actor.state.context.id,
+      //       value,
+      //       getStrategy(actor.state.context.id)!
+      //     )
+      //   }
+      //   size="small"
+      // />,
+      ...(isMdDown
+        ? [
+            <Box>
+              <Typography className={classes.link}>
+                <Link to={`/ships/owned/${actor.state.context.id}`}>
+                  {
+                    shipDetail?.find(
+                      (sd) => sd.shipId === actor.state.context.id
+                    )?.name
+                  }
+                </Link>
+              </Typography>
+              <Typography>{actor.state.context.ship?.type}</Typography>
+            </Box>,
+          ]
+        : [
+            <Typography className={classes.link}>
+              <Link to={`/ships/owned/${actor.state.context.id}`}>
+                {
+                  shipDetail?.find((sd) => sd.shipId === actor.state.context.id)
+                    ?.name
+                }
+              </Link>
+            </Typography>,
+            actor.state.context.ship?.type,
+          ]),
       right(
         <Tooltip title={getLastProfitCreated(actor.state.context.id)}>
           <NumberFormat
