@@ -11,6 +11,7 @@ import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
+import Grid from "@material-ui/core/Grid";
 import { CustomSelect } from "../CustomSelect";
 import { useLiveQuery } from "dexie-react-hooks";
 import { TradesDataTable } from "./TradesDataTable";
@@ -95,76 +96,83 @@ export const TradeList = ({ systems }: Props) => {
 
   return (
     <>
-      <FormControl className={classes.formControl}>
-        <InputLabel id="select-type-label">Type</InputLabel>
-        <Select
-          labelId="select-type-label"
-          id="select-type"
-          value={type}
-          onChange={(e) => {
-            setTrades(null);
-            setType(e.target.value as string | number);
-          }}
-        >
-          <MenuItem value={""}>All</MenuItem>
-          <MenuItem value={0}>Buy</MenuItem>
-          <MenuItem value={1}>Sell</MenuItem>
-        </Select>
-      </FormControl>
-      {goods && (
-        <CustomSelect
-          name="Good"
-          setValue={(v) => {
-            setTrades(null);
-            setGood(v);
-          }}
-          value={good}
-          values={goods}
-        />
-      )}
-      {ships && (
-        <CustomSelect
-          name="Ship"
-          setValue={(v) => {
-            setTrades(null);
-            setShipId(v);
-          }}
-          value={shipId}
-          values={ships}
-          displayMap={(s) => s.name}
-          valueMap={(s) => s.shipId}
-        />
-      )}
-      <FormControl className={classes.formControl}>
-        <Typography className="MuiInputLabel-shrink">Cost</Typography>
-        <NumberFormat
-          value={trades
-            .filter((t) => t.type === TradeType.Sell)
-            .map((t) => t.cost)
-            .reduce((a, b) => (a || 0) + (b || 0), 0)}
-          thousandSeparator=","
-          displayType="text"
-          prefix="$"
-        />
-      </FormControl>
-      <FormControl className={classes.formControl}>
-        <Typography className="MuiInputLabel-shrink">Profit</Typography>
-        <NumberFormat
-          value={profit}
-          thousandSeparator=","
-          displayType="text"
-          prefix="$"
-        />
-      </FormControl>
-      <FormControl className={classes.formControl}>
-        <Typography className="MuiInputLabel-shrink">per minute</Typography>
-        <NumberFormat
-          value={profitPerMinute}
-          thousandSeparator=","
-          displayType="text"
-          prefix="$"
-        />
-      </FormControl>
+      <Grid container>
+        <Grid item xs={12} md={6}>
+          <FormControl className={classes.formControl}>
+            <InputLabel id="select-type-label">Type</InputLabel>
+            <Select
+              labelId="select-type-label"
+              id="select-type"
+              value={type}
+              onChange={(e) => {
+                setTrades(null);
+                setType(e.target.value as string | number);
+              }}
+            >
+              <MenuItem value={""}>All</MenuItem>
+              <MenuItem value={0}>Buy</MenuItem>
+              <MenuItem value={1}>Sell</MenuItem>
+            </Select>
+          </FormControl>
+          {goods && (
+            <CustomSelect
+              name="Good"
+              setValue={(v) => {
+                setTrades(null);
+                setGood(v);
+              }}
+              value={good}
+              values={goods}
+            />
+          )}
+          {ships && (
+            <CustomSelect
+              name="Ship"
+              setValue={(v) => {
+                setTrades(null);
+                setShipId(v);
+              }}
+              value={shipId}
+              values={ships}
+              displayMap={(s) => s.name}
+              valueMap={(s) => s.shipId}
+            />
+          )}
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <FormControl className={classes.formControl}>
+            <Typography className="MuiInputLabel-shrink">Cost</Typography>
+            <NumberFormat
+              value={trades
+                .filter((t) => t.type === TradeType.Sell)
+                .map((t) => t.cost)
+                .reduce((a, b) => (a || 0) + (b || 0), 0)}
+              thousandSeparator=","
+              displayType="text"
+              prefix="$"
+            />
+          </FormControl>
+          <FormControl className={classes.formControl}>
+            <Typography className="MuiInputLabel-shrink">Profit</Typography>
+            <NumberFormat
+              value={profit}
+              thousandSeparator=","
+              displayType="text"
+              prefix="$"
+            />
+          </FormControl>
+          <FormControl className={classes.formControl}>
+            <Typography className="MuiInputLabel-shrink">per minute</Typography>
+            <NumberFormat
+              value={profitPerMinute}
+              thousandSeparator=","
+              displayType="text"
+              prefix="$"
+            />
+          </FormControl>
+        </Grid>
+      </Grid>
+
       <TradesDataTable
         trades={trades}
         systems={systems}
