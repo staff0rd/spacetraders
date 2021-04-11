@@ -169,8 +169,8 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export function App() {
-  useTableCap(db.trades, "timestamp", 1);
-  useTableCap(db.markets, "created", 1);
+  useTableCap(db.trades, "timestamp", 6);
+  useTableCap(db.markets, "created", 6);
 
   const classes = useStyles();
   const [drawerOpen, setDrawerOpen] = React.useState(true);

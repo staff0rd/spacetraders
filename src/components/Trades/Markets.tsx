@@ -14,6 +14,7 @@ import { SystemContext } from "machines/MarketContext";
 import { getLocationName } from "./getLocations";
 import { GoodIcon } from "./GoodIcon";
 import { CustomSelect } from "components/CustomSelect";
+import { ChartComp as Chart } from "./Chart";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -118,6 +119,7 @@ export const Markets = ({ systems }: Props) => {
   ]);
   return (
     <>
+      {location && <Chart markets={markets} />}
       {locations && (
         <CustomSelect
           name="Location"
