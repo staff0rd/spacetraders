@@ -109,9 +109,9 @@ const config: MachineConfig<Context, any, any> = {
           {
             target: States.SellCargo,
             cond: (c) =>
-              atSellLocationWithSellableGoods(c) ||
-              atBuyLocationWithTooMuchFuel(c) ||
-              haveExcessCargo(c),
+              debugCond(c, atSellLocationWithSellableGoods) ||
+              debugCond(c, atBuyLocationWithTooMuchFuel) ||
+              debugCond(c, haveExcessCargo),
           },
           {
             target: States.ConfirmStrategy,
@@ -179,7 +179,9 @@ const config: MachineConfig<Context, any, any> = {
             credits: c.credits,
           };
 
-          const toSell = ship.cargo.filter((p) => p.good !== "FUEL");
+          const toSell = ship.cargo.filter(
+            (p) => p.good !== "FUEL" || c.tradeRoute?.good === "FUEL"
+          );
 
           if (c.tradeRoute && c.tradeRoute.buyLocation === ship.location) {
             const fuelOverage =
@@ -484,11 +486,17 @@ function atBuyLocationWaitingToBuy(c: Context): boolean {
 function haveExcessCargo(c: Context): boolean {
   const hasTradeRoute = !!c.tradeRoute;
   const hasLocation = !!c.ship.location;
-  return (
+  const result =
     hasTradeRoute &&
     hasLocation &&
     c.ship.cargo.filter(
       (p) => p.good !== "FUEL" && p.good !== c.tradeRoute!.good
-    ).length > 0
-  );
+    ).length > 0;
+  return result;
+}
+
+function debugCond(c: Context, cond: (c: Context) => boolean) {
+  const result = cond(c);
+  if (getDebug().debugTradeMachine) console.log(`${cond.name}: ${result}`);
+  return result;
 }

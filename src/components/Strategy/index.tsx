@@ -138,8 +138,8 @@ export const Strategy = ({ state }: Props) => {
     "Location",
   ];
 
-  const strats = Object.keys(ShipStrategy).filter((p) => isNaN(+p));
-  console.log("strats", strats);
+  //const strats = Object.keys(ShipStrategy).filter((p) => isNaN(+p));
+
   const rows = state.context.actors
     .sort((a, b) =>
       (
@@ -191,7 +191,9 @@ export const Strategy = ({ state }: Props) => {
                   }
                 </Link>
               </Typography>
-              <Typography>{actor.state.context.ship?.type}</Typography>
+              <Typography className={classes.link}>
+                {actor.state.context.ship?.type}
+              </Typography>
             </Box>,
           ]
         : [
@@ -203,6 +205,7 @@ export const Strategy = ({ state }: Props) => {
                 }
               </Link>
             </Typography>,
+
             actor.state.context.ship?.type,
           ]),
       right(
