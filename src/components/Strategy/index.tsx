@@ -22,7 +22,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import {
   getPlayerStrategy,
   setPlayerStrategy,
-} from "../../data/Strategy/PlayerStrategy";
+} from "../../data/localStorage/PlayerStrategy";
 import { StrategyToggle } from "./StrategyToggle";
 import { Probes } from "./Probes";
 import { persistStrategy } from "./persistStrategy";

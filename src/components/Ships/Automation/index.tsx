@@ -8,7 +8,7 @@ import {
   getAutomation,
   IAutoUpgrade,
   setAutomation,
-} from "../../../data/IAutomation";
+} from "../../../data/localStorage/IAutomation";
 
 type Props = {
   availableShips: AvailableShip[];

@@ -8,7 +8,7 @@ import * as api from "../api";
 import { Location } from "../api/Location";
 import { ShipActor } from "./Ship/tradeMachine";
 import { MarketContext, SystemContext } from "./MarketContext";
-import { cacheLocation } from "./locationCache";
+import { cacheLocation } from "../data/localStorage/locationCache";
 import { AvailableShip } from "../api/AvailableShip";
 import { calculateNetWorth } from "./calculateNetWorth";
 import { NetWorthLineItem } from "./NetWorthLineItem";
@@ -19,11 +19,11 @@ import db from "../data";
 import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
 import { IShipDetail } from "../data/IShipDetail";
-import { getLocalUser } from "../data/getLocalUser";
-import { getAutomation, IAutomation } from "../data/IAutomation";
+import { getLocalUser } from "../data/localStorage/getLocalUser";
+import { getAutomation, IAutomation } from "../data/localStorage/IAutomation";
 import { log } from "xstate/lib/actions";
 import { upgradeShipMachine } from "./Ship/upgradeShipMachine";
-import { getUpgradingShip } from "../data/getUpgradingShip";
+import { getUpgradingShip } from "../data/localStorage/getUpgradingShip";
 import { BoughtShipEvent } from "./BoughtShipEvent";
 
 export enum States {
@@ -354,16 +354,17 @@ const options: Partial<MachineOptions<Context, Event>> = {
           (actor) => actor.state.context.id
         );
 
-        const toSpawn: Ship[] = c.ships!.filter((s: Ship) => {
-          const alreadySpawned = alreadySpawnedShipIds.find(
-            (id) => id === s.id
-          );
-          if (alreadySpawned) {
-            return false;
-          }
-          return true;
-        });
-        //.filter((p) => p.id === "ckn4ep7vl1934991ds6f9zlmqdl");
+        const toSpawn: Ship[] = c
+          .ships!.filter((s: Ship) => {
+            const alreadySpawned = alreadySpawnedShipIds.find(
+              (id) => id === s.id
+            );
+            if (alreadySpawned) {
+              return false;
+            }
+            return true;
+          })
+          .filter((p) => p.id === "cknbvdchg004215s6a7nyrlcu");
 
         if (toSpawn.length) console.warn(`Spawning ${toSpawn.length} actor(s)`);
 

@@ -7,7 +7,7 @@ import {
   assign,
   sendParent,
 } from "xstate";
-import { getAutomation } from "../../data/IAutomation";
+import { getAutomation } from "../../data/localStorage/IAutomation";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { debugMachineStates } from "../debugStates";
 import { UserContext } from "./ShipBaseContext";
@@ -17,7 +17,7 @@ import {
   clearUpgradingShip,
   getUpgradingShip,
   setUpgradingShip,
-} from "../../data/getUpgradingShip";
+} from "../../data/localStorage/getUpgradingShip";
 import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
 import { persistStrategy } from "../../components/Strategy/persistStrategy";
 import { log } from "xstate/lib/actions";
@@ -26,7 +26,7 @@ import { buyShipMachine } from "../buyShipMachine";
 import { BoughtShipEvent } from "../BoughtShipEvent";
 import { IShipDetail } from "../../data/IShipDetail";
 import { Ship } from "../../api/Ship";
-import { getLocation } from "../../machines/locationCache";
+import { getLocation } from "../../data/localStorage/locationCache";
 import { getDistance } from "../getDistance";
 import { travelToLocationMachine } from "./travelToLocationMachine";
 

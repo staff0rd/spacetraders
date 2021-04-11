@@ -15,7 +15,7 @@ import { GetFlightPlansResponse } from "./GetFlightPlansResponse";
 import { getCachedResponse, createCache } from "./getCachedResponse";
 import { getShipName } from "../data/names";
 import { TradeType } from "../data/ITrade";
-import { setLocalUser } from "../data/getLocalUser";
+import { setLocalUser } from "../data/localStorage/getLocalUser";
 
 class ApiError extends Error {
   code: number;

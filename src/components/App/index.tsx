@@ -45,7 +45,7 @@ import {
 import { useTableCap } from "../../data/useTableCap";
 import db from "../../data";
 import { User } from "../Intel/User";
-import { getAutomation } from "../../data/IAutomation";
+import { getAutomation } from "../../data/localStorage/IAutomation";
 
 const drawerWidth = 180;
 

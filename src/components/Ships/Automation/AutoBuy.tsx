@@ -11,7 +11,10 @@ import { useEffect, useState } from "react";
 import { AvailableShip } from "../../../api/AvailableShip";
 import { CustomSelect } from "../../CustomSelect";
 import NumberFormat from "react-number-format";
-import { getAutomation, setAutomation } from "../../../data/IAutomation";
+import {
+  getAutomation,
+  setAutomation,
+} from "../../../data/localStorage/IAutomation";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {

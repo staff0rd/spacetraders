@@ -1,4 +1,4 @@
-import * as api from "../api";
+import * as api from "../../api";
 
 export const setLocalUser = (response: api.GetTokenResponse) => {
   localStorage.setItem("player", JSON.stringify(response));

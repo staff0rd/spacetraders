@@ -1,5 +1,5 @@
-import { MarketContext } from "./MarketContext";
-import { Location } from "../api/Location";
+import { MarketContext } from "../../machines/MarketContext";
+import { Location } from "../../api/Location";
 
 export const getLocation = (symbol: string): Location => {
   const locations: MarketContext = JSON.parse(

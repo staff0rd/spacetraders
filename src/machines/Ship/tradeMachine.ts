@@ -440,7 +440,7 @@ const options: Partial<MachineOptions<Context, any>> = {
 };
 
 export const tradeMachine = createMachine(
-  debugShipMachineStates(config, false),
+  debugShipMachineStates(config, true),
   options
 );
 

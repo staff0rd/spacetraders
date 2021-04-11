@@ -1,4 +1,3 @@
-import { MarketContext } from "./MarketContext";
 import { cacheLocation } from "./locationCache";
 
 describe("locationCache", () => {

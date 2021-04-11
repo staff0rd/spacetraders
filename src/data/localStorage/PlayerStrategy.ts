@@ -1,6 +1,6 @@
-import { ShipStrategy } from "./ShipStrategy";
+import { ShipStrategy } from "../Strategy/ShipStrategy";
 import { DateTime } from "luxon";
-import { IStrategy } from "./IStrategy";
+import { IStrategy } from "../Strategy/IStrategy";
 
 type PlayerStrategy = {
   since: string;

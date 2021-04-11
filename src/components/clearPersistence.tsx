@@ -1,5 +1,5 @@
 import db from "../data";
-import { setPlayerStrategy } from "../data/Strategy/PlayerStrategy";
+import { setPlayerStrategy } from "../data/localStorage/PlayerStrategy";
 import { ShipStrategy } from "../data/Strategy/ShipStrategy";
 
 export async function clearPersistence() {
