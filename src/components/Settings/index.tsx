@@ -19,6 +19,9 @@ const useStyles = makeStyles((theme) => ({
   box: {
     display: "flex",
   },
+  link: {
+    color: "white",
+  },
   credits: {
     marginTop: theme.spacing(6),
     "& a": {
@@ -29,6 +32,12 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(1),
     marginTop: theme.spacing(0.5),
     fontSize: 14,
+  },
+  img: {
+    width: 20,
+    height: 20,
+    marginRight: theme.spacing(1),
+    marginLeft: -3,
   },
 }));
 
@@ -139,14 +148,40 @@ export const Settings = ({ resetDetected, stop }: Props) => {
           <SpaceshipIcon className={classes.icon} />
           <Typography>
             Spaceship icon by{" "}
-            <a href="https://dryicons.com/icon/spaceship-icon-5255">Dryicons</a>
+            <a
+              className={classes.link}
+              href="https://dryicons.com/icon/spaceship-icon-5255"
+            >
+              Dryicons
+            </a>
+          </Typography>
+        </Box>
+        <Box className={classes.box}>
+          <img
+            src="icons/Fusion_reactors.png"
+            alt="atom icon"
+            className={classes.img}
+          />
+          <Typography>
+            atom icon from{" "}
+            <a
+              className={classes.link}
+              href="https://pngtree.com/so/atom-icons"
+            >
+              pngtree.com
+            </a>
           </Typography>
         </Box>
         <Box className={classes.box}>
           <GitHubIcon className={classes.icon} />
           <Typography>
             This project is{" "}
-            <a href="https://github.com/staff0rd/spacetraders">opensource</a>
+            <a
+              className={classes.link}
+              href="https://github.com/staff0rd/spacetraders"
+            >
+              opensource
+            </a>
           </Typography>
         </Box>
       </Grid>
