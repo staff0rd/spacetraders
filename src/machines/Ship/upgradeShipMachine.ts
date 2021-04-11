@@ -17,7 +17,7 @@ import {
   clearUpgradingShip,
   getUpgradingShip,
   setUpgradingShip,
-} from "../../data/localStorage/getUpgradingShip";
+} from "../../data/localStorage/IUpgradeShip";
 import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
 import { persistStrategy } from "../../components/Strategy/persistStrategy";
 import { log } from "xstate/lib/actions";
@@ -29,6 +29,7 @@ import { Ship } from "../../api/Ship";
 import { getLocation } from "../../data/localStorage/locationCache";
 import { getDistance } from "../getDistance";
 import { travelToLocationMachine } from "./travelToLocationMachine";
+import { getDebug } from "../../data/localStorage/IDebug";
 
 enum States {
   //Init = "init",
@@ -147,7 +148,7 @@ const config: MachineConfig<Context, any, Event> = {
         1: [
           {
             cond: (c, e: any) => c.errorCode === 42201,
-            actions: assign<Context>({ errorCode: undefined }),
+            actions: assign<Context>({ errorCode: undefined }) as any,
             target: States.FlyToShipyard,
           },
           {
@@ -258,5 +259,5 @@ const config: MachineConfig<Context, any, Event> = {
 };
 
 export const upgradeShipMachine = createMachine(
-  debugMachineStates(config, false)
+  debugMachineStates(config, getDebug().debugUpgradeMachine)
 );

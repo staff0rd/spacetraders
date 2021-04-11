@@ -17,6 +17,7 @@ import { confirmStrategy } from "./confirmStrategy";
 import { initShipMachine } from "./initShipMachine";
 import { travelToLocation } from "./travelToLocation";
 import { debugShipMachineStates } from "../debugStates";
+import { getDebug } from "../../data/localStorage/IDebug";
 
 enum States {
   Init = "init",
@@ -131,5 +132,5 @@ const config: MachineConfig<Context, any, any> = {
 };
 
 export const probeMachine = createMachine(
-  debugShipMachineStates(config, false)
+  debugShipMachineStates(config, getDebug().debugProbeMachine)
 );

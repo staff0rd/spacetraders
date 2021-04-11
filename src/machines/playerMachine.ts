@@ -23,8 +23,9 @@ import { getLocalUser } from "../data/localStorage/getLocalUser";
 import { getAutomation, IAutomation } from "../data/localStorage/IAutomation";
 import { log } from "xstate/lib/actions";
 import { upgradeShipMachine } from "./Ship/upgradeShipMachine";
-import { getUpgradingShip } from "../data/localStorage/getUpgradingShip";
+import { getUpgradingShip } from "../data/localStorage/IUpgradeShip";
 import { BoughtShipEvent } from "./BoughtShipEvent";
+import { getDebug } from "../data/localStorage/IDebug";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -354,6 +355,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
           (actor) => actor.state.context.id
         );
 
+        const debug = getDebug();
         const toSpawn: Ship[] = c
           .ships!.filter((s: Ship) => {
             const alreadySpawned = alreadySpawnedShipIds.find(
@@ -364,7 +366,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
             }
             return true;
           })
-          .filter((p) => p.id === "cknbvdchg004215s6a7nyrlcu");
+          .filter((p) => !debug.focusShip || p.id === debug.focusShip);
 
         if (toSpawn.length) console.warn(`Spawning ${toSpawn.length} actor(s)`);
 
@@ -415,6 +417,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
 };
 
 export const playerMachine = createMachine(
-  debugMachineStates(config, false),
+  debugMachineStates(config, getDebug().debugPlayerMachine),
   options
 );

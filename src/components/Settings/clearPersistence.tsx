@@ -1,6 +1,6 @@
-import db from "../data";
-import { setPlayerStrategy } from "../data/localStorage/PlayerStrategy";
-import { ShipStrategy } from "../data/Strategy/ShipStrategy";
+import db from "../../data";
+import { setPlayerStrategy } from "../../data/localStorage/PlayerStrategy";
+import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 
 export async function clearPersistence() {
   console.log("Clearing localStorage...");

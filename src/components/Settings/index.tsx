@@ -1,12 +1,13 @@
 import { Typography, makeStyles } from "@material-ui/core";
-import { CircularProgress, Button, Box } from "@material-ui/core";
+import { CircularProgress, Button, Box, Grid } from "@material-ui/core";
 import useInterval from "@use-it/interval";
 import React, { useState, useEffect } from "react";
 import { ConfirmDialog } from "./ConfirmDialog";
 import Alert from "@material-ui/lab/Alert";
 import { clearPersistence } from "./clearPersistence";
-import { SpaceshipIcon } from "./App/SpaceshipIcon";
+import { SpaceshipIcon } from "../App/SpaceshipIcon";
 import GitHubIcon from "@material-ui/icons/GitHub";
+import { Debug } from "./Debug";
 
 const useStyles = makeStyles((theme) => ({
   resetDetected: {
@@ -76,57 +77,64 @@ export const Settings = ({ resetDetected, stop }: Props) => {
   };
 
   return (
-    <>
-      <Typography variant="h6">Storage</Typography>
-      {estimate ? (
-        <Typography>
-          {bytesToSize(estimate.usage || 0)} of{" "}
-          {bytesToSize(estimate.quota || 0)} (
-          {((estimate.usage! / estimate.quota!) * 100).toFixed(2)}%)
-        </Typography>
-      ) : (
-        <CircularProgress />
-      )}
-      <Typography variant="h6">IndexedDB size</Typography>
-      {dbSize ? <Typography>{dbSize}</Typography> : <CircularProgress />}
+    <Grid container spacing={2}>
+      <Grid item xs={6}>
+        <Typography variant="h6">Storage</Typography>
+        {estimate ? (
+          <Typography>
+            {bytesToSize(estimate.usage || 0)} of{" "}
+            {bytesToSize(estimate.quota || 0)} (
+            {((estimate.usage! / estimate.quota!) * 100).toFixed(2)}%)
+          </Typography>
+        ) : (
+          <CircularProgress />
+        )}
+        <Typography variant="h6">IndexedDB size</Typography>
+        {dbSize ? <Typography>{dbSize}</Typography> : <CircularProgress />}
 
-      {resetDetected && !resetMessage && (
-        <Alert className={classes.resetDetected} severity="warning">
-          Server reset detected - you should reset
-        </Alert>
-      )}
+        {resetDetected && !resetMessage && (
+          <Alert className={classes.resetDetected} severity="warning">
+            Server reset detected - you should reset
+          </Alert>
+        )}
+      </Grid>
+      <Grid item xs={6}>
+        <Debug />
+      </Grid>
+      <Grid item xs={12}>
+        {resetMessage && (
+          <Alert className={classes.resetDetected} severity="info">
+            {resetMessage}
+          </Alert>
+        )}
 
-      {resetMessage && (
-        <Alert className={classes.resetDetected} severity="info">
-          {resetMessage}
-        </Alert>
-      )}
+        {resetting || resetMessage ? (
+          !resetMessage && (
+            <CircularProgress className={classes.resetButton} size={48} />
+          )
+        ) : (
+          <>
+            <Button
+              className={classes.resetButton}
+              variant="contained"
+              color="secondary"
+              onClick={() => setConfirmClearPlayerDialogOpen(true)}
+            >
+              Reset everything
+            </Button>
 
-      {resetting || resetMessage ? (
-        !resetMessage && (
-          <CircularProgress className={classes.resetButton} size={48} />
-        )
-      ) : (
-        <>
-          <Button
-            className={classes.resetButton}
-            variant="contained"
-            color="secondary"
-            onClick={() => setConfirmClearPlayerDialogOpen(true)}
-          >
-            Reset everything
-          </Button>
+            <ConfirmDialog
+              header="Reset everything?"
+              content="API key will be lost! All data will be wiped!"
+              setOpen={setConfirmClearPlayerDialogOpen}
+              open={confirmClearPlayerDialogOpen}
+              action={handleClearPlayer}
+            />
+          </>
+        )}
+      </Grid>
 
-          <ConfirmDialog
-            header="Reset everything?"
-            content="API key will be lost! All data will be wiped!"
-            setOpen={setConfirmClearPlayerDialogOpen}
-            open={confirmClearPlayerDialogOpen}
-            action={handleClearPlayer}
-          />
-        </>
-      )}
-      <div className={classes.credits}>
+      <Grid item xs={12}>
         <Box className={classes.box}>
           <SpaceshipIcon className={classes.icon} />
           <Typography>
@@ -141,8 +149,8 @@ export const Settings = ({ resetDetected, stop }: Props) => {
             <a href="https://github.com/staff0rd/spacetraders">opensource</a>
           </Typography>
         </Box>
-      </div>
-    </>
+      </Grid>
+    </Grid>
   );
 };
 

@@ -8,6 +8,8 @@ import { ShipActor } from "../../machines/Ship/tradeMachine";
 import { useLiveQuery } from "dexie-react-hooks";
 import db from "../../data";
 import { TradesDataTable } from "../Trades/TradesDataTable";
+import { DebugCheckbox } from "../Settings/DebugCheckbox";
+import { getDebug, setDebug } from "../../data/localStorage/IDebug";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -52,7 +54,7 @@ export const ShipComponent = ({ ship: actor }: Props) => {
     [shipId]
   );
 
-  if (!actor) return <CircularProgress size={48} />;
+  if (!actor || !actor.state.context.id) return <CircularProgress size={48} />;
 
   return (
     <>
@@ -60,15 +62,22 @@ export const ShipComponent = ({ ship: actor }: Props) => {
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <Box>
-              <Typography variant="h6">Name</Typography>
-              <Typography>{actor.state.context.shipName}</Typography>
+              <Typography variant="h6">
+                {actor.state.context.shipName}
+              </Typography>
+              <Typography>{actor.state.context.ship?.type}</Typography>
             </Box>
           </Grid>
           <Grid item xs={6}>
-            <Box>
-              <Typography variant="h6">Type</Typography>
-              <Typography>{actor.state.context.ship?.type}</Typography>
-            </Box>
+            <DebugCheckbox
+              title="Focus"
+              initialValue={getDebug().focusShip === actor.state.context.id}
+              persist={(value) =>
+                value
+                  ? setDebug({ focusShip: actor.state.context.id })
+                  : setDebug({ focusShip: undefined })
+              }
+            />
           </Grid>
           <Grid item xs={6}>
             <Box>

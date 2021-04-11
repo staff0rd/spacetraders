@@ -28,6 +28,7 @@ import { debugShipMachineStates } from "../debugStates";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { persistStrategy } from "../../components/Strategy/persistStrategy";
 import { IShipDetail } from "../../data/IShipDetail";
+import { getDebug } from "../../data/localStorage/IDebug";
 
 const MAX_CARGO_MOVE = 300;
 
@@ -93,7 +94,9 @@ const config: MachineConfig<Context, any, any> = {
           return route.first();
         },
         onDone: {
-          actions: assign<Context>({ tradeRoute: (c, e: any) => e.data }),
+          actions: assign<Context>({
+            tradeRoute: (c, e: any) => e.data,
+          }) as any,
           target: States.Idle,
         },
       },
@@ -440,7 +443,7 @@ const options: Partial<MachineOptions<Context, any>> = {
 };
 
 export const tradeMachine = createMachine(
-  debugShipMachineStates(config, true),
+  debugShipMachineStates(config, getDebug().debugTradeMachine),
   options
 );
 

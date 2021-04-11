@@ -157,7 +157,7 @@ const config: MachineConfig<Context, any, any> = {
           actions: [
             assign<Context>({
               flightPlan: (c, e: any) => e.data.flightPlan,
-            }),
+            }) as any,
             sendParent((c, e: any) => ({
               type: "FLIGHTPLAN_UPDATE",
               data: e.data.flightPlan,
