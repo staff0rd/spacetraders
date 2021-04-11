@@ -1,6 +1,7 @@
 import { TabPanel, TabProps } from "../TabPanel";
 import { TradeList } from "./TradeList";
 import { Markets } from "./Markets";
+import { Current } from "./Current";
 
 export const Trades = () => {
   const tabs: TabProps[] = [
@@ -13,6 +14,11 @@ export const Trades = () => {
       label: "Markets",
       path: "/trades/markets",
       component: <Markets />,
+    },
+    {
+      label: "Current",
+      path: "/trades/current",
+      component: <Current />,
     },
   ];
   return <TabPanel tabs={tabs} />;

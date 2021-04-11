@@ -17,6 +17,7 @@ import { ITrade, TradeType } from "../../data/ITrade";
 import NumberFormat from "react-number-format";
 import { DateTime } from "luxon";
 import { Link } from "react-router-dom";
+import { GoodIcon } from "./GoodIcon";
 
 const useStyles = makeStyles((theme) => ({
   buyIcon: {
@@ -36,6 +37,11 @@ const useStyles = makeStyles((theme) => ({
     "& a": {
       color: "white",
     },
+  },
+  center: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
   },
 }));
 
@@ -78,14 +84,14 @@ export const TradesDataTable = ({ trades, getShipName }: Props) => {
     trade.location,
     ...(isMdDown
       ? [
-          <>
+          <div className={classes.center}>
             <NumberFormat
               value={trade.quantity}
               thousandSeparator=","
               displayType="text"
-            />{" "}
-            x {trade.good}
-          </>,
+            />
+            <GoodIcon good={trade.good} />
+          </div>,
         ]
       : [
           <NumberFormat
@@ -93,7 +99,7 @@ export const TradesDataTable = ({ trades, getShipName }: Props) => {
             thousandSeparator=","
             displayType="text"
           />,
-          trade.good,
+          <GoodIcon good={trade.good} />,
         ]),
 
     right(

@@ -12,7 +12,6 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import { CustomSelect } from "../CustomSelect";
-
 import { useLiveQuery } from "dexie-react-hooks";
 import { TradesDataTable } from "./TradesDataTable";
 
