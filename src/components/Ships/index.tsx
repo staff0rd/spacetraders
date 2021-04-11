@@ -59,6 +59,7 @@ export const Ships = ({ state, availableShips }: Props) => {
             route: "/ships/owned/:shipId",
             component: (
               <Ship
+                systems={state?.context.systems}
                 ship={state?.context.actors.find(
                   (x) => x.state.context.id === shipId
                 )}

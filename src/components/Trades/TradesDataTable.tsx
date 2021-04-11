@@ -5,6 +5,7 @@ import SellIcon from "@material-ui/icons/RemoveCircle";
 import clsx from "clsx";
 import {
   makeStyles,
+  FormControl,
   Typography,
   CircularProgress,
   useTheme,
@@ -45,6 +46,10 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
     alignItems: "center",
   },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 60,
+  },
 }));
 
 type Props = {
@@ -60,6 +65,20 @@ export const TradesDataTable = ({ trades, getShipName, systems }: Props) => {
 
   if (!trades || !systems)
     return <CircularProgress color="primary" size={24} />;
+
+  const profit = trades
+    .filter((t) => t.type === TradeType.Sell)
+    .map((t) => t.profit || 0)
+    .reduce((a, b) => a + b, 0);
+
+  const profitPerMinute = trades.length
+    ? Math.round(
+        profit /
+          -DateTime.fromISO(trades[trades.length - 1].timestamp).diffNow(
+            "minutes"
+          ).minutes
+      )
+    : 0;
 
   const columns = [
     "",
@@ -139,11 +158,44 @@ export const TradesDataTable = ({ trades, getShipName, systems }: Props) => {
     });
 
   return (
-    <DataTable
-      title="Trades"
-      columns={columns}
-      rows={rows}
-      rowClassName={rowClassName}
-    />
+    <>
+      <FormControl className={classes.formControl}>
+        <Typography className="MuiInputLabel-shrink">Cost</Typography>
+        <NumberFormat
+          value={trades
+            .filter((t) => t.type === TradeType.Sell)
+            .map((t) => t.cost)
+            .reduce((a, b) => (a || 0) + (b || 0), 0)}
+          thousandSeparator=","
+          displayType="text"
+          prefix="$"
+        />
+      </FormControl>
+      <FormControl className={classes.formControl}>
+        <Typography className="MuiInputLabel-shrink">Profit</Typography>
+        <NumberFormat
+          value={profit}
+          thousandSeparator=","
+          displayType="text"
+          prefix="$"
+        />
+      </FormControl>
+      <FormControl className={classes.formControl}>
+        <Typography className="MuiInputLabel-shrink">per minute</Typography>
+        <NumberFormat
+          value={profitPerMinute}
+          thousandSeparator=","
+          displayType="text"
+          prefix="$"
+        />
+      </FormControl>
+
+      <DataTable
+        title="Trades"
+        columns={columns}
+        rows={rows}
+        rowClassName={rowClassName}
+      />
+    </>
   );
 };

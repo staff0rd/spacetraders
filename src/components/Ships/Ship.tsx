@@ -10,6 +10,7 @@ import db from "../../data";
 import { TradesDataTable } from "../Trades/TradesDataTable";
 import { DebugCheckbox } from "../Settings/DebugCheckbox";
 import { getDebug, setDebug } from "../../data/localStorage/IDebug";
+import { SystemContext } from "machines/MarketContext";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -29,9 +30,10 @@ const useStyles = makeStyles((theme) => ({
 
 type Props = {
   ship?: ShipActor;
+  systems?: SystemContext;
 };
 
-export const ShipComponent = ({ ship: actor }: Props) => {
+export const ShipComponent = ({ ship: actor, systems }: Props) => {
   const classes = useStyles();
   const shipId = actor?.state.context.id;
 
@@ -100,6 +102,7 @@ export const ShipComponent = ({ ship: actor }: Props) => {
               <TradesDataTable
                 trades={trades}
                 getShipName={(_) => actor.state.context.shipName}
+                systems={systems}
               />
             </Box>
           </Grid>
