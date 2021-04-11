@@ -243,7 +243,6 @@ const config: MachineConfig<Context, any, Event> = {
               c.credits >= upgrade.credits &&
               haveTo.length < upgrade.maxShips &&
               haveFrom.length > 0;
-            console.log(`Should upgrade: ${shouldUpgrade}`);
             if (shouldUpgrade) {
               setUpgradingShip(haveFrom[0].shipId, upgrade.toShipType);
             }
