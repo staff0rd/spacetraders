@@ -99,7 +99,7 @@ export const Strategy = ({ state }: Props) => {
     const flightPlan = flightPlans?.find((fp) => fp.shipId === shipId);
     if (
       flightPlan &&
-      DateTime.fromISO(flightPlan.arrivesAt) < DateTime.local()
+      DateTime.fromISO(flightPlan.arrivesAt) > DateTime.local()
     ) {
       return (
         <>

@@ -259,5 +259,5 @@ const config: MachineConfig<Context, any, Event> = {
 };
 
 export const upgradeShipMachine = createMachine(
-  debugMachineStates(config, true)
+  debugMachineStates(config, false)
 );

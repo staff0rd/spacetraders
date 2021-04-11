@@ -49,7 +49,7 @@ export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
 const config: MachineConfig<Context, any, any> = {
   id: "travel",
-  initial: States.Idle,
+  initial: States.GetShip,
   context: {
     id: "",
     token: "",
@@ -76,11 +76,17 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             target: States.CalculateNeededFuel,
-            cond: (c) => c.neededFuel === undefined,
+            cond: (c) => c.neededFuel === undefined && !!c.ship.location,
           },
           {
             target: States.GetFlightPlan,
-            cond: (c) => !c.ship.location && !c.flightPlan,
+            cond: (c) =>
+              !c.ship.location && !c.flightPlan && !!c.ship.flightPlanId,
+          },
+          {
+            target: States.GetShip,
+            cond: (c) =>
+              !c.ship.location && !c.flightPlan && !c.ship.flightPlanId,
           },
           { target: States.InTransit, cond: (c) => !!c.flightPlan },
           {
@@ -103,23 +109,24 @@ const config: MachineConfig<Context, any, any> = {
           const currentFuel = getCargoQuantity(c.ship.cargo, "FUEL");
           const neededFuel = c.neededFuel! - currentFuel;
 
-          if (neededFuel > c.ship.spaceAvailable)
-            throwError(
-              `Fuel: Have ${currentFuel}, need ${neededFuel}, not enough space for fuel`
+          if (neededFuel > c.ship.spaceAvailable) {
+            const sellGood = c.ship.cargo!.find((p) => p.good !== "FUEL")!.good;
+            console.warn(
+              `[${c.shipName}] Selling 1x${sellGood} to make room for ${neededFuel} fuel`
             );
-          else {
-            const result = await api.purchaseOrder(
-              c.token,
-              c.username,
-              c.id,
-              "FUEL",
-              neededFuel,
-              c.ship.location!,
-              0
-            );
-
-            return result;
+            await api.sellOrder(c.token, c.username, c.id, sellGood, 1);
           }
+          const result = await api.purchaseOrder(
+            c.token,
+            c.username,
+            c.id,
+            "FUEL",
+            neededFuel,
+            c.ship.location!,
+            0
+          );
+
+          return result;
         },
         onError: {
           target: States.Wait,
@@ -135,9 +142,9 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.GetShip]: {
       invoke: {
-        src: (c) => api.getShip(c.token, c.username, c.id),
+        src: (c) => db.ships.get(c.id),
         onDone: {
-          actions: assign<Context>({ ship: (c, e: any) => e.data.ship }) as any,
+          actions: assign<Context>({ ship: (c, e: any) => e.data }) as any,
           target: States.Idle,
         },
       },
@@ -198,7 +205,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.CalculateNeededFuel]: {
       invoke: {
         src: async (c: Context) => {
-          if (!c.ship.location) return 0;
+          if (!c.ship.location) throwError("Couldn't find departure");
           const from = await db.probes.get(c.ship.location!);
           if (!from) throwError("Couldn't find departure");
           else {

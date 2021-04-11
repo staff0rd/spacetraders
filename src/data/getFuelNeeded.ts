@@ -2,6 +2,8 @@ const shipPenalty = (shipType: string) => {
   switch (shipType) {
     case "GR-MK-II":
       return 1;
+    case "GR-MK-III":
+      return 2;
     default:
       return 0;
   }

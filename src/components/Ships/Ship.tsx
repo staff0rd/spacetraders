@@ -33,6 +33,14 @@ export const ShipComponent = ({ ship: actor }: Props) => {
   const classes = useStyles();
   const shipId = actor?.state.context.id;
 
+  const flightPlan = useLiveQuery(
+    () =>
+      shipId
+        ? db.flightPlans.where("shipId").equals(shipId).first()
+        : undefined,
+    [shipId]
+  );
+
   const trades = useLiveQuery(
     () =>
       db.trades
@@ -65,8 +73,8 @@ export const ShipComponent = ({ ship: actor }: Props) => {
           <Grid item xs={6}>
             <Box>
               <Typography variant="h6">State</Typography>
-              {actor.state.context.flightPlan ? (
-                <FlightPlan flightPlan={actor.state.context.flightPlan!} />
+              {flightPlan ? (
+                <FlightPlan flightPlan={flightPlan!} />
               ) : (
                 <Typography className={classes.state}>
                   {actor.state.value}

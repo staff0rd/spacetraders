@@ -162,19 +162,22 @@ export const getDockedShips = async (token: string, location: string) => {
 export const getFlightPlan = async (
   token: string,
   username: string,
-  flightPlanId: string
+  flightPlanId?: string
 ): Promise<GetFlightPlanResponse> => {
-  const flightPlan = await db.flightPlans
-    .where("id")
-    .equals(flightPlanId)
-    .first();
-  if (flightPlan) return { flightPlan };
+  if (flightPlanId) {
+    const flightPlan = await db.flightPlans
+      .where("id")
+      .equals(flightPlanId)
+      .first();
+    if (flightPlan) return { flightPlan };
+  }
 
   const result = await getSecure<GetFlightPlanResponse>(
     token,
     `users/${username}/flight-plans/${flightPlanId}`
   );
   db.flightPlans.put(result.flightPlan);
+  flightPlanToIntel(result.flightPlan);
   return result;
 };
 
@@ -435,16 +438,7 @@ export const getFlightPlans = async (
         `game/systems/${symbol}/flight-plans`
       ),
     async (result) => {
-      result.flightPlans.map((fp) =>
-        db.intel.put({
-          shipId: fp.shipId,
-          destination: fp.destination,
-          departure: fp.departure,
-          lastSeen: DateTime.now().toISO(),
-          shipType: fp.shipType!,
-          username: fp.username!,
-        })
-      );
+      result.flightPlans.map((fp) => flightPlanToIntel(fp));
       await Promise.all(
         result.flightPlans
           .filter((fp) => fp.username === username)
@@ -466,6 +460,7 @@ export const newFlightPlan = async (
     { shipId, destination }
   );
   await db.flightPlans.put(result.flightPlan);
+  flightPlanToIntel(result.flightPlan);
   return result;
 };
 
@@ -490,3 +485,14 @@ const persistUserResponse = async (promise: Promise<GetUserResponse>) => {
   result.user.ships.map((ship) => db.ships.put(ship));
   return result;
 };
+
+function flightPlanToIntel(fp: FlightPlan) {
+  return db.intel.put({
+    shipId: fp.shipId,
+    destination: fp.destination,
+    departure: fp.departure,
+    lastSeen: DateTime.now().toISO(),
+    shipType: fp.shipType!,
+    username: fp.username!,
+  });
+}
