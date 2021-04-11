@@ -7,7 +7,7 @@ export const persistStrategy = async (
   oldStrategy: ShipStrategy,
   newStrategy: ShipStrategy
 ) => {
-  db.strategies.put({
+  await db.strategies.put({
     shipId,
     strategy: ShipStrategy.Change,
     data: {
@@ -21,7 +21,7 @@ export const persistStrategy = async (
   if (oldStrategy === ShipStrategy.Probe) {
     const probe = await db.probes.where("shipId").equals(shipId).first();
     if (probe) {
-      db.probes.put({ ...probe, shipId: undefined });
+      await db.probes.put({ ...probe, shipId: undefined });
     }
   }
 };

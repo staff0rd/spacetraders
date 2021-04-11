@@ -217,7 +217,7 @@ const config: MachineConfig<Context, any, any> = {
                 quantity
               : undefined;
             runningProfit.push(profit || 0);
-            db.trades.put({
+            await db.trades.put({
               cost: result!.order!.total,
               type: TradeType.Sell,
               good: sellOrder.good,
@@ -229,7 +229,7 @@ const config: MachineConfig<Context, any, any> = {
             });
           }
           const totalProfit = runningProfit.reduce((a, b) => a + b, 0);
-          db.shipDetail
+          await db.shipDetail
             .where("shipId")
             .equals(c.id)
             .modify({

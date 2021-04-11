@@ -62,7 +62,7 @@ const makeRequest = async (
   const result = await response.json();
 
   if (!response.ok) {
-    db.apiErrors
+    await db.apiErrors
       .put({
         code: result.error.code,
         message: result.error.message,
@@ -147,14 +147,16 @@ export const getDockedShips = async (token: string, location: string) => {
     token,
     `game/locations/${location}/ships`
   );
-  result.location.ships.map((ship) =>
-    db.intel.put({
-      destination: location,
-      lastSeen: DateTime.now().toISO(),
-      shipId: ship.shipId,
-      shipType: ship.shipType,
-      username: ship.username,
-    })
+  await Promise.all(
+    result.location.ships.map((ship) =>
+      db.intel.put({
+        destination: location,
+        lastSeen: DateTime.now().toISO(),
+        shipId: ship.shipId,
+        shipType: ship.shipType,
+        username: ship.username,
+      })
+    )
   );
   return result;
 };
@@ -176,7 +178,7 @@ export const getFlightPlan = async (
     token,
     `users/${username}/flight-plans/${flightPlanId}`
   );
-  db.flightPlans.put(result.flightPlan);
+  await db.flightPlans.put(result.flightPlan);
   flightPlanToIntel(result.flightPlan);
   return result;
 };
@@ -261,23 +263,25 @@ export const getMarket = (
         token,
         `game/locations/${location}/marketplace`
       ),
-    (result) =>
-      result.location.marketplace.map((m) => {
-        const market = {
-          created: DateTime.now().toISO(),
-          location,
-          purchasePricePerUnit: m.purchasePricePerUnit,
-          sellPricePerUnit: m.sellPricePerUnit,
-          quantityAvailable: m.quantityAvailable,
-          volumePerUnit: m.volumePerUnit,
-          good: m.symbol,
-          x: result.location.x,
-          y: result.location.y,
-          type: result.location.type,
-        };
-        db.goodLocation.put(market);
-        return db.markets.put(market);
-      })
+    async (result) =>
+      Promise.all(
+        result.location.marketplace.map((m) => {
+          const market = {
+            created: DateTime.now().toISO(),
+            location,
+            purchasePricePerUnit: m.purchasePricePerUnit,
+            sellPricePerUnit: m.sellPricePerUnit,
+            quantityAvailable: m.quantityAvailable,
+            volumePerUnit: m.volumePerUnit,
+            good: m.symbol,
+            x: result.location.x,
+            y: result.location.y,
+            type: result.location.type,
+          };
+          db.goodLocation.put(market);
+          return db.markets.put(market);
+        })
+      )
   );
 
 export interface GetShipResponse {
@@ -302,7 +306,7 @@ export const getShip = async (
     token,
     `users/${username}/ships/${shipId}`
   );
-  db.ships.put(result.ship);
+  await db.ships.put(result.ship);
   return result;
 };
 
@@ -332,9 +336,9 @@ export const scrapShip = async (
     token,
     `users/${username}/ships/${shipId}`
   );
-  db.strategies.where("shipId").equals(shipId).delete();
-  db.ships.where("id").equals(shipId).delete();
-  db.flightPlans.where("shipId").equals(shipId).delete();
+  await db.strategies.where("shipId").equals(shipId).delete();
+  await db.ships.where("id").equals(shipId).delete();
+  await db.flightPlans.where("shipId").equals(shipId).delete();
   return result;
 };
 
@@ -386,7 +390,7 @@ export const purchaseOrder = async (
       quantity,
     }
   );
-  db.trades.put({
+  await db.trades.put({
     cost: result.order.total,
     type: TradeType.Buy,
     good,
