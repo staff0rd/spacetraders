@@ -145,7 +145,11 @@ const config: MachineConfig<Context, any, any> = {
     [States.DetermineTradeRoute]: {
       invoke: {
         src: async (c) => {
-          const tradeRoutes = await determineBestTradeRouteByCurrentLocation(c);
+          const tradeRoutes = await determineBestTradeRouteByCurrentLocation(
+            c.ship.type,
+            c.ship.maxCargo,
+            c.ship.location
+          );
           if (!tradeRoutes.length) {
             console.warn("No trade routes, switching to probe");
             persistStrategy(c.id, ShipStrategy.Probe, ShipStrategy.Trade);

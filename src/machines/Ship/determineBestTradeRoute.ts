@@ -2,19 +2,22 @@ import db from "../../data";
 import { getFuelNeeded } from "../../data/getFuelNeeded";
 import { getDistance } from "../getDistance";
 import { groupByGood } from "./groupByGood";
-import { ShipBaseContext } from "./ShipBaseContext";
 import { TradeRoute } from "./TradeRoute";
 
 export async function determineBestTradeRouteByCurrentLocation(
-  c: ShipBaseContext
+  shipType: string,
+  maxCargo: number,
+  location?: string
 ) {
-  return (await determineBestTradeRoute(c)).filter(
-    (dest) => dest.buyLocation === c.ship!.location
+  return (await determineBestTradeRoute(shipType, maxCargo)).filter(
+    (dest) => dest.buyLocation === location
   );
 }
 
 export async function determineBestTradeRoute(
-  c: ShipBaseContext
+  shipType: string,
+  maxCargo: number,
+  excludeResearch = true
 ): Promise<TradeRoute[]> {
   const goodLocation = await db.goodLocation.toArray();
   const grouped = groupByGood(goodLocation);
@@ -25,19 +28,15 @@ export async function determineBestTradeRoute(
         .map((depart) =>
           g.locations
             .filter((dest) => dest.location !== depart.location)
-            .filter((x) => x.good !== "RESEARCH")
+            .filter((x) => !excludeResearch || x.good !== "RESEARCH")
             .map((dest) => {
               const profitPerUnit =
                 dest.sellPricePerUnit - depart.purchasePricePerUnit;
               const volume = depart.volumePerUnit;
               const distance = getDistance(depart.x, depart.y, dest.x, dest.y);
-              const fuelNeeded = getFuelNeeded(
-                distance,
-                depart.type,
-                c.ship.type
-              );
+              const fuelNeeded = getFuelNeeded(distance, depart.type, shipType);
               const quantityToBuy = Math.floor(
-                (c.ship!.maxCargo - fuelNeeded) / volume
+                (maxCargo - fuelNeeded) / volume
               );
               const totalProfit = quantityToBuy * profitPerUnit;
               const result: TradeRoute = {
@@ -62,5 +61,6 @@ export async function determineBestTradeRoute(
         .flat()
     )
     .flat()
+    .filter((a) => a.costVolumeDistance > 0)
     .sort((a, b) => b.costVolumeDistance - a.costVolumeDistance);
 }

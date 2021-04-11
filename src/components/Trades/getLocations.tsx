@@ -1,6 +1,6 @@
 import { SystemContext } from "machines/MarketContext";
 
-const getLocations = (systems: SystemContext) =>
+export const getLocations = (systems: SystemContext) =>
   Object.keys(systems)
     .map((systemSymbol) =>
       Object.keys(systems[systemSymbol]).map(
