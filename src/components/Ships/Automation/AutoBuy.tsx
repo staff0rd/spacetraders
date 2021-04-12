@@ -4,7 +4,9 @@ import {
   Paper,
   makeStyles,
   Box,
+  TextField,
   CircularProgress,
+  FormControl,
   Switch,
 } from "@material-ui/core";
 import { useEffect, useState } from "react";
@@ -43,7 +45,6 @@ export const AutoBuy = ({ availableShips }: Props) => {
   const [on, setOn] = useState(autoBuy.on);
   const [shipType, setShipType] = useState(autoBuy.shipType);
   const [credits, setCredits] = useState(autoBuy.credits);
-  const creditsLimits = [50000, 75000, 100000, 125000, 150000];
   const [maxShips, setMaxShips] = useState(autoBuy.maxShips);
   const maxShipValues = [
     1,
@@ -113,21 +114,17 @@ export const AutoBuy = ({ availableShips }: Props) => {
           .sort((a, b) => a.localeCompare(b))}
         hideAll
       />
-      <CustomSelect
-        name="Credits"
-        value={credits.toString()}
-        setValue={(v) => setCredits(parseInt(v))}
-        values={creditsLimits}
-        hideAll
-        displayMap={(v) => (
-          <NumberFormat
-            value={v}
-            thousandSeparator=","
-            displayType="text"
-            prefix="$"
-          />
-        )}
-      />
+      <FormControl className={classes.formControl}>
+        <NumberFormat
+          value={credits}
+          customInput={TextField}
+          prefix={"$"}
+          type="text"
+          label="Credits"
+          thousandSeparator
+          onValueChange={({ value: v }) => setCredits(Number(v))}
+        />
+      </FormControl>
       <CustomSelect
         name="Max ships"
         setValue={(v) => setMaxShips(parseInt(v))}

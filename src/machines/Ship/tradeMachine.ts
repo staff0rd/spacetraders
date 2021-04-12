@@ -29,6 +29,8 @@ import { getCargoQuantity } from "./getCargoQuantity";
 import { persistStrategy } from "../../components/Strategy/persistStrategy";
 import { IShipDetail } from "../../data/IShipDetail";
 import { getDebug } from "../../data/localStorage/IDebug";
+import { getCredits } from "data/localStorage/getCredits";
+import { formatCurrency } from "./formatNumber";
 
 const MAX_CARGO_MOVE = 300;
 
@@ -383,6 +385,10 @@ const config: MachineConfig<Context, any, any> = {
               c.tradeRoute!.quantityToBuy -
                 getCargoQuantity(ship.cargo, c.tradeRoute!.good)
             );
+            const cost = quantity * c.tradeRoute!.purchasePricePerUnit;
+            if (cost > getCredits()) {
+              return { bought: false, ship: result.ship };
+            }
             result = await api.purchaseOrder(
               c.token,
               c.username,
@@ -398,7 +404,7 @@ const config: MachineConfig<Context, any, any> = {
               .quantity < c.tradeRoute!.quantityToBuy
           );
 
-          return result;
+          return { bought: true, ship: result.ship };
         },
         onError: [
           //{code: 2004, message: "User has insufficient credits for transaction."},
@@ -414,15 +420,41 @@ const config: MachineConfig<Context, any, any> = {
         //{code: 2006, message: "Good quantity is not available on planet." },
 
         //target: States.GetMarket,
-        onDone: {
-          target: States.Idle,
-          actions: [
-            assign({
-              ship: (c, e: any) => e.data.ship,
-            }) as any,
-            "shipUpdate",
-          ],
-        },
+        onDone: [
+          {
+            target: States.Idle,
+            cond: (c, e: any) => e.data.bought,
+            actions: [
+              assign({
+                ship: (c, e: any) => e.data.ship,
+              }) as any,
+              "shipUpdate",
+            ],
+          },
+          {
+            target: States.Wait,
+            cond: (c, e: any) =>
+              (e.data.ship as Ship).cargo.filter(
+                (p) => p.good === c.tradeRoute!.good
+              ).length > 1,
+            actions: [
+              assign({
+                ship: (c, e: any) => e.data.ship,
+              }) as any,
+              "shipUpdate",
+            ],
+          },
+          {
+            target: States.Wait,
+            actions: [
+              assign({
+                ship: (c, e: any) => e.data.ship,
+                tradeRoute: undefined, // no cargo so clear the traderoute
+              }) as any,
+              "shipUpdate",
+            ],
+          },
+        ],
       },
     },
   },
