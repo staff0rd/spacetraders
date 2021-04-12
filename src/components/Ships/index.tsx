@@ -38,7 +38,7 @@ export const Ships = ({ state, availableShips }: Props) => {
   const tabs: TabProps[] = [
     {
       label: "Owned",
-      path: "/ships/owned",
+      path: "/ships",
       component: <Strategy state={state} />,
     },
     {
@@ -56,7 +56,7 @@ export const Ships = ({ state, availableShips }: Props) => {
           {
             label: shipName,
             path: pathname,
-            route: "/ships/owned/:shipId",
+            route: "/ships/:shipId",
             component: (
               <Ship
                 systems={state?.context.systems}
