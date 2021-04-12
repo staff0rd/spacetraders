@@ -65,7 +65,6 @@ const config: MachineConfig<Context, any, any> = {
             cond: (c) =>
               !c.ship?.location || c.probe!.location !== c.ship.location,
           },
-
           {
             target: States.Probe,
             cond: (c) =>

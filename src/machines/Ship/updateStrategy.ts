@@ -13,10 +13,11 @@ export const updateStrategy = async (
     }, ${desired}`
   );
   if (current.strategy === ShipStrategy.Change) {
-    await db.strategies.put({
+    const persist = {
       shipId,
       strategy: current.data!.to.strategy,
       data: current.data!.to.data,
-    });
+    };
+    await db.strategies.put(persist);
   } else console.log("No update", ShipStrategy[desired]);
 };

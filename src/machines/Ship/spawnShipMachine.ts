@@ -93,9 +93,9 @@ function IsStrategy(
   shipStrategy: ShipStrategy,
   data: any
 ) {
-  return (
+  const result =
     shipStrategy === strategy ||
     (shipStrategy === ShipStrategy.Change &&
-      (data as ChangeStrategyPayload).from.strategy === strategy)
-  );
+      (data as ChangeStrategyPayload).from.strategy === strategy);
+  return result;
 }
