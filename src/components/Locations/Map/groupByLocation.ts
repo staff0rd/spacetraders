@@ -21,3 +21,24 @@ export function groupByLocation(intel: IIntel[] | undefined) {
   }, {});
   return Object.values(grouped);
 }
+
+type GroupByType = {
+  shipType: string;
+  count: number;
+};
+export function groupByTypeAtLocation(
+  intel: IIntel[],
+  symbol: string,
+  inTransit: boolean
+) {
+  const result: GroupByType[] = [];
+  intel.forEach((i) => {
+    if (!result.find((a) => a.shipType === i.shipType))
+      result.push({ shipType: i.shipType, count: 0 });
+    if (i.destination === symbol) {
+      if ((inTransit && !!i.departure) || (!inTransit && !i.departure))
+        result.find((a) => a.shipType === i.shipType)!.count += 1;
+    }
+  });
+  return result.filter((a) => a.count > 0);
+}

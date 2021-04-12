@@ -5,7 +5,10 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import { makeStyles } from "@material-ui/core";
-import { groupByLocation } from "../Locations/Map/groupByLocation";
+import {
+  groupByLocation,
+  groupByTypeAtLocation,
+} from "../Locations/Map/groupByLocation";
 import { filterToIntelWindow } from "./filterToIntelWindow";
 
 const useStyles = makeStyles((theme) => ({
@@ -50,7 +53,17 @@ export const User = () => {
           <Grid key={g.symbol} item xs={3}>
             <Typography variant="h6">{g.symbol}</Typography>
             <Typography>Docked: {g.docked}</Typography>
+            {groupByTypeAtLocation(intel, g.symbol, false).map((s) => (
+              <Typography>
+                {s.count} x {s.shipType}
+              </Typography>
+            ))}
             <Typography>In Transit: {g.inTransit}</Typography>
+            {groupByTypeAtLocation(intel, g.symbol, true).map((s) => (
+              <Typography>
+                {s.count} x {s.shipType}
+              </Typography>
+            ))}
           </Grid>
         ))}
       </Grid>

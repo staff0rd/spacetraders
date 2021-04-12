@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AvailableShips } from "./AvailableShips";
 import { AvailableShip } from "../../api/AvailableShip";
 import { Strategy } from "../Strategy";
