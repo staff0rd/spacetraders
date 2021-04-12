@@ -29,7 +29,8 @@ export function spawnShipMachine(c: Context): any {
     const flightPlan = c.flightPlans.find((fp) => fp.shipId === ship.id);
     if (!flightPlan && !ship.location) {
       // api bug
-      throw new Error("No flightPlan or ship.location for shipId " + ship.id);
+      console.warn("No flightPlan or ship.location for shipId " + ship.id);
+      return;
     }
     const system = (ship.location || flightPlan!.destination).substring(0, 2);
     const markets = c.systems![system]!;
