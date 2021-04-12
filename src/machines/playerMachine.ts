@@ -26,6 +26,7 @@ import { upgradeShipMachine } from "./Ship/upgradeShipMachine";
 import { getUpgradingShip } from "../data/localStorage/IUpgradeShip";
 import { BoughtShipEvent } from "./BoughtShipEvent";
 import { getDebug } from "../data/localStorage/IDebug";
+import { getCredits } from "data/localStorage/getCredits";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -54,7 +55,6 @@ export type Schema = {
 export type Event =
   | { type: "SHIP_UPDATE" }
   | { type: "STOP_ACTOR"; data: string }
-  | { type: "UPDATE_CREDITS"; data: number }
   | BoughtShipEvent
   | { type: "UPDATE_LOCATION" };
 
@@ -90,14 +90,6 @@ const config: MachineConfig<Context, any, Event> = {
   on: {
     SHIP_UPDATE: {
       actions: ["netWorth"],
-    },
-    UPDATE_CREDITS: {
-      actions: [
-        assign<Context>({
-          user: (c: Context, e: any) => ({ ...c.user, credits: e.data } as any),
-        }) as any, // why does this type error not appear in vscode?
-        "netWorth",
-      ],
     },
     STOP_ACTOR: {
       actions: (c, e: any) => {
@@ -231,7 +223,6 @@ const config: MachineConfig<Context, any, Event> = {
       invoke: {
         src: (c: Context) =>
           upgradeShipMachine.withContext({
-            credits: c.user!.credits,
             username: c.username!,
             token: c.token!,
             available: c.availableShips,
@@ -383,7 +374,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
     netWorth: assign<Context>({
       netWorth: (c: Context) =>
         calculateNetWorth(
-          c.user!.credits,
           c.actors.map((a) => a.state?.context).filter((p) => p),
           c.availableShips,
           c.systems!
@@ -409,7 +399,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
       return (
         !getUpgradingShip() &&
         autoBuy.on &&
-        (c.user?.credits || 0) > autoBuy.credits &&
+        getCredits() > autoBuy.credits &&
         c.user!.ships.length < autoBuy.maxShips
       );
     },

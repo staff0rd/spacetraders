@@ -59,7 +59,6 @@ enum States {
 export type Context = ShipBaseContext & {
   location?: Location;
   locations: LocationWithDistance[];
-  credits: number;
   tradeRoute?: TradeRoute;
 };
 
@@ -79,7 +78,6 @@ const config: MachineConfig<Context, any, any> = {
     ship: {} as Ship,
     shipName: "",
     locations: [],
-    credits: 0,
     strategy: { strategy: ShipStrategy.Trade },
   },
   states: {
@@ -187,7 +185,6 @@ const config: MachineConfig<Context, any, any> = {
 
           let result: Partial<api.PurchaseOrderResponse> = {
             ship: ship,
-            credits: c.credits,
           };
 
           const toSell = ship.cargo.filter(
@@ -262,14 +259,9 @@ const config: MachineConfig<Context, any, any> = {
           target: States.ConfirmStrategy,
           actions: [
             assign({
-              credits: (c, e: any) => e.data.credits,
               ship: (c, e: any) => e.data.ship,
             }) as any,
             "shipUpdate",
-            sendParent((context, event) => ({
-              type: "UPDATE_CREDITS",
-              data: event.data.credits,
-            })),
           ],
         },
       },
@@ -383,7 +375,6 @@ const config: MachineConfig<Context, any, any> = {
           let ship = (await db.ships.where("id").equals(c.id).first())!;
           let result: Partial<api.PurchaseOrderResponse> = {
             ship,
-            credits: c.credits,
           };
 
           do {
@@ -428,12 +419,7 @@ const config: MachineConfig<Context, any, any> = {
           actions: [
             assign({
               ship: (c, e: any) => e.data.ship,
-              credits: (c, e: any) => e.data.credits,
             }) as any,
-            sendParent((context, event) => ({
-              type: "UPDATE_CREDITS",
-              data: event.data.credits,
-            })),
             "shipUpdate",
           ],
         },

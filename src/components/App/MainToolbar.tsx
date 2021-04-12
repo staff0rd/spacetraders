@@ -9,6 +9,7 @@ import yellow from "@material-ui/core/colors/yellow";
 import DarkIcon from "@material-ui/icons/Brightness4";
 import LightIcon from "@material-ui/icons/Brightness7";
 import GitHubIcon from "@material-ui/icons/GitHub";
+import { getCredits } from "data/localStorage/getCredits";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -27,7 +28,6 @@ const useStyles = makeStyles((theme: Theme) =>
 
 type Props = {
   userName: string;
-  credits: number;
   netWorth: number;
   toggleTheme: () => void;
   darkMode: boolean;
@@ -35,7 +35,6 @@ type Props = {
 
 export default function ButtonAppBar({
   userName,
-  credits,
   netWorth,
   darkMode,
   toggleTheme,
@@ -50,7 +49,7 @@ export default function ButtonAppBar({
           tooltip="Credits"
           value={
             <NumberFormat
-              value={credits}
+              value={getCredits()}
               thousandSeparator=","
               displayType="text"
             />

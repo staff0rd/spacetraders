@@ -2,18 +2,18 @@ import { SystemContext } from "./MarketContext";
 import { AvailableShip } from "../api/AvailableShip";
 import { Context as ShipContext } from "./Ship/tradeMachine";
 import { NetWorthLineItem, Category } from "./NetWorthLineItem";
+import { getCredits } from "data/localStorage/getCredits";
 
 export const calculateNetWorth = (
-  credits: number,
   scs: ShipContext[],
   availableShips: AvailableShip[],
   systems: SystemContext
 ): NetWorthLineItem[] => [
   {
     category: "asset",
-    value: credits,
+    value: getCredits(),
     description: "Credits",
-    quantity: credits,
+    quantity: getCredits(),
   },
   ...scs
     .filter((sc) => !!sc.ship)

@@ -16,6 +16,7 @@ import { getCachedResponse, createCache } from "./getCachedResponse";
 import { getShipName } from "../data/names";
 import { TradeType } from "../data/ITrade";
 import { setLocalUser } from "../data/localStorage/getLocalUser";
+import { setCredits } from "data/localStorage/getCredits";
 
 class ApiError extends Error {
   code: number;
@@ -332,9 +333,8 @@ export const scrapShip = async (
   username: string,
   shipId: string
 ): Promise<GetUserResponse> => {
-  const result = await deleteSecure<GetUserResponse>(
-    token,
-    `users/${username}/ships/${shipId}`
+  const result = await persistUserResponse(
+    deleteSecure<GetUserResponse>(token, `users/${username}/ships/${shipId}`)
   );
   await db.strategies.where("shipId").equals(shipId).delete();
   await db.ships.where("id").equals(shipId).delete();
@@ -390,6 +390,7 @@ export const purchaseOrder = async (
       quantity,
     }
   );
+  setCredits(result.credits);
   await db.trades.put({
     cost: result.order.total,
     type: TradeType.Buy,
@@ -420,7 +421,7 @@ export const sellOrder = async (
       quantity,
     }
   );
-
+  setCredits(result.credits);
   await db.ships.put(result.ship);
 
   return result;
@@ -487,6 +488,7 @@ const persistUserResponse = async (promise: Promise<GetUserResponse>) => {
   const result = await promise;
   result.user.ships.map((ship) => getShipName(ship.id));
   result.user.ships.map((ship) => db.ships.put(ship));
+  setCredits(result.user.credits);
   return result;
 };
 

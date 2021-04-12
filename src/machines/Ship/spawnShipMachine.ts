@@ -58,7 +58,6 @@ export function spawnShipMachine(c: Context): any {
           token: c.token!,
           username: c.user!.username,
           ship,
-          credits: c.user!.credits,
           locations: Object.keys(markets).map(
             (symbol) => markets[symbol] as LocationWithDistance
           ),

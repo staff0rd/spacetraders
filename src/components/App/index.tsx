@@ -44,7 +44,6 @@ import {
 } from "../../machines/playerMachine";
 import { useTableCap } from "../../data/useTableCap";
 import db from "../../data";
-import { User } from "../Intel/User";
 import { getAutomation } from "../../data/localStorage/IAutomation";
 
 const drawerWidth = 180;
@@ -223,7 +222,6 @@ export function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const credits = state?.context.user?.credits || 0;
   const netWorth = state?.context.netWorth
     .map((v) => v.value)
     .reduce((a, b) => a + b, 0);
@@ -272,7 +270,6 @@ export function App() {
             </IconButton>
             <MainToolbar
               userName={state?.context.user?.username || ""}
-              credits={credits}
               netWorth={netWorth || 0}
               darkMode={theme.palette.type === "dark"}
               toggleTheme={toggleTheme}

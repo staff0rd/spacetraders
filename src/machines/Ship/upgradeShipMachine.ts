@@ -30,6 +30,7 @@ import { getLocation } from "../../data/localStorage/locationCache";
 import { getDistance } from "../getDistance";
 import { travelToLocationMachine } from "./travelToLocationMachine";
 import { getDebug } from "../../data/localStorage/IDebug";
+import { getCredits } from "data/localStorage/getCredits";
 
 enum States {
   //Init = "init",
@@ -47,7 +48,6 @@ enum States {
 }
 
 export type Context = UserContext & {
-  credits: number;
   available: AvailableShip[];
   strategy?: IShipStrategy;
   shipNames: IShipDetail[];
@@ -69,7 +69,6 @@ const config: MachineConfig<Context, any, Event> = {
   context: {
     token: "",
     username: "",
-    credits: 0,
     available: [],
     shipNames: [],
     ships: [],
@@ -241,7 +240,7 @@ const config: MachineConfig<Context, any, Event> = {
               );
             const haveTo = ships.filter((p) => p.type === upgrade.toShipType);
             const shouldUpgrade =
-              c.credits >= upgrade.credits &&
+              getCredits() >= upgrade.credits &&
               haveTo.length < upgrade.maxShips &&
               haveFrom.length > 0;
             if (shouldUpgrade) {
