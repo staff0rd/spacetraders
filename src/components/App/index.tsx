@@ -345,9 +345,6 @@ export function App() {
         <main className={classes.content}>
           <Toolbar />
           <Switch>
-            <Route exact path="/intel/:username">
-              <User />
-            </Route>
             {menu.map((item) => (
               <Route key={item.title} path={item.to}>
                 {item.component}

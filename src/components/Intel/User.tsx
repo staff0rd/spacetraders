@@ -20,8 +20,7 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(2),
   },
 }));
-export const User = () => {
-  const { username } = useParams<{ username: string }>();
+export const User = ({ username }: { username: string }) => {
   const classes = useStyles();
 
   const intel = useLiveQuery(() => {
