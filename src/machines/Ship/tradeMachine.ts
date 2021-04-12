@@ -152,7 +152,12 @@ const config: MachineConfig<Context, any, any> = {
           );
           if (!tradeRoutes.length) {
             console.warn("No trade routes, switching to probe");
-            persistStrategy(c.id, ShipStrategy.Probe, ShipStrategy.Trade);
+            persistStrategy(
+              c.id,
+              ShipStrategy.Trade,
+              ShipStrategy.Probe,
+              false
+            );
             throw new Error("No trade routes, switching to probe");
           }
           const tradeRoute = tradeRoutes[0];
