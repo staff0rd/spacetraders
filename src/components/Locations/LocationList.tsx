@@ -13,7 +13,6 @@ export const LocationList = ({ systems }: Props) => {
     return <CircularProgress size={48} />;
 
   const columns = ["System", "Name", "Symbol", "Type", "Position"];
-  console.log("keys1", Object.keys(systems));
   const rows = Object.keys(systems)
     .map((systemSymbol) =>
       Object.keys(systems[systemSymbol]).map((key) => {
