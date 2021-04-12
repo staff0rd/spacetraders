@@ -1,15 +1,11 @@
 import React from "react";
-import ToggleButton from "@material-ui/lab/ToggleButton";
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
+import { CustomSelect } from "components/CustomSelect";
 
 type Props = {
-  handleStrategy: (
-    event: React.MouseEvent<HTMLElement, MouseEvent>,
-    value: any
-  ) => void;
+  handleStrategy: (value: string) => void;
   strategy: ShipStrategy | undefined;
-  size?: "small" | "medium" | "large";
+  size?: "small" | "medium";
   disabled?: boolean;
 };
 export const StrategyToggle = ({
@@ -21,23 +17,16 @@ export const StrategyToggle = ({
   const strats = Object.keys(ShipStrategy).filter((p) => !isNaN(+p));
 
   return (
-    <ToggleButtonGroup
+    <CustomSelect
+      disabled={strategy === ShipStrategy.Change}
       size={size}
-      value={strategy}
-      exclusive
-      onChange={handleStrategy}
-      aria-label="strategy"
-    >
-      {strats.map((strat, ix) => (
-        <ToggleButton
-          key={ix}
-          value={parseInt(strat)}
-          aria-label="halt"
-          disabled={disabled || strat === "Change"}
-        >
-          {ShipStrategy[(strat as unknown) as number]}
-        </ToggleButton>
-      ))}
-    </ToggleButtonGroup>
+      name="Strategy"
+      setValue={handleStrategy}
+      value={strategy?.toString() || ShipStrategy.Trade.toString()}
+      values={strats}
+      hideAll
+      displayMap={(v) => ShipStrategy[Number(v)]}
+      disableMap={(v) => v === String(ShipStrategy.Change)}
+    />
   );
 };

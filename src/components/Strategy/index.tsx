@@ -30,7 +30,6 @@ import { DataTable, right } from "../DataTable";
 import FlightProgress from "../Ships/FlightProgress";
 import NumberFormat from "react-number-format";
 import { Link } from "react-router-dom";
-import { CustomSelect } from "../CustomSelect";
 import { getLocationName } from "components/Trades/getLocations";
 
 const useStyles = makeStyles((theme) => ({
@@ -44,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
   flightPlanText: {
     fontSize: 14,
   },
-  link: {
+  text: {
     fontSize: 14,
     "& a": {
       color: "white",
@@ -52,6 +51,9 @@ const useStyles = makeStyles((theme) => ({
   },
   probes: {
     textAlign: "end",
+  },
+  strategy: {
+    display: "flex",
   },
 }));
 
@@ -81,10 +83,7 @@ export const Strategy = ({ state }: Props) => {
   )
     return <CircularProgress size={48} />;
 
-  const handlePlayerStrategyChange = (
-    event: React.MouseEvent<HTMLElement>,
-    newStrategy: string
-  ) => {
+  const handlePlayerStrategyChange = (newStrategy: string) => {
     if (newStrategy != null) {
       setStrategy(parseInt(newStrategy));
       setPlayerStrategy(parseInt(newStrategy));
@@ -99,8 +98,8 @@ export const Strategy = ({ state }: Props) => {
   };
   const handleShipStrategyChange = (
     shipId: string,
-    newStrategy: string,
-    oldStrategy: ShipStrategy
+    oldStrategy: ShipStrategy,
+    newStrategy: string
   ) => {
     if (newStrategy != null) {
       persistStrategy(shipId, oldStrategy, parseInt(newStrategy));
@@ -157,38 +156,25 @@ export const Strategy = ({ state }: Props) => {
       )
     )
     .map((actor) => [
-      `${
-        ShipStrategy[
-          (getStrategy(actor.state.context.id)! as unknown) as number
-        ]
-      }: ${actor.state.value}`,
-      // <CustomSelect
-      //   key={actor.state.context.id}
-      //   name="Strategy"
-      //   values={strats}
-      //   value={
-      //     ShipStrategy[
-      //       (getStrategy(actor.state.context.id)! as unknown) as number
-      //     ]
-      //   }
-      //   setValue={(s) => {}}
-      // />,
-      // <StrategyToggle
-      //   disabled={getStrategy(actor.state.context.id) === ShipStrategy.Change}
-      //   strategy={getStrategy(actor.state.context.id)}
-      //   handleStrategy={(_, value) =>
-      //     handleShipStrategyChange(
-      //       actor.state.context.id,
-      //       value,
-      //       getStrategy(actor.state.context.id)!
-      //     )
-      //   }
-      //   size="small"
-      // />,
+      <div className={classes.strategy}>
+        <StrategyToggle
+          disabled={getStrategy(actor.state.context.id) === ShipStrategy.Change}
+          strategy={getStrategy(actor.state.context.id)}
+          handleStrategy={(value) =>
+            handleShipStrategyChange(
+              actor.state.context.id,
+              getStrategy(actor.state.context.id)!,
+              value
+            )
+          }
+          size="small"
+        />
+        <Typography className={classes.text}>{actor.state.value}</Typography>
+      </div>,
       ...(isMdDown
         ? [
             <Box>
-              <Typography className={classes.link}>
+              <Typography className={classes.text}>
                 <Link to={`/ships/owned/${actor.state.context.id}`}>
                   {
                     shipDetail?.find(
@@ -197,13 +183,13 @@ export const Strategy = ({ state }: Props) => {
                   }
                 </Link>
               </Typography>
-              <Typography className={classes.link}>
+              <Typography className={classes.text}>
                 {actor.state.context.ship?.type}
               </Typography>
             </Box>,
           ]
         : [
-            <Typography className={classes.link}>
+            <Typography className={classes.text}>
               <Link to={`/ships/owned/${actor.state.context.id}`}>
                 {
                   shipDetail?.find((sd) => sd.shipId === actor.state.context.id)
