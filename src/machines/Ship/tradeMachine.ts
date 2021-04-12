@@ -30,7 +30,6 @@ import { persistStrategy } from "../../components/Strategy/persistStrategy";
 import { IShipDetail } from "../../data/IShipDetail";
 import { getDebug } from "../../data/localStorage/IDebug";
 import { getCredits } from "data/localStorage/getCredits";
-import { formatCurrency } from "./formatNumber";
 
 const MAX_CARGO_MOVE = 300;
 
