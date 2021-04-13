@@ -45,7 +45,7 @@ export const Markets = ({ systems }: Props) => {
           (location ? p.location === location : true) &&
           (good ? p.good === good : true)
       )
-      .limit(50)
+      .limit(150)
       .toArray();
   }, [location, good]);
 

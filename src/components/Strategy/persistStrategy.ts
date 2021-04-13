@@ -8,7 +8,7 @@ export const persistStrategy = async (
   newStrategy: ShipStrategy,
   graceful = true
 ) => {
-  if (graceful)
+  if (graceful && oldStrategy !== ShipStrategy.Change)
     await db.strategies.put({
       shipId,
       strategy: ShipStrategy.Change,

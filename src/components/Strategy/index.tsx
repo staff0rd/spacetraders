@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { State } from "xstate";
 import {
   Context as PlayerContext,
@@ -10,38 +10,50 @@ import {
   makeStyles,
   Typography,
   Grid,
-  Tooltip,
+  TextField,
   Box,
+  FormControl,
   useTheme,
   useMediaQuery,
+  IconButton,
+  Menu,
+  MenuItem,
 } from "@material-ui/core";
-import { DateTime } from "luxon";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import db from "../../data";
 import { useLiveQuery } from "dexie-react-hooks";
-import {
-  getPlayerStrategy,
-  setPlayerStrategy,
-} from "../../data/localStorage/PlayerStrategy";
-import { StrategyToggle } from "./StrategyToggle";
 import { Probes } from "./Probes";
 import { persistStrategy } from "./persistStrategy";
 import { DataTable, right } from "../DataTable";
 import FlightProgress from "../Ships/FlightProgress";
 import NumberFormat from "react-number-format";
 import { Link } from "react-router-dom";
-import { getLocationName } from "components/Trades/getLocations";
+import MenuIcon from "@material-ui/icons/MoreVert";
+import { IShipDetail } from "data/IShipDetail";
+import { FlightPlan } from "api/FlightPlan";
+import { Ship } from "api/Ship";
+
+type ExtendedShip = Ship &
+  IShipDetail & {
+    strategy: string;
+    flightPlan: FlightPlan | undefined;
+    locationName: string;
+  };
 
 const useStyles = makeStyles((theme) => ({
-  playerStrategy: {
-    marginBottom: theme.spacing(2),
-  },
   shipState: {
     display: "inline",
     marginLeft: theme.spacing(2),
   },
-  flightPlanText: {
-    fontSize: 14,
+  menuButton: {
+    marginTop: -2,
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+  },
+  total: {
+    marginTop: 22,
   },
   text: {
     fontSize: 14,
@@ -55,6 +67,9 @@ const useStyles = makeStyles((theme) => ({
   strategy: {
     display: "flex",
   },
+  search: {
+    display: "flex",
+  },
 }));
 
 type Props = {
@@ -65,76 +80,81 @@ export const Strategy = ({ state }: Props) => {
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
-  const [strategy, setStrategy] = React.useState<ShipStrategy>(
-    getPlayerStrategy().strategy
-  );
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [selectedShip, setSelectedShip] = useState<
+    null | ExtendedShip | ExtendedShip[]
+  >(null);
+  const handleClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    ship?: ExtendedShip | ExtendedShip[]
+  ) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedShip(ship || null);
+  };
 
-  const shipDetail = useLiveQuery(() => db.shipDetail.toArray());
+  const handleClose = (newStrategy?: string) => {
+    if (newStrategy && selectedShip) {
+      if (Array.isArray(selectedShip)) {
+        selectedShip.forEach((ship) =>
+          persistStrategy(
+            ship.id,
+            ShipStrategy[ship.strategy as keyof typeof ShipStrategy],
+            ShipStrategy[newStrategy as keyof typeof ShipStrategy]
+          )
+        );
+      } else {
+        persistStrategy(
+          selectedShip.id,
+          ShipStrategy[selectedShip.strategy as keyof typeof ShipStrategy],
+          ShipStrategy[newStrategy as keyof typeof ShipStrategy]
+        );
+      }
+    }
+    setAnchorEl(null);
+    setSelectedShip(null);
+  };
+
+  const [shipFilter, setShipFilter] = useState("");
+  const [shipLimit, setShipLimit] = useState<number | null>(null);
+
+  const ships = useLiveQuery(async () => {
+    const details = await db.shipDetail.toArray();
+    const strats = await db.strategies.toArray();
+    const ships = await db.ships.toArray();
+    const flightPlans = await db.flightPlans.toArray();
+    return details.map(
+      (detail): ExtendedShip => {
+        const ship = ships.find((s) => s.id === detail.shipId);
+        const strategy =
+          ShipStrategy[
+            strats.find((s) => detail.shipId === s.shipId)?.strategy ||
+              ShipStrategy.Trade
+          ];
+        const flightPlan = flightPlans.find(
+          (fp) => fp.shipId === detail.shipId
+        );
+        const locationName = ship?.location || "";
+        return {
+          ...detail,
+          ...ship,
+          strategy,
+          flightPlan,
+          locationName,
+        } as ExtendedShip;
+      }
+    );
+  });
 
   const strategies = useLiveQuery(() => db.strategies.toArray());
-
-  const flightPlans = useLiveQuery(() => db.flightPlans.toArray());
 
   if (
     !state ||
     !state.context.actors.length ||
     !strategies ||
+    !ships ||
     !state.context.systems
   )
     return <CircularProgress size={48} />;
-
-  const handlePlayerStrategyChange = (newStrategy: string) => {
-    if (newStrategy != null) {
-      setStrategy(parseInt(newStrategy));
-      setPlayerStrategy(parseInt(newStrategy));
-      state!.context.actors.forEach((actor) =>
-        persistStrategy(
-          actor.state.context.id,
-          getStrategy(actor.state.context.id)!,
-          parseInt(newStrategy)
-        )
-      );
-    }
-  };
-  const handleShipStrategyChange = (
-    shipId: string,
-    oldStrategy: ShipStrategy,
-    newStrategy: string
-  ) => {
-    if (newStrategy != null) {
-      persistStrategy(shipId, oldStrategy, parseInt(newStrategy));
-    }
-  };
-
-  const getStrategy = (shipId: string) => {
-    const result = strategies!.find((s) => s.shipId === shipId)?.strategy;
-    return result;
-  };
-
-  const flightPlanToRelative = (shipId: string) => {
-    const flightPlan = flightPlans?.find((fp) => fp.shipId === shipId);
-    if (
-      flightPlan &&
-      DateTime.fromISO(flightPlan.arrivesAt) > DateTime.local()
-    ) {
-      return (
-        <>
-          <Typography className={classes.flightPlanText}>
-            {flightPlan.destination}{" "}
-            {DateTime.fromISO(flightPlan.arrivesAt).toRelative()}
-          </Typography>
-          <FlightProgress flightPlan={flightPlan} />
-        </>
-      );
-    }
-  };
-
-  const getLastProfitCreated = (shipId: string) => {
-    const created = shipDetail?.find((sd) => sd.shipId === shipId)
-      ?.lastProfitCreated;
-    if (created) return DateTime.fromISO(created).toRelative()!;
-    return "";
-  };
 
   const columns = [
     "Strategy",
@@ -143,98 +163,112 @@ export const Strategy = ({ state }: Props) => {
     "Location",
   ];
 
-  //const strats = Object.keys(ShipStrategy).filter((p) => isNaN(+p));
+  const shipsFiltered = ships.filter(
+    (ship) =>
+      shipFilter === "" ||
+      ship.name.toLowerCase().includes(shipFilter.toLowerCase()) ||
+      ship.strategy.toLowerCase().includes(shipFilter.toLowerCase()) ||
+      ship.locationName.toLowerCase().includes(shipFilter.toLowerCase()) ||
+      ship.type?.toLowerCase().includes(shipFilter.toLowerCase())
+  );
 
-  const rows = state.context.actors
-    .sort((a, b) =>
-      (
-        shipDetail?.find((sd) => sd.shipId === b.state.context.id)
-          ?.lastProfitCreated || ""
-      ).localeCompare(
-        shipDetail?.find((sd) => sd.shipId === a.state.context.id)
-          ?.lastProfitCreated || ""
-      )
-    )
-    .map((actor) => [
-      <div className={classes.strategy}>
-        <StrategyToggle
-          disabled={getStrategy(actor.state.context.id) === ShipStrategy.Change}
-          strategy={getStrategy(actor.state.context.id)}
-          handleStrategy={(value) =>
-            handleShipStrategyChange(
-              actor.state.context.id,
-              getStrategy(actor.state.context.id)!,
-              value
-            )
-          }
-          size="small"
-        />
-        <Typography className={classes.text}>{actor.state.value}</Typography>
-      </div>,
-      ...(isMdDown
-        ? [
-            <Box>
-              <Typography className={classes.text}>
-                <Link to={`/ships/owned/${actor.state.context.id}`}>
-                  {
-                    shipDetail?.find(
-                      (sd) => sd.shipId === actor.state.context.id
-                    )?.name
-                  }
-                </Link>
-              </Typography>
-              <Typography className={classes.text}>
-                {actor.state.context.ship?.type}
-              </Typography>
-            </Box>,
-          ]
-        : [
+  const shipsLimited = shipLimit
+    ? shipsFiltered.slice(0, shipLimit)
+    : shipsFiltered;
+
+  const rows = shipsLimited.map((ship) => [
+    <div className={classes.strategy}>
+      <IconButton
+        aria-label="delete"
+        size="small"
+        className={classes.menuButton}
+        onClick={(e) => handleClick(e, ship)}
+      >
+        <MenuIcon fontSize="inherit" />
+      </IconButton>
+      {ship.strategy}
+    </div>,
+    ...(isMdDown
+      ? [
+          <Box>
             <Typography className={classes.text}>
-              <Link to={`/ships/owned/${actor.state.context.id}`}>
-                {
-                  shipDetail?.find((sd) => sd.shipId === actor.state.context.id)
-                    ?.name
-                }
-              </Link>
-            </Typography>,
+              <Link to={`/ships/owned/${ship.id}`}>{ship.name}</Link>
+            </Typography>
+            <Typography className={classes.text}>{ship.type}</Typography>
+          </Box>,
+        ]
+      : [
+          <Typography className={classes.text}>
+            <Link to={`/ships/owned/${ship.id}`}>{ship.name}</Link>
+          </Typography>,
 
-            actor.state.context.ship?.type,
-          ]),
-      right(
-        <Tooltip title={getLastProfitCreated(actor.state.context.id)}>
-          <NumberFormat
-            value={
-              shipDetail?.find((sd) => sd.shipId === actor.state.context.id)
-                ?.lastProfit
-            }
-            thousandSeparator=","
-            displayType="text"
-            prefix="$"
-          />
-        </Tooltip>
-      ),
+          ship.type,
+        ]),
+    right(
+      <NumberFormat
+        value={ship.lastProfit}
+        thousandSeparator=","
+        displayType="text"
+        prefix="$"
+      />
+    ),
+    ship.flightPlan ? (
+      <FlightProgress flightPlan={ship.flightPlan} />
+    ) : (
+      ship.locationName
+    ),
 
-      flightPlanToRelative(actor.state.context.id) ||
-        getLocationName(
-          state.context.systems!,
-          actor.state.context.ship?.location
-        ),
-
-      actor.state.context.id,
-    ]);
+    ship.id,
+  ]);
 
   return (
     <>
-      <Grid container className={classes.playerStrategy}>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => handleClose()}
+      >
+        {Object.keys(ShipStrategy)
+          .filter((p) => isNaN(+p))
+          .filter((p) => p !== "Change")
+          .map((s) => (
+            <MenuItem key={s} onClick={() => handleClose(s)}>
+              {s}
+            </MenuItem>
+          ))}
+      </Menu>
+      <Grid container>
         <Grid item xs={6}>
-          <StrategyToggle
-            strategy={strategy}
-            handleStrategy={handlePlayerStrategyChange}
-            disabled={
-              strategies.filter((p) => p.strategy === ShipStrategy.Change)
-                .length > 0
-            }
-          />
+          <div className={classes.search}>
+            <FormControl className={classes.formControl}>
+              <TextField
+                label="Filter"
+                value={shipFilter}
+                onChange={(e) => setShipFilter(e.target.value)}
+              />
+            </FormControl>
+            <FormControl className={classes.formControl}>
+              <TextField
+                type="number"
+                label="Limit"
+                value={shipLimit}
+                onChange={(e) => setShipLimit(Number(e.target.value) || null)}
+              />
+            </FormControl>
+            <FormControl className={classes.formControl}>
+              <Typography className={classes.total}>
+                {rows.length}
+                <IconButton
+                  aria-label="delete"
+                  size="small"
+                  className={classes.menuButton}
+                  onClick={(e) => handleClick(e, shipsLimited)}
+                >
+                  <MenuIcon fontSize="inherit" />
+                </IconButton>
+              </Typography>
+            </FormControl>
+          </div>
         </Grid>
         <Grid item xs={6} className={classes.probes}>
           <Probes />

@@ -1,13 +1,21 @@
 import React from "react";
 import { FlightPlan } from "../../api/FlightPlan";
 import { DateTime } from "luxon";
-import { LinearProgress } from "@material-ui/core";
+import { LinearProgress, makeStyles, Typography } from "@material-ui/core";
+import { getLocation } from "data/localStorage/locationCache";
+
+const useStyles = makeStyles((theme) => ({
+  flightPlanText: {
+    fontSize: 14,
+  },
+}));
 
 type Props = {
   flightPlan: FlightPlan;
 };
 
 export default function LinearStatic({ flightPlan }: Props) {
+  const classes = useStyles();
   const [progress, setProgress] = React.useState(getProgress(flightPlan));
 
   React.useEffect(() => {
@@ -20,7 +28,22 @@ export default function LinearStatic({ flightPlan }: Props) {
     };
   }, [flightPlan]);
 
-  return <LinearProgress variant="determinate" value={progress} />;
+  if (DateTime.fromISO(flightPlan.arrivesAt) > DateTime.local())
+    return (
+      <>
+        <Typography className={classes.flightPlanText}>
+          {flightPlan.destination}{" "}
+          {DateTime.fromISO(flightPlan.arrivesAt).toRelative()}
+        </Typography>
+        <LinearProgress variant="determinate" value={progress} />
+      </>
+    );
+  else
+    return (
+      <Typography className={classes.flightPlanText}>
+        {getLocation(flightPlan.destination).name}
+      </Typography>
+    );
 }
 
 function getProgress(flightPlan: FlightPlan) {

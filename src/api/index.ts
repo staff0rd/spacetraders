@@ -17,6 +17,7 @@ import { getShipName } from "../data/names";
 import { TradeType } from "../data/ITrade";
 import { setLocalUser } from "../data/localStorage/getLocalUser";
 import { setCredits } from "data/localStorage/getCredits";
+import { cacheLocation } from "data/localStorage/locationCache";
 
 class ApiError extends Error {
   code: number;
@@ -264,8 +265,9 @@ export const getMarket = (
         token,
         `game/locations/${location}/marketplace`
       ),
-    async (result) =>
-      Promise.all(
+    async (result) => {
+      cacheLocation(result.location);
+      return Promise.all(
         result.location.marketplace.map((m) => {
           const market = {
             created: DateTime.now().toISO(),
@@ -282,7 +284,8 @@ export const getMarket = (
           db.goodLocation.put(market);
           return db.markets.put(market);
         })
-      )
+      );
+    }
   );
 
 export interface GetShipResponse {

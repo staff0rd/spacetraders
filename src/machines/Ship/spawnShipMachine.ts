@@ -39,7 +39,7 @@ export function spawnShipMachine(c: Context): any {
 
     const { data, strategy } = getStrategy(c, ship);
 
-    if (IsStrategy(ShipStrategy.Probe, strategy, data))
+    if (IsStrategy(ShipStrategy.Probe, strategy, data)) {
       return spawn(
         probeMachine.withContext({
           id: ship.id,
@@ -51,8 +51,9 @@ export function spawnShipMachine(c: Context): any {
           shipName,
         })
       );
+    }
 
-    if (IsStrategy(ShipStrategy.Trade, strategy, data))
+    if (IsStrategy(ShipStrategy.Trade, strategy, data)) {
       return spawn(
         tradeMachine.withContext({
           id: ship.id,
@@ -68,8 +69,8 @@ export function spawnShipMachine(c: Context): any {
         }),
         { name: `ship-${ship.id}`, sync: true }
       ) as any;
-
-    if (IsStrategy(ShipStrategy.Halt, strategy, data))
+    }
+    if (IsStrategy(ShipStrategy.Halt, strategy, data)) {
       return spawn(
         haltMachine.withContext({
           id: ship.id,
@@ -80,6 +81,7 @@ export function spawnShipMachine(c: Context): any {
           shipName,
         })
       );
+    }
 
     throw new Error(
       `Unknown strategy: [${
