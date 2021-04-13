@@ -30,8 +30,8 @@ class ApiError extends Error {
 export const getUrl = (path: string) => `https://api.spacetraders.io/${path}`;
 
 const limiter = new Bottleneck({
-  maxConcurrent: 2,
-  minTime: 550,
+  maxConcurrent: 1,
+  minTime: 500,
 });
 
 (window as any).limiter = limiter;
