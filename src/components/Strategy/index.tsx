@@ -115,7 +115,7 @@ export const Strategy = ({ state }: Props) => {
   };
 
   const [shipFilter, setShipFilter] = useState("");
-  const [shipLimit, setShipLimit] = useState<number | null>(null);
+  const [shipLimit, setShipLimit] = useState<number | "">("");
 
   const ships = useLiveQuery(async () => {
     const details = await db.shipDetail.toArray();
@@ -252,7 +252,7 @@ export const Strategy = ({ state }: Props) => {
                 type="number"
                 label="Limit"
                 value={shipLimit}
-                onChange={(e) => setShipLimit(Number(e.target.value) || null)}
+                onChange={(e) => setShipLimit(Number(e.target.value) || "")}
               />
             </FormControl>
             <FormControl className={classes.formControl}>

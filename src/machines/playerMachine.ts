@@ -14,7 +14,7 @@ import { calculateNetWorth } from "./calculateNetWorth";
 import { NetWorthLineItem } from "./NetWorthLineItem";
 import { Ship } from "../api/Ship";
 import { FlightPlan } from "../api/FlightPlan";
-import { spawnShipMachine } from "./Ship/spawnShipMachine";
+import { getStrategy, spawnShipMachine } from "./Ship/spawnShipMachine";
 import db from "../data";
 import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
@@ -27,6 +27,8 @@ import { getUpgradingShip } from "../data/localStorage/IUpgradeShip";
 import { BoughtShipEvent } from "./BoughtShipEvent";
 import { getDebug } from "../data/localStorage/IDebug";
 import { getCredits } from "data/localStorage/getCredits";
+import { ShipStrategy } from "data/Strategy/ShipStrategy";
+import { ChangeStrategyPayload } from "data/Strategy/StrategyPayloads";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -347,7 +349,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
         );
 
         const debug = getDebug();
-        const toSpawn: Ship[] = c
+        const toSpawn: { ship: Ship; strategy: ShipStrategy }[] = c
           .ships!.filter((s: Ship) => {
             const alreadySpawned = alreadySpawnedShipIds.find(
               (id) => id === s.id
@@ -357,11 +359,36 @@ const options: Partial<MachineOptions<Context, Event>> = {
             }
             return true;
           })
-          .filter((p) => !debug.focusShip || p.id === debug.focusShip);
+          .filter((p) => !debug.focusShip || p.id === debug.focusShip)
+          .map((ts) => {
+            const strat = getStrategy(c, ts);
+            const strategy =
+              strat.strategy === ShipStrategy.Change
+                ? (strat.data as ChangeStrategyPayload).from.strategy
+                : strat.strategy;
+            return { ship: ts, strategy };
+          });
+        type GroupByStrat = { strategy: ShipStrategy; count: number };
+        if (toSpawn.length) {
+          toSpawn
+            .reduce((prev: GroupByStrat[], cur) => {
+              if (!prev.find((p) => p.strategy === cur.strategy)) {
+                prev.push({ strategy: cur.strategy, count: 0 });
+              }
+              prev.find((p) => p.strategy === cur.strategy)!.count += 1;
+              return prev;
+            }, [])
+            .forEach((s) =>
+              console.warn(
+                `Spawning ${s.count} x ${ShipStrategy[s.strategy]} machines`
+              )
+            );
+        }
 
-        if (toSpawn.length) console.warn(`Spawning ${toSpawn.length} actor(s)`);
-
-        return [...c.actors, ...toSpawn.map(spawnShipMachine(c))] as any;
+        return [
+          ...c.actors,
+          ...toSpawn.map((s) => spawnShipMachine(c)(s.ship, s.strategy)),
+        ] as any;
       },
     }) as any,
     clearPlayer: assign<Context>({

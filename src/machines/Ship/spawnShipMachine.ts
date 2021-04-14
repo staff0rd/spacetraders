@@ -4,11 +4,10 @@ import { LocationWithDistance, tradeMachine } from "./tradeMachine";
 import { Ship } from "../../api/Ship";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { Context } from "../playerMachine";
-import { ChangeStrategyPayload } from "../../data/Strategy/StrategyPayloads";
 import { haltMachine } from "./haltMachine";
 import { probeMachine } from "./probeMachine";
 
-const getStrategy = (
+export const getStrategy = (
   c: Context,
   ship: Ship
 ): { strategy: ShipStrategy; data?: any } => {
@@ -25,7 +24,7 @@ const getStrategy = (
 };
 
 export function spawnShipMachine(c: Context): any {
-  return (ship: Ship) => {
+  return (ship: Ship, strategy: ShipStrategy) => {
     const flightPlan = c.flightPlans.find((fp) => fp.shipId === ship.id);
     if (!flightPlan && !ship.location) {
       // api bug
@@ -37,67 +36,51 @@ export function spawnShipMachine(c: Context): any {
     const shipName = c.shipNames?.find((s) => s.shipId === ship.id)?.name || "";
     if (!shipName) console.error("No ship name for " + ship.id);
 
-    const { data, strategy } = getStrategy(c, ship);
+    switch (strategy) {
+      case ShipStrategy.Probe:
+        return spawn(
+          probeMachine.withContext({
+            id: ship.id,
+            token: c.token!,
+            strategy: { strategy: ShipStrategy.Probe },
+            username: c.user!.username,
+            ship,
+            system,
+            shipName,
+          })
+        );
 
-    if (IsStrategy(ShipStrategy.Probe, strategy, data)) {
-      return spawn(
-        probeMachine.withContext({
-          id: ship.id,
-          token: c.token!,
-          strategy: { strategy: ShipStrategy.Probe },
-          username: c.user!.username,
-          ship,
-          system,
-          shipName,
-        })
-      );
-    }
+      case ShipStrategy.Trade:
+        return spawn(
+          tradeMachine.withContext({
+            id: ship.id,
+            token: c.token!,
+            username: c.user!.username,
+            ship,
+            locations: Object.keys(markets).map(
+              (symbol) => markets[symbol] as LocationWithDistance
+            ),
+            flightPlan,
+            strategy: { strategy: ShipStrategy.Trade },
+            shipName,
+          }),
+          { name: `ship-${ship.id}`, sync: true }
+        ) as any;
 
-    if (IsStrategy(ShipStrategy.Trade, strategy, data)) {
-      return spawn(
-        tradeMachine.withContext({
-          id: ship.id,
-          token: c.token!,
-          username: c.user!.username,
-          ship,
-          locations: Object.keys(markets).map(
-            (symbol) => markets[symbol] as LocationWithDistance
-          ),
-          flightPlan,
-          strategy: { strategy: ShipStrategy.Trade },
-          shipName,
-        }),
-        { name: `ship-${ship.id}`, sync: true }
-      ) as any;
-    }
-    if (IsStrategy(ShipStrategy.Halt, strategy, data)) {
-      return spawn(
-        haltMachine.withContext({
-          id: ship.id,
-          token: c.token!,
-          strategy: { strategy: ShipStrategy.Halt },
-          username: c.user!.username,
-          ship,
-          shipName,
-        })
-      );
-    }
+      case ShipStrategy.Halt:
+        return spawn(
+          haltMachine.withContext({
+            id: ship.id,
+            token: c.token!,
+            strategy: { strategy: ShipStrategy.Halt },
+            username: c.user!.username,
+            ship,
+            shipName,
+          })
+        );
 
-    throw new Error(
-      `Unknown strategy: [${
-        ShipStrategy[strategy]
-      } (${strategy})] data: ${JSON.stringify(data)}`
-    );
+      default:
+        throw new Error(`Unknown strategy: ${ShipStrategy[strategy]}`);
+    }
   };
-}
-function IsStrategy(
-  strategy: ShipStrategy,
-  shipStrategy: ShipStrategy,
-  data: any
-) {
-  const result =
-    shipStrategy === strategy ||
-    (shipStrategy === ShipStrategy.Change &&
-      (data as ChangeStrategyPayload).from.strategy === strategy);
-  return result;
 }
