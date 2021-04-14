@@ -4,6 +4,7 @@ import { updateStrategy } from "./updateStrategy";
 import { ShipStrategyContext } from "./ShipBaseContext";
 import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
 import { assign } from "xstate";
+import { getDebug } from "data/localStorage/IDebug";
 
 export function confirmStrategy(
   desired: ShipStrategy,
@@ -16,6 +17,12 @@ export function confirmStrategy(
         const currentStrategy: IShipStrategy = (await db.strategies
           .where({ shipId: c.id })
           .first())!;
+        if (getDebug().focusShip)
+          console.warn(
+            `${ShipStrategy[currentStrategy.strategy]} === ${
+              ShipStrategy[desired]
+            }`
+          );
         if (currentStrategy.strategy === desired) return nextState;
         console.log("updating strategy");
         await updateStrategy(c.id, desired, currentStrategy);

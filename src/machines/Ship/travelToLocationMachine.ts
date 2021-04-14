@@ -18,6 +18,8 @@ import { ShipContext } from "./ShipBaseContext";
 import { printError, printErrorAction, print } from "./printError";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { debugMachineStates } from "../debugStates";
+import { persistStrategy } from "components/Strategy/persistStrategy";
+import { ShipStrategy } from "data/Strategy/ShipStrategy";
 
 const throwError = (message: string) => {
   console.warn(message);
@@ -135,14 +137,12 @@ const config: MachineConfig<Context, any, any> = {
         },
         onError: [
           {
-            cond: (c, e: any) => {
-              const willTrigger = e.data.code === 2001;
-              console.warn("wilTrigger", willTrigger, e);
-              return e.data.code === 2001;
-            },
+            cond: (c, e: any) => e.data.code === 2001,
             actions: [
               print("No fuel at this location"),
               assign<Context>({ success: false }) as any,
+              (c) =>
+                persistStrategy(c.id, ShipStrategy.Halt, ShipStrategy.Halt),
             ],
             target: States.Done,
           },
