@@ -5,6 +5,7 @@ import {
   EventObject,
   MachineConfig,
   StateMachine,
+  MachineOptions,
 } from "xstate";
 import { Ship } from "../../api/Ship";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
@@ -18,6 +19,7 @@ import { initShipMachine } from "./initShipMachine";
 import { travelToLocation } from "./travelToLocation";
 import { debugShipMachineStates } from "../debugStates";
 import { getDebug } from "../../data/localStorage/IDebug";
+import { persistStrategy } from "components/Strategy/persistStrategy";
 
 enum States {
   Init = "init",
@@ -59,7 +61,11 @@ const config: MachineConfig<Context, any, any> = {
     [States.Idle]: {
       after: {
         1: [
-          { target: States.Done, cond: (c) => !c.probe },
+          {
+            target: States.Done,
+            cond: (c) => !c.probe,
+            actions: "revertToTrade",
+          },
           {
             target: States.TravelToLocation,
             cond: (c) =>
@@ -88,6 +94,7 @@ const config: MachineConfig<Context, any, any> = {
         onDone: [
           {
             cond: (_, e: any) => !e.data,
+            actions: "revertToTrade",
             target: States.Done,
           },
           {
@@ -130,6 +137,16 @@ const config: MachineConfig<Context, any, any> = {
   },
 };
 
+const options: Partial<MachineOptions<Context, any>> = {
+  actions: {
+    revertToTrade: (c: Context) => {
+      console.warn("Nothing to probe, reverting to trade");
+      persistStrategy(c.id, ShipStrategy.Trade, ShipStrategy.Trade, false);
+    },
+  },
+};
+
 export const probeMachine = createMachine(
-  debugShipMachineStates(config, getDebug().debugProbeMachine)
+  debugShipMachineStates(config, getDebug().debugProbeMachine),
+  options
 );
