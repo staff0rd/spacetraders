@@ -13,5 +13,5 @@ export function printErrorAction<TContext extends ShipContext>() {
 
 export function print<TContext extends ShipContext>(message: string) {
   return (c: TContext, e: any, d: ActionMeta<TContext, any>) =>
-    console.error(`[${c.shipName}] ${message}`);
+    console.warn(`[${c.shipName}] ${message}`, e);
 }

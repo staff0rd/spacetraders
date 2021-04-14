@@ -4,6 +4,7 @@ interface IDebug {
   debugUpgradeMachine: boolean;
   debugProbeMachine: boolean;
   debugPlayerMachine: boolean;
+  debugHaltMachine: boolean;
 }
 
 const key = "debug";
@@ -27,5 +28,6 @@ export const getDebug = (): IDebug => {
       debugProbeMachine: false,
       debugTradeMachine: false,
       debugUpgradeMachine: false,
+      debugHaltMachine: false,
     };
 };

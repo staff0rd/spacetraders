@@ -50,6 +50,11 @@ export const Debug = () => {
         persist={(value) => setDebug({ debugUpgradeMachine: value })}
         initialValue={debug.debugUpgradeMachine}
       />
+      <DebugCheckbox
+        title="Debug Halt Machine"
+        persist={(value) => setDebug({ debugHaltMachine: value })}
+        initialValue={debug.debugHaltMachine}
+      />
     </>
   );
 };

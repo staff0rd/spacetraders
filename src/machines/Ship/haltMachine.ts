@@ -3,13 +3,17 @@ import {
   assign,
   createMachine,
   EventObject,
+  MachineOptions,
   StateMachine,
+  MachineConfig,
 } from "xstate";
 import { Ship } from "../../api/Ship";
 import db from "../../data";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { confirmStrategy } from "./confirmStrategy";
+import { debugMachineStates } from "machines/debugStates";
+import { getDebug } from "data/localStorage/IDebug";
 
 enum States {
   Waiting = "waiting",
@@ -23,48 +27,51 @@ export type Context = ShipBaseContext;
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
-export const haltMachine = createMachine<Context, any, any>(
-  {
-    id: "halt",
-    initial: States.Waiting,
-    context: {
-      id: "",
-      token: "",
-      username: "",
-      shipName: "",
-      ship: {} as Ship,
-      strategy: { strategy: ShipStrategy.Halt },
+const config: MachineConfig<Context, any, any> = {
+  id: "halt",
+  initial: States.Waiting,
+  context: {
+    id: "",
+    token: "",
+    username: "",
+    shipName: "",
+    ship: {} as Ship,
+    strategy: { strategy: ShipStrategy.Halt },
+  },
+  states: {
+    [States.Waiting]: {
+      after: {
+        5000: States.ConfirmStrategy,
+      },
     },
-    states: {
-      [States.Waiting]: {
-        after: {
-          5000: States.ConfirmStrategy,
-        },
-      },
-      [States.Done]: {
-        type: "final",
-      },
-      [States.ConfirmStrategy]: confirmStrategy(
-        ShipStrategy.Halt,
-        States.Waiting,
-        States.Done
-      ),
+    [States.Done]: {
+      type: "final",
+    },
+    [States.ConfirmStrategy]: confirmStrategy(
+      ShipStrategy.Halt,
+      States.Waiting,
+      States.Done
+    ),
+  },
+};
+const options: Partial<MachineOptions<Context, any>> = {
+  services: {
+    checkStrategy: async (c) => {
+      const strategy = await db.strategies.where({ shipId: c.id }).first();
+      return strategy;
     },
   },
-  {
-    services: {
-      checkStrategy: async (c) => {
-        const strategy = await db.strategies.where({ shipId: c.id }).first();
-        return strategy;
-      },
-    },
-    actions: {
-      checkStrategy: assign<Context>({
-        strategy: (c, e: any) => e.data,
-      }),
-    },
-    guards: {
-      shouldDone: (c) => c.strategy.strategy !== ShipStrategy.Halt,
-    },
-  }
+  actions: {
+    checkStrategy: assign<Context>({
+      strategy: (c, e: any) => e.data,
+    }),
+  },
+  guards: {
+    shouldDone: (c) => c.strategy.strategy !== ShipStrategy.Halt,
+  },
+};
+
+export const haltMachine = createMachine(
+  debugMachineStates(config, getDebug().debugHaltMachine),
+  options
 );
