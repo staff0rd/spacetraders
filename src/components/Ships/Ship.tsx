@@ -51,7 +51,7 @@ export const ShipComponent = ({ ship: actor, systems }: Props) => {
         .where("shipId")
         .equals(shipId || "")
         .reverse()
-        .limit(20)
+        .limit(50)
         .toArray(),
     [shipId]
   );
