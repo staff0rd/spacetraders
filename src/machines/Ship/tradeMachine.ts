@@ -18,12 +18,15 @@ import { TradeType } from "../../data/ITrade";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { confirmStrategy } from "./confirmStrategy";
 import { initShipMachine } from "./initShipMachine";
-import { determineBestTradeRouteByCurrentLocation } from "./determineBestTradeRoute";
+import {
+  determineBestTradeRouteByCurrentLocation,
+  determineClosestBestTradeRoute,
+} from "./determineBestTradeRoute";
 import { TradeRoute } from "./TradeRoute";
 import { debugShipMachine } from "./debugMachine";
 import { travelToLocation } from "./travelToLocation";
 import { ShipBaseContext } from "./ShipBaseContext";
-import { printErrorAction } from "./printError";
+import { printErrorAction, print } from "./printError";
 import { debugShipMachineStates } from "../debugStates";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { persistStrategy } from "../../components/Strategy/persistStrategy";
@@ -61,6 +64,7 @@ export type Context = ShipBaseContext & {
   location?: Location;
   locations: LocationWithDistance[];
   tradeRoute?: TradeRoute;
+  goto?: string;
 };
 
 export type ShipActor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -137,10 +141,13 @@ const config: MachineConfig<Context, any, any> = {
         ],
       },
     },
-    [States.TravelToLocation]: travelToLocation<Context>(
-      (c) => c.tradeRoute!.sellLocation,
-      States.Idle
-    ),
+    [States.TravelToLocation]: {
+      exit: (c) => assign<Context>({ goto: undefined }),
+      ...travelToLocation<Context>(
+        (c) => c.goto || c.tradeRoute!.sellLocation,
+        States.Idle
+      ),
+    },
     [States.DetermineTradeRoute]: {
       invoke: {
         src: async (c) => {
@@ -149,7 +156,33 @@ const config: MachineConfig<Context, any, any> = {
             c.ship.maxCargo,
             c.ship.location
           );
-          if (!tradeRoutes.length) {
+
+          if (tradeRoutes.length) {
+            const tradeRoute = tradeRoutes[0];
+            console.log(
+              `Rank: ${tradeRoute.rank}, ${tradeRoute.buyLocation}->${tradeRoute.sellLocation} ${tradeRoute.good}`
+            );
+            db.tradeRoutes.put({
+              ...tradeRoute,
+              created: DateTime.now().toISO(),
+              shipId: c.id,
+            });
+            return tradeRoute;
+          }
+
+          const closest = await determineClosestBestTradeRoute(
+            c.ship.type,
+            c.ship.maxCargo,
+            c.ship.location
+          );
+
+          if (closest.length) {
+            console.log(
+              `[${c.shipName}] Going to closest`,
+              closest[0].route.buyLocation
+            );
+            return closest[0].route.buyLocation;
+          } else {
             console.warn("No trade routes, switching to probe");
             persistStrategy(
               c.id,
@@ -159,21 +192,21 @@ const config: MachineConfig<Context, any, any> = {
             );
             throw new Error("No trade routes, switching to probe");
           }
-          const tradeRoute = tradeRoutes[0];
-          db.tradeRoutes.put({
-            ...tradeRoute,
-            created: DateTime.now().toISO(),
-            shipId: c.id,
-          });
-          return tradeRoute;
         },
         onError: States.Done,
-        onDone: {
-          target: States.Idle,
-          actions: assign<Context>({
-            tradeRoute: (c, e: any) => e.data,
-          }) as any,
-        },
+        onDone: [
+          {
+            actions: assign<Context>({ goto: (c, e: any) => e.data }) as any,
+            cond: (c, e: any) => typeof e.data === "string",
+            target: States.TravelToLocation,
+          },
+          {
+            target: States.Idle,
+            actions: assign<Context>({
+              tradeRoute: (c, e: any) => e.data,
+            }) as any,
+          },
+        ],
       },
     },
     [States.Done]: {
@@ -411,6 +444,11 @@ const config: MachineConfig<Context, any, any> = {
           //   cond: (c, e: any) => e.data.code === 2004,
           //   target: States.Wait,
           // },
+          {
+            cond: (c, e: any) => e.data.code === 2006,
+            target: States.DetermineTradeRoute,
+            actions: [printErrorAction(), print("Changing trade route")],
+          },
           {
             actions: printErrorAction(),
             target: States.Wait,

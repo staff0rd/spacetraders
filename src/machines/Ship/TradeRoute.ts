@@ -12,4 +12,5 @@ export type TradeRoute = {
   quantityAvailable: number;
   quantityToBuy: number;
   fuelNeeded: number;
+  rank?: number;
 };

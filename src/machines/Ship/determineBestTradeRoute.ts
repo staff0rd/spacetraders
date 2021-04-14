@@ -1,3 +1,4 @@
+import { getLocation } from "data/localStorage/locationCache";
 import db from "../../data";
 import { getFuelNeeded } from "../../data/getFuelNeeded";
 import { getDistance } from "../getDistance";
@@ -12,6 +13,31 @@ export async function determineBestTradeRouteByCurrentLocation(
   return (await determineBestTradeRoute(shipType, maxCargo)).filter(
     (dest) => dest.buyLocation === location
   );
+}
+
+export async function determineClosestBestTradeRoute(
+  shipType: string,
+  maxCargo: number,
+  locationSymbol?: string
+) {
+  if (!locationSymbol)
+    throw new Error("No location symbol to determine traderoute");
+  const location = getLocation(locationSymbol);
+
+  if (!location)
+    throw new Error("Couldn't find location from " + locationSymbol);
+
+  const routes = await determineBestTradeRoute(shipType, maxCargo);
+  return routes
+    .slice(0, 5)
+    .map((route) => {
+      const departure = getLocation(route.buyLocation);
+      return {
+        route,
+        distance: getDistance(location.x, location.y, departure.x, departure.y),
+      };
+    })
+    .sort((a, b) => b.distance - a.distance);
 }
 
 export async function determineBestTradeRoute(
@@ -63,5 +89,9 @@ export async function determineBestTradeRoute(
     )
     .flat()
     .filter((a) => !excludeLoss || a.costVolumeDistance > 0)
-    .sort((a, b) => b.costVolumeDistance - a.costVolumeDistance);
+    .sort((a, b) => b.costVolumeDistance - a.costVolumeDistance)
+    .map((r, ix) => ({
+      ...r,
+      rank: ix + 1,
+    }));
 }
