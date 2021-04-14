@@ -34,7 +34,7 @@ import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { IconAndValue } from "./IconAndValue";
 import { Status } from "../Status";
-import WarningIcon from "@material-ui/icons/Warning";
+import WarningIcon from "@material-ui/icons/Update";
 import { getMenus } from "./getMenus";
 import { PaletteColor } from "@material-ui/core/styles/createPalette";
 import {
