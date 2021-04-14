@@ -118,7 +118,7 @@ export const Strategy = ({ state }: Props) => {
   const [shipLimit, setShipLimit] = useState<number | "">("");
 
   const ships = useLiveQuery(async () => {
-    const details = await db.shipDetail.toArray();
+    const details = await db.shipDetail.filter((p) => !p.deleted).toArray();
     const strats = await db.strategies.toArray();
     const ships = await db.ships.toArray();
     const flightPlans = await db.flightPlans.toArray();
@@ -221,6 +221,14 @@ export const Strategy = ({ state }: Props) => {
     ship.id,
   ]);
 
+  const shipWithUndefinedId = ships.find((s) => !s.id);
+  if (shipWithUndefinedId) {
+    db.shipDetail
+      .where("shipId")
+      .equals(shipWithUndefinedId.shipId)
+      .modify({ deleted: true });
+    throw new Error("Found ship with undefinedid");
+  }
   return (
     <>
       <Menu

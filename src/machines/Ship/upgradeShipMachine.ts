@@ -29,8 +29,9 @@ import { Ship } from "../../api/Ship";
 import { getLocation } from "../../data/localStorage/locationCache";
 import { getDistance } from "../getDistance";
 import { travelToLocationMachine } from "./travelToLocationMachine";
-import { getDebug } from "../../data/localStorage/IDebug";
+import { getDebug } from "data/localStorage/IDebug";
 import { getCredits } from "data/localStorage/getCredits";
+import { printErrorAction } from "./printError";
 
 enum States {
   //Init = "init",
@@ -136,20 +137,23 @@ const config: MachineConfig<Context, any, Event> = {
         onDone: States.BuyShip,
         onError: {
           target: States.SellShipError,
-          actions: assign<Context>({
-            errorCode: (c, e: any) => e.data.code,
-          }) as any,
+          actions: [
+            assign<Context>({
+              errorCode: (c, e: any) => e.data.code,
+            }) as any,
+            printErrorAction(),
+          ],
         },
       },
     },
     [States.SellShipError]: {
       after: {
         1: [
-          {
-            cond: (c, e: any) => c.errorCode === 42201,
-            actions: assign<Context>({ errorCode: undefined }) as any,
-            target: States.FlyToShipyard,
-          },
+          // {
+          //   cond: (c, e: any) => c.errorCode === 42201,
+          //   actions: assign<Context>({ errorCode: undefined }) as any,
+          //   target: States.FlyToShipyard,
+          // },
           {
             target: States.Done,
             actions: log(),

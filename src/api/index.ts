@@ -331,18 +331,33 @@ export const getShips = async (
   return result;
 };
 
+const clearShipFromDatabase = async (shipId: string) => {
+  console.warn("Deleting ship");
+  await db.strategies.delete(shipId);
+  await db.ships.delete(shipId);
+  await db.flightPlans.delete(shipId);
+  await db.shipDetail.where("shipId").equals(shipId).modify({ deleted: true });
+};
 export const scrapShip = async (
   token: string,
   username: string,
   shipId: string
-): Promise<GetUserResponse> => {
-  const result = await persistUserResponse(
-    deleteSecure<GetUserResponse>(token, `users/${username}/ships/${shipId}`)
-  );
-  await db.strategies.where("shipId").equals(shipId).delete();
-  await db.ships.where("id").equals(shipId).delete();
-  await db.flightPlans.where("shipId").equals(shipId).delete();
-  return result;
+): Promise<{ success: string }> => {
+  try {
+    const result = await deleteSecure<{ success: string }>(
+      token,
+      `users/${username}/ships/${shipId}`
+    );
+
+    await clearShipFromDatabase(shipId);
+    return result;
+  } catch (e) {
+    if (e.message === "You can not sell a ship you do not own.") {
+      await clearShipFromDatabase(shipId);
+    }
+    console.error("There was a problem", e);
+    throw e;
+  }
 };
 
 export const buyShip = async (

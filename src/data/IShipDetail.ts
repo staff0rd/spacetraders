@@ -3,4 +3,5 @@ export interface IShipDetail {
   name: string;
   lastProfit?: number;
   lastProfitCreated?: string;
+  deleted?: boolean;
 }
