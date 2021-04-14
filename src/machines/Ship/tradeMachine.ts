@@ -74,7 +74,7 @@ const sleep = (ms: number) => {
 };
 
 const config: MachineConfig<Context, any, any> = {
-  id: "ship",
+  id: "trade",
   initial: States.Init,
   context: {
     id: "",
@@ -124,7 +124,9 @@ const config: MachineConfig<Context, any, any> = {
             target: States.DetermineTradeRoute,
             cond: (c) =>
               !!c.ship.location &&
-              (!c.tradeRoute || c.tradeRoute?.sellLocation === c.ship.location),
+              (!c.tradeRoute ||
+                c.tradeRoute?.sellLocation === c.ship.location ||
+                c.tradeRoute?.buyLocation !== c.ship.location),
           },
           {
             target: States.BuyCargo,

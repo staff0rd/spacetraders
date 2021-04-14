@@ -15,7 +15,7 @@ import { DateTime } from "luxon";
 import { getFuelNeeded } from "../../data/getFuelNeeded";
 import { getDistance } from "../getDistance";
 import { ShipContext } from "./ShipBaseContext";
-import { printError, printErrorAction } from "./printError";
+import { printError, printErrorAction, print } from "./printError";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { debugMachineStates } from "../debugStates";
 
@@ -43,6 +43,7 @@ export type Context = {
   destination: string;
   flightPlan?: FlightPlan;
   neededFuel?: number;
+  success?: boolean;
 } & ShipContext;
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -72,6 +73,7 @@ const config: MachineConfig<Context, any, any> = {
         1: [
           {
             target: States.Done,
+            actions: assign<Context>({ success: true }) as any,
             cond: (c) => c.destination === c.ship?.location,
           },
           {
@@ -100,7 +102,10 @@ const config: MachineConfig<Context, any, any> = {
     [States.Done]: {
       type: "final",
       data: {
-        ship: (c: Context) => ({ ...c.ship, location: c.destination }),
+        ship: (c: Context) => {
+          if (c.success) return { ...c.ship, location: c.destination };
+          else return c.ship;
+        },
       },
     },
     [States.BuyFuel]: {
@@ -128,10 +133,25 @@ const config: MachineConfig<Context, any, any> = {
 
           return result;
         },
-        onError: {
-          target: States.Wait,
-          actions: printErrorAction(),
-        },
+        onError: [
+          {
+            cond: (c, e: any) => {
+              const willTrigger = e.data.code === 2001;
+              console.warn("wilTrigger", willTrigger, e);
+              return e.data.code === 2001;
+            },
+            actions: [
+              print("No fuel at this location"),
+              assign<Context>({ success: false }) as any,
+            ],
+            target: States.Done,
+          },
+          {
+            cond: (c, e: any) => e.data?.code !== 2001,
+            target: States.Wait,
+            actions: printErrorAction(),
+          },
+        ],
         onDone: {
           target: States.Idle,
           actions: assign<Context>({
@@ -240,6 +260,7 @@ const config: MachineConfig<Context, any, any> = {
             ).milliseconds;
             return result;
           },
+          actions: assign<Context>({ success: true }) as any,
           target: States.Done,
         },
       ],
