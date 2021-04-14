@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { Checkbox, FormControlLabel } from "@material-ui/core";
 
 type Props = {
   initialValue: boolean;
   persist: (value: boolean) => void;
-  title: string;
+  title: ReactNode;
   hideWhenOff?: boolean;
 };
 

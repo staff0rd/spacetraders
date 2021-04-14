@@ -1,15 +1,30 @@
 import React from "react";
 import { getDebug, setDebug } from "../../data/localStorage/IDebug";
 import { DebugCheckbox } from "./DebugCheckbox";
+import { Typography, makeStyles } from "@material-ui/core";
+import { Link } from "react-router-dom";
+
+const useStyles = makeStyles((theme) => ({
+  text: {
+    "& a": {
+      color: "white",
+    },
+  },
+}));
 
 export const Debug = () => {
+  const classes = useStyles();
   const debug = getDebug();
 
   return (
     <>
       <DebugCheckbox
         hideWhenOff
-        title="Ship focused"
+        title={
+          <Typography className={classes.text}>
+            <Link to={`/ships/owned/${debug.focusShip}`}>Ship focused</Link>
+          </Typography>
+        }
         initialValue={!!debug.focusShip}
         persist={(value) =>
           !value ? setDebug({ focusShip: undefined }) : () => {}
