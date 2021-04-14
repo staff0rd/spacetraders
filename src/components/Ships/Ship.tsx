@@ -1,6 +1,6 @@
-import { CircularProgress, makeStyles, Typography } from "@material-ui/core";
+import { CircularProgress, Typography } from "@material-ui/core";
 import React from "react";
-import { FlightPlan } from "./FlightPlan";
+import FlightProgress from "./FlightProgress";
 import { Grid } from "@material-ui/core";
 import { Box } from "@material-ui/core";
 import Cargo from "./Cargo";
@@ -11,22 +11,7 @@ import { TradesDataTable } from "../Trades/TradesDataTable";
 import { DebugCheckbox } from "../Settings/DebugCheckbox";
 import { getDebug, setDebug } from "../../data/localStorage/IDebug";
 import { SystemContext } from "machines/MarketContext";
-
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    padding: theme.spacing(2),
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  name: {
-    display: "flex",
-  },
-  icon: {
-    marginRight: theme.spacing(1),
-  },
-  state: {},
-}));
+import { Strategy } from "./Strategy";
 
 type Props = {
   ship?: ShipActor;
@@ -34,14 +19,13 @@ type Props = {
 };
 
 export const ShipComponent = ({ ship: actor, systems }: Props) => {
-  const classes = useStyles();
   const shipId = actor?.state.context.id;
 
-  const flightPlan = useLiveQuery(
-    () =>
-      shipId
-        ? db.flightPlans.where("shipId").equals(shipId).first()
-        : undefined,
+  const ship = useLiveQuery(
+    async () => ({
+      flightPlan: shipId ? await db.flightPlans.get(shipId) : undefined,
+      strategy: await db.strategies.get(shipId || ""),
+    }),
     [shipId]
   );
 
@@ -84,13 +68,12 @@ export const ShipComponent = ({ ship: actor, systems }: Props) => {
           <Grid item xs={6}>
             <Box>
               <Typography variant="h6">State</Typography>
-              {flightPlan ? (
-                <FlightPlan flightPlan={flightPlan!} />
-              ) : (
-                <Typography className={classes.state}>
-                  {actor.state.value}
-                </Typography>
-              )}
+              <Strategy strategy={ship?.strategy} />
+
+              <FlightProgress
+                flightPlan={ship?.flightPlan}
+                fallback={actor.state.value}
+              />
             </Box>
           </Grid>
           <Grid item xs={6}>

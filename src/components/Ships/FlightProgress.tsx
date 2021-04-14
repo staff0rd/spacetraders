@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import { FlightPlan } from "../../api/FlightPlan";
 import { DateTime } from "luxon";
 import { LinearProgress, makeStyles, Typography } from "@material-ui/core";
@@ -11,16 +11,19 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type Props = {
-  flightPlan: FlightPlan;
+  flightPlan: FlightPlan | undefined;
+  fallback?: ReactNode;
 };
 
-export default function LinearStatic({ flightPlan }: Props) {
+export default function LinearStatic({ flightPlan, fallback }: Props) {
   const classes = useStyles();
-  const [progress, setProgress] = React.useState(getProgress(flightPlan));
+  const [progress, setProgress] = React.useState(
+    flightPlan ? getProgress(flightPlan) : 0
+  );
 
   React.useEffect(() => {
     const timer = setInterval(() => {
-      const value = getProgress(flightPlan);
+      const value = flightPlan ? getProgress(flightPlan) : 0;
       setProgress(value);
     }, 1000);
     return () => {
@@ -28,7 +31,7 @@ export default function LinearStatic({ flightPlan }: Props) {
     };
   }, [flightPlan]);
 
-  if (DateTime.fromISO(flightPlan.arrivesAt) > DateTime.local())
+  if (flightPlan && DateTime.fromISO(flightPlan.arrivesAt) > DateTime.local())
     return (
       <>
         <Typography className={classes.flightPlanText}>
@@ -41,7 +44,8 @@ export default function LinearStatic({ flightPlan }: Props) {
   else
     return (
       <Typography className={classes.flightPlanText}>
-        {getLocation(flightPlan.destination).name}
+        {fallback ||
+          (flightPlan ? getLocation(flightPlan.destination).name : "")}
       </Typography>
     );
 }
