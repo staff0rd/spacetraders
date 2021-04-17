@@ -84,4 +84,4 @@ export const testMarketResponse = {
       },
     ],
   },
-} as api.GetMarketResponse;
+} as api.GetLocationResponse;

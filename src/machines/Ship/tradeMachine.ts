@@ -382,11 +382,11 @@ const config: MachineConfig<Context, any, any> = {
           actions: [
             assign({
               location: (c, e: any) =>
-                (e.data as api.GetMarketResponse).location,
+                (e.data as api.GetLocationResponse).location,
             }) as any,
             sendParent((c, e: any) => ({
               type: "UPDATE_LOCATION",
-              data: (e.data as api.GetMarketResponse).location,
+              data: (e.data as api.GetLocationResponse).location,
             })),
           ],
         },

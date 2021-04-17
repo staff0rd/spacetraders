@@ -1,11 +1,19 @@
-import { CircularProgress, Typography } from "@material-ui/core";
+import { CircularProgress, Typography, Tooltip } from "@material-ui/core";
 import { SystemContext } from "../../machines/MarketContext";
 import { DataTable } from "../DataTable";
 import { makeStyles } from "@material-ui/core";
 import { Link } from "react-router-dom";
+import InfoIcon from "@material-ui/icons/Info";
 
 const useStyles = makeStyles((theme) => ({
-  link: {
+  system: {
+    display: "flex",
+  },
+  infoIcon: {
+    fontSize: 20,
+  },
+  text: {
+    fontSize: 14,
     "& a": {
       color: "white",
     },
@@ -27,8 +35,15 @@ export const LocationList = ({ systems }: Props) => {
       Object.keys(systems[systemSymbol]).map((key) => {
         const location = systems[systemSymbol][key];
         return [
-          systemSymbol,
-          <Typography className={classes.link}>
+          <div className={classes.system}>
+            <Typography className={classes.text}>{systemSymbol}</Typography>
+            {!!location.messages?.length && (
+              <Tooltip title="Has messages">
+                <InfoIcon className={classes.infoIcon} />
+              </Tooltip>
+            )}
+          </div>,
+          <Typography className={classes.text}>
             <Link to={`/locations/${location.symbol}`}>{location.name}</Link>
           </Typography>,
           location.symbol,

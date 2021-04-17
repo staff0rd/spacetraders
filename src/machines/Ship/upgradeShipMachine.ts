@@ -167,7 +167,7 @@ const config: MachineConfig<Context, any, Event> = {
           const ship = c.ships.find((s) => s.id === shipId());
           const shipYards = c.available
             .map((av) =>
-              av.purchaseLocations.map((lo) => getLocation(lo.location))
+              av.purchaseLocations.map((lo) => getLocation(lo.location)!)
             )
             .flat()
             .filter((p) => !!p);

@@ -1,10 +1,7 @@
 import LocationIcon from "@material-ui/icons/FiberManualRecord";
 import { makeStyles, Popover, Typography } from "@material-ui/core";
 import { useState } from "react";
-import db from "../../../data";
 import { Location as LocationSchema } from "../../../api/Location";
-import { useLiveQuery } from "dexie-react-hooks";
-import { groupByLocation } from "./groupByLocation";
 
 const useStyles = makeStyles((theme) => ({
   location: {
@@ -32,10 +29,6 @@ type Props = {
 export const Location = ({ location, parentWidth, parentHeight }: Props) => {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-
-  const intel = useLiveQuery(() => db.intel.toArray());
-
-  const grouped: any = groupByLocation(intel);
 
   const handlePopoverOpen = (
     event: React.MouseEvent<HTMLElement, MouseEvent>
@@ -89,16 +82,6 @@ export const Location = ({ location, parentWidth, parentHeight }: Props) => {
         <Typography>
           {location.location.name} ({location.location.symbol})
         </Typography>
-        {grouped[location.location.symbol] && (
-          <>
-            <Typography>
-              Docked: {grouped[location.location.symbol].docked}
-            </Typography>
-            <Typography>
-              En-route: {grouped[location.location.symbol].enroute}
-            </Typography>
-          </>
-        )}
       </Popover>
     </>
   );

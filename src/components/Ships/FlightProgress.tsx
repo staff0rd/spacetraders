@@ -45,7 +45,7 @@ export default function LinearStatic({ flightPlan, fallback }: Props) {
     return (
       <Typography className={classes.flightPlanText}>
         {fallback ||
-          (flightPlan ? getLocation(flightPlan.destination).name : "")}
+          (flightPlan ? getLocation(flightPlan.destination)?.name || "" : "")}
       </Typography>
     );
 }

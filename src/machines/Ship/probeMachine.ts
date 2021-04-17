@@ -33,7 +33,7 @@ enum States {
   Done = "done",
 }
 
-const PROBE_DELAY_MINUTES = 1;
+const PROBE_DELAY_MINUTES = 2;
 
 export type Context = ShipBaseContext & {
   probe?: IProbe;
@@ -109,6 +109,7 @@ const config: MachineConfig<Context, any, any> = {
         src: async (c) => {
           await api.getMarket(c.token, c.ship!.location!);
           await api.getDockedShips(c.token, c.ship!.location!);
+          await api.getStructures(c.token, c.ship!.location!);
         },
         onDone: {
           actions: assign<Context>({ lastProbe: () => DateTime.now() }) as any,

@@ -34,7 +34,12 @@ export async function determineClosestBestTradeRoute(
       const departure = getLocation(route.buyLocation);
       return {
         route,
-        distance: getDistance(location.x, location.y, departure.x, departure.y),
+        distance: getDistance(
+          location.x,
+          location.y,
+          departure?.x || Infinity,
+          departure?.y || Infinity
+        ),
       };
     })
     .sort((a, b) => b.distance - a.distance);

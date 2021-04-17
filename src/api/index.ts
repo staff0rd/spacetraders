@@ -144,6 +144,17 @@ type GetDockedShipsResponse = {
   };
 };
 
+export const getStructures = async (token: string, location: string) => {
+  const result = await getSecure<GetLocationResponse>(
+    token,
+    `game/locations/${location}`
+  );
+
+  cacheLocation(result.location);
+
+  return result;
+};
+
 export const getDockedShips = async (token: string, location: string) => {
   const result = await getSecure<GetDockedShipsResponse>(
     token,
@@ -247,28 +258,28 @@ export const getSystems = async (
   return result;
 };
 
-const marketCache = createCache<GetMarketResponse>();
+const marketCache = createCache<GetLocationResponse>();
 
-export type GetMarketResponse = {
+export type GetLocationResponse = {
   location: Location;
 };
 
 export const getMarket = (
   token: string,
   location: string
-): Promise<GetMarketResponse> =>
+): Promise<GetLocationResponse> =>
   getCachedResponse(
     marketCache,
     location,
     () =>
-      getSecure<GetMarketResponse>(
+      getSecure<GetLocationResponse>(
         token,
         `game/locations/${location}/marketplace`
       ),
     async (result) => {
       cacheLocation(result.location);
       return Promise.all(
-        result.location.marketplace.map((m) => {
+        result.location.marketplace!.map((m) => {
           const market = {
             created: DateTime.now().toISO(),
             location,

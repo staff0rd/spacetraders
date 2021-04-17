@@ -7,7 +7,7 @@ import { drawMap } from "./drawMap";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    height: "calc(100vh - 112px - 64px)",
+    height: "calc(100vh - 112px - 64px - 48px)",
     position: "relative",
   },
   location: {

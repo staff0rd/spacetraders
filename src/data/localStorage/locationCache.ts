@@ -1,7 +1,7 @@
 import { MarketContext } from "../../machines/MarketContext";
 import { Location } from "../../api/Location";
 
-export const getLocation = (symbol: string): Location => {
+export const getLocation = (symbol: string): Location | undefined => {
   const locations: MarketContext = JSON.parse(
     localStorage.getItem("locations")!
   );
@@ -15,16 +15,20 @@ export const getLocations = (): Location[] => {
   return Object.values(locations);
 };
 
-export const cacheLocation = (location: Location) => {
+export const cacheLocation = (cacheThis: Location) => {
   const locations: MarketContext =
     JSON.parse(localStorage.getItem("locations")!) || {};
 
-  const existing = locations[location.symbol];
-  if (existing && existing.marketplace && !location.marketplace) {
-    location.marketplace = existing.marketplace;
+  const existing = locations[cacheThis.symbol];
+  if (existing && existing.marketplace && !cacheThis.marketplace) {
+    cacheThis.marketplace = existing.marketplace;
   }
 
-  locations[location.symbol] = location;
+  if (existing && existing.structures && !cacheThis.structures) {
+    cacheThis.structures = existing.structures;
+  }
+
+  locations[cacheThis.symbol] = cacheThis;
 
   localStorage.setItem("locations", JSON.stringify(locations));
 };

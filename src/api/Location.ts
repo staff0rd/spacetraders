@@ -1,5 +1,6 @@
 import { Marketplace } from "./Marketplace";
 import { Ship } from "./Ship";
+import { Structure } from "./Structure";
 
 export interface Location {
   symbol: string;
@@ -9,6 +10,7 @@ export interface Location {
   y: number;
   ships: Ship[];
   anomaly?: string;
-  marketplace: Marketplace[];
+  marketplace?: Marketplace[];
   messages?: string[];
+  structures?: Structure[];
 }
