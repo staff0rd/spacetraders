@@ -90,7 +90,7 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.GetAssignment]: {
       invoke: {
-        src: (c) => getProbeAssignment(c.system, c.id),
+        src: (c) => getProbeAssignment(c.id),
         onDone: [
           {
             cond: (_, e: any) => !e.data,

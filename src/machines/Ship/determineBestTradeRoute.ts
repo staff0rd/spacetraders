@@ -66,7 +66,12 @@ export async function determineBestTradeRoute(
                 dest.sellPricePerUnit - depart.purchasePricePerUnit;
               const volume = depart.volumePerUnit;
               const distance = getDistance(depart.x, depart.y, dest.x, dest.y);
-              const fuelNeeded = getFuelNeeded(distance, depart.type, shipType);
+              const fuelNeeded = getFuelNeeded(
+                distance,
+                depart.type,
+                dest.type,
+                shipType
+              );
               const quantityToBuy = Math.floor(
                 (maxCargo - fuelNeeded) / volume
               );

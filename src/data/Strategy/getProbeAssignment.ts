@@ -1,13 +1,14 @@
 import Bottleneck from "bottleneck";
+import { getLocation } from "data/localStorage/locationCache";
 import db from "../";
 import { getDistance } from "../../machines/getDistance";
 import { IProbe } from "../IProbe";
 
 const limiter = new Bottleneck({ maxConcurrent: 1 });
-export const getProbeAssignment = async (system: string, shipId: string) => {
-  return limiter.schedule(() => getAssignment(system, shipId));
+export const getProbeAssignment = async (shipId: string) => {
+  return limiter.schedule(() => getAssignment(shipId));
 };
-const getAssignment = async (system: string, shipId: string) => {
+const getAssignment = async (shipId: string) => {
   const probes = await db.probes.toArray();
   const assignment = probes.find((p) => p.shipId === shipId);
   if (assignment) return assignment;
@@ -18,6 +19,10 @@ const getAssignment = async (system: string, shipId: string) => {
     console.warn(message);
     throw new Error(message);
   }
+
+  const location = getLocation(ship.location)!;
+  const system = location.symbol; // TODO: REMOVE
+
   const from: IProbe = probes.find((p) => p.location === ship?.location)!;
   const unassigned = probes
     .filter((p) => p.location.startsWith(system) && p.shipId === undefined)

@@ -239,6 +239,7 @@ export const getSystems = async (
   await Promise.all(
     result.systems.map((s) =>
       s.locations.map(async (location) => {
+        cacheLocation(location);
         if (
           (await db.probes
             .where("location")
@@ -480,6 +481,21 @@ export const getFlightPlans = async (
       );
     }
   );
+};
+
+export const warpJump = async (
+  token: string,
+  username: string,
+  shipId: string
+): Promise<{ flightPlan: FlightPlan }> => {
+  const result = await postSecure<{ flightPlan: FlightPlan }>(
+    token,
+    `users/${username}/warp-jump`,
+    { shipId }
+  );
+  await db.flightPlans.put(result.flightPlan);
+  flightPlanToIntel(result.flightPlan);
+  return result;
 };
 
 export const newFlightPlan = async (

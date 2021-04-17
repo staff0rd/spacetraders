@@ -107,7 +107,9 @@ export const User = ({ username }: { username: string }) => {
           {activeUsers
             ?.filter((u) => u !== username)
             .map((u) => (
-              <ListItem className={classes.text}>{u ?? "unknown"}</ListItem>
+              <ListItem key={u} className={classes.text}>
+                {u ?? "unknown"}
+              </ListItem>
             ))}
         </List>
       </Popover>

@@ -236,6 +236,7 @@ const config: MachineConfig<Context, any, any> = {
               const neededFuel = getFuelNeeded(
                 distance,
                 from.type,
+                to.type,
                 c.ship.type
               );
               return neededFuel;

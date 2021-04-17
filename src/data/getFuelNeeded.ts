@@ -11,12 +11,15 @@ const shipPenalty = (shipType: string) => {
 
 export const getFuelNeeded = (
   distance: number,
-  locationType: string,
+  fromType: string,
+  toType: string,
   shipType: string
-) =>
-  Math.round(
+) => {
+  if (fromType === "WORMHOLE" && toType === "WORMHOLE") return 0;
+  return Math.round(
     Math.round(distance) / 4 +
-      (locationType === "PLANET" ? 2 : 0) +
+      (fromType === "PLANET" ? 2 : 0) +
       1 +
       shipPenalty(shipType)
   );
+};
