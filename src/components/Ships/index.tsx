@@ -60,9 +60,10 @@ export const Ships = ({ state, availableShips }: Props) => {
             component: (
               <Ship
                 systems={state?.context.systems}
-                ship={state?.context.actors.find(
+                actor={state?.context.actors.find(
                   (x) => x.state.context.id === shipId
                 )}
+                shipId={shipId}
               />
             ),
           },
