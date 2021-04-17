@@ -1,6 +1,5 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import { Tooltip, IconButton } from "@material-ui/core";
-import PersonIcon from "@material-ui/icons/Person";
+import { IconButton } from "@material-ui/core";
 import { IconAndValue } from "./IconAndValue";
 import NumberFormat from "react-number-format";
 import CreditsIcon from "@material-ui/icons/AttachMoney";
@@ -10,6 +9,7 @@ import DarkIcon from "@material-ui/icons/Brightness4";
 import LightIcon from "@material-ui/icons/Brightness7";
 import GitHubIcon from "@material-ui/icons/GitHub";
 import { getCredits } from "data/localStorage/getCredits";
+import { User } from "./User";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -72,11 +72,7 @@ export default function ButtonAppBar({
         {darkMode ? <LightIcon /> : <DarkIcon />}
       </IconButton>
 
-      {userName && (
-        <Tooltip title={userName}>
-          <PersonIcon />
-        </Tooltip>
-      )}
+      {userName && <User username={userName} />}
       <IconButton
         aria-label="source"
         title="Source"
