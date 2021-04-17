@@ -38,7 +38,6 @@ const PROBE_DELAY_MINUTES = 2;
 export type Context = ShipBaseContext & {
   probe?: IProbe;
   lastProbe?: DateTime;
-  system: string;
 };
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -54,7 +53,6 @@ const config: MachineConfig<Context, any, any> = {
     ship: {} as Ship,
     strategy: { strategy: ShipStrategy.Probe },
     probe: undefined,
-    system: "",
   },
   states: {
     [States.Init]: initShipMachine<Context>(States.ConfirmStrategy),
