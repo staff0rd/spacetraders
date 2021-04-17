@@ -327,7 +327,7 @@ export const getShips = async (
     `users/${username}/ships`
   );
   await db.ships.clear();
-  await Promise.all(result.ships.map((ship) => db.ships.put(ship)));
+  await db.ships.bulkPut(result.ships);
   return result;
 };
 
@@ -504,8 +504,8 @@ export const getUser = async (
 
 const persistUserResponse = async (promise: Promise<GetUserResponse>) => {
   const result = await promise;
-  result.user.ships.map((ship) => getShipName(ship.id));
-  result.user.ships.map((ship) => db.ships.put(ship));
+  await result.user.ships.map((ship) => getShipName(ship.id));
+  await db.ships.bulkPut(result.user.ships);
   setCredits(result.user.credits);
   return result;
 };
