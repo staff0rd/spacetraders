@@ -10,4 +10,5 @@ export interface Location {
   ships: Ship[];
   anomaly?: string;
   marketplace: Marketplace[];
+  messages?: string[];
 }

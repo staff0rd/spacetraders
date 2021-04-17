@@ -8,6 +8,13 @@ export const getLocation = (symbol: string): Location => {
   return locations[symbol];
 };
 
+export const getLocations = (): Location[] => {
+  const locations: MarketContext = JSON.parse(
+    localStorage.getItem("locations")!
+  );
+  return Object.values(locations);
+};
+
 export const cacheLocation = (location: Location) => {
   const locations: MarketContext =
     JSON.parse(localStorage.getItem("locations")!) || {};

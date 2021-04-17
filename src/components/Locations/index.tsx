@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { TabPanel, TabProps } from "../TabPanel";
 import { SystemContext } from "../../machines/MarketContext";
-import { Typography, CircularProgress } from "@material-ui/core";
+import { CircularProgress } from "@material-ui/core";
 import { LocationList } from "./LocationList";
 import { Map } from "./Map";
+import { Location } from "./Location";
 
 type Props = {
   systems?: SystemContext;
@@ -14,9 +15,10 @@ export const Locations = ({ systems }: Props) => {
   const { pathname } = useLocation() as any;
   const [locationName, setLocationName] = useState("");
 
-  const symbol = pathname.startsWith("/locations/")
-    ? (pathname as string).substring(11)
-    : undefined;
+  const symbol =
+    pathname.startsWith("/locations/") && !pathname.includes("map")
+      ? (pathname as string).substring(11)
+      : undefined;
 
   useEffect(() => {
     if (systems && symbol) {
@@ -53,8 +55,8 @@ export const Locations = ({ systems }: Props) => {
           {
             label: locationName,
             path: pathname,
-            route: "/locations/:symbol",
-            component: <Typography>Location</Typography>,
+            route: `/locations/:symbol`,
+            component: <Location symbol={symbol} />,
           },
         ]
       : []),
