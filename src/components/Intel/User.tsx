@@ -18,6 +18,9 @@ const useStyles = makeStyles((theme) => ({
   subHeader: {
     marginLeft: theme.spacing(2),
   },
+  ship: {
+    marginLeft: theme.spacing(1),
+  },
 }));
 export const User = ({ username }: { username: string }) => {
   const classes = useStyles();
@@ -50,18 +53,30 @@ export const User = ({ username }: { username: string }) => {
         {grouped.map((g) => (
           <Grid key={g.symbol} item xs={3}>
             <Typography variant="h6">{g.symbol}</Typography>
-            <Typography>Docked: {g.docked}</Typography>
-            {groupByTypeAtLocation(intel, g.symbol, false).map((s) => (
-              <Typography>
-                {s.count} x {s.shipType}
-              </Typography>
-            ))}
-            <Typography>In Transit: {g.inTransit}</Typography>
-            {groupByTypeAtLocation(intel, g.symbol, true).map((s) => (
-              <Typography>
-                {s.count} x {s.shipType}
-              </Typography>
-            ))}
+            {g.docked ? (
+              <>
+                <Typography>Docked: {g.docked}</Typography>
+                {groupByTypeAtLocation(intel, g.symbol, false).map((s) => (
+                  <Typography className={classes.ship}>
+                    {s.count} x {s.shipType}
+                  </Typography>
+                ))}
+              </>
+            ) : (
+              ""
+            )}
+            {g.inTransit ? (
+              <>
+                <Typography>In Transit: {g.inTransit}</Typography>
+                {groupByTypeAtLocation(intel, g.symbol, true).map((s) => (
+                  <Typography className={classes.ship}>
+                    {s.count} x {s.shipType}
+                  </Typography>
+                ))}
+              </>
+            ) : (
+              ""
+            )}
           </Grid>
         ))}
       </Grid>
