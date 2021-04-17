@@ -35,6 +35,7 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
       strategy: await db.strategies.get(shipId),
       detail: await db.shipDetail.get(shipId),
       ship: await db.ships.get(shipId),
+      probe: await db.probes.where("shipId").equals(shipId).first(),
     }),
     [shipId]
   );
@@ -72,6 +73,12 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
             <Typography variant="h6">State</Typography>
             <Box className={classes.strategy}>
               <Strategy strategy={ship?.strategy} />
+              {ship &&
+                ship.probe &&
+                ship.strategy &&
+                ship.strategy.strategy === ShipStrategy.Probe && (
+                  <> - {ship.probe.location}</>
+                )}
               {ship && ship.strategy && (
                 <StrategyChange
                   ship={{
