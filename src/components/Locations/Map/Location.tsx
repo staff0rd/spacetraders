@@ -33,12 +33,10 @@ export const Location = ({ location, parentWidth, parentHeight }: Props) => {
   const handlePopoverOpen = (
     event: React.MouseEvent<HTMLElement, MouseEvent>
   ) => {
-    console.log("open");
     setAnchorEl(event.currentTarget);
   };
 
   const handlePopoverClose = () => {
-    console.log("close");
     setAnchorEl(null);
   };
   if (!parentWidth || !parentHeight) return <></>;

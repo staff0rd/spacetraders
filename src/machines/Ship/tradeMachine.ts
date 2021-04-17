@@ -11,7 +11,6 @@ import {
 import * as api from "../../api";
 import { Ship } from "../../api/Ship";
 import { Location } from "../../api/Location";
-import { FlightPlan } from "../../api/FlightPlan";
 import { DateTime } from "luxon";
 import db from "../../data";
 import { TradeType } from "../../data/ITrade";
@@ -327,44 +326,6 @@ const config: MachineConfig<Context, any, any> = {
               flightPlan: undefined,
               location: undefined,
             }) as any,
-          ],
-        },
-      },
-    },
-    createFlightPlan: {
-      invoke: {
-        src: (c) =>
-          api.newFlightPlan(
-            c.token,
-            c.username,
-            c.id,
-            c.tradeRoute!.sellLocation
-          ),
-        onDone: {
-          target: "inFlight",
-          actions: [
-            assign({
-              flightPlan: (c, e: any) => e.data.flightPlan,
-              ship: (c, e: any) => ({
-                ...c.ship,
-                cargo: [
-                  ...c.ship.cargo.map((c) =>
-                    c.good !== "FUEL"
-                      ? c
-                      : {
-                          ...c,
-                          quantity: (e.data.flightPlan as FlightPlan)
-                            .fuelRemaining,
-                        }
-                  ),
-                ],
-              }),
-            }),
-            "shipUpdate",
-            sendParent((c, e: any) => ({
-              type: "NEW_FLIGHTPLAN",
-              data: c.flightPlan,
-            })),
           ],
         },
       },

@@ -53,11 +53,16 @@ export const getGraph = () => {
     });
   });
 
-  console.log(graph.getLinkCount());
+  return graph;
+};
 
-  const maxCargo = 50;
-  const shipType = "JW-MK-I";
-
+export const getRoute = (
+  graph: Graph,
+  from: string,
+  to: string,
+  shipType: string,
+  maxCargo: number
+) => {
   const pathFinder = aStar<Location, Location>(graph, {
     distance(fromNode, toNode) {
       const distance = distancePoint(fromNode.data, toNode.data);
@@ -77,7 +82,7 @@ export const getGraph = () => {
       return Math.sqrt(dx * dx + dy * dy);
     },
   });
-  const path = pathFinder.find("OE-BO", "XV-TLF").reverse();
+  const path = pathFinder.find(from, to).reverse();
 
   const route: { from: Location; to: Location; fuelNeeded: number }[] = [];
   path.forEach((p, ix) => {
@@ -91,10 +96,10 @@ export const getGraph = () => {
           distancePoint(from, to),
           from.type,
           to.type,
-          "A"
+          shipType
         ),
       });
     }
   });
-  console.log(route);
+  return route;
 };

@@ -189,7 +189,14 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.CreateFlightPlan]: {
       invoke: {
-        src: (c) => api.newFlightPlan(c.token, c.username, c.id, c.destination),
+        src: (c) =>
+          api.newFlightPlan(
+            c.token,
+            c.username,
+            c.id,
+            c.ship.location!,
+            c.destination
+          ),
         onError: {
           actions: printErrorAction(),
           target: States.Idle,

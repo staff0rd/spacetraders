@@ -9,13 +9,16 @@ const shipPenalty = (shipType: string) => {
   }
 };
 
+export const shouldWarp = (fromType: string, toType: string) =>
+  fromType === "WORMHOLE" && toType === "WORMHOLE";
+
 export const getFuelNeeded = (
   distance: number,
   fromType: string,
   toType: string,
   shipType: string
 ) => {
-  if (fromType === "WORMHOLE" && toType === "WORMHOLE") return 0;
+  if (shouldWarp(fromType, toType)) return 0;
   return Math.round(
     Math.round(distance) / 4 +
       (fromType === "PLANET" ? 2 : 0) +

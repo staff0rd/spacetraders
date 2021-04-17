@@ -17,7 +17,8 @@ import { getShipName } from "../data/names";
 import { TradeType } from "../data/ITrade";
 import { setLocalUser } from "../data/localStorage/getLocalUser";
 import { setCredits } from "data/localStorage/getCredits";
-import { cacheLocation } from "data/localStorage/locationCache";
+import { cacheLocation, getLocation } from "data/localStorage/locationCache";
+import { shouldWarp } from "data/getFuelNeeded";
 
 class ApiError extends Error {
   code: number;
@@ -483,7 +484,7 @@ export const getFlightPlans = async (
   );
 };
 
-export const warpJump = async (
+const warpJump = async (
   token: string,
   username: string,
   shipId: string
@@ -502,13 +503,21 @@ export const newFlightPlan = async (
   token: string,
   username: string,
   shipId: string,
+  departure: string,
   destination: string
 ): Promise<{ flightPlan: FlightPlan }> => {
-  const result = await postSecure<{ flightPlan: FlightPlan }>(
-    token,
-    `users/${username}/flight-plans`,
-    { shipId, destination }
-  );
+  const from = getLocation(departure)!;
+  const to = getLocation(destination)!;
+
+  if (!from || !to) throw new Error("Could not determine locations");
+
+  const result = await (shouldWarp(from.type, to.type)
+    ? warpJump(token, username, shipId)
+    : postSecure<{ flightPlan: FlightPlan }>(
+        token,
+        `users/${username}/flight-plans`,
+        { shipId, destination }
+      ));
   await db.flightPlans.put(result.flightPlan);
   flightPlanToIntel(result.flightPlan);
   return result;

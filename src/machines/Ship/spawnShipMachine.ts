@@ -45,7 +45,6 @@ export function spawnShipMachine(c: Context): any {
             strategy: { strategy: ShipStrategy.Probe },
             username: c.user!.username,
             ship,
-            system,
             shipName,
           })
         );

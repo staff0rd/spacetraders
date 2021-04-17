@@ -1,7 +1,6 @@
 import Bottleneck from "bottleneck";
-import { getLocation } from "data/localStorage/locationCache";
+import { getGraph, getRoute } from "data/localStorage/graph";
 import db from "../";
-import { getDistance } from "../../machines/getDistance";
 import { IProbe } from "../IProbe";
 
 const limiter = new Bottleneck({ maxConcurrent: 1 });
@@ -20,14 +19,24 @@ const getAssignment = async (shipId: string) => {
     throw new Error(message);
   }
 
-  const location = getLocation(ship.location)!;
-  const system = location.symbol; // TODO: REMOVE
+  const graph = getGraph();
 
   const from: IProbe = probes.find((p) => p.location === ship?.location)!;
   const unassigned = probes
-    .filter((p) => p.location.startsWith(system) && p.shipId === undefined)
-    .map((p) => ({ ...p, distance: getDistance(from.x, from.y, p.x, p.y) }))
-    .sort((a, b) => a.distance - b.distance);
+    .filter((p) => p.shipId === undefined)
+    .map((p) => ({
+      ...p,
+      totalFuel: getRoute(
+        graph,
+        from.location,
+        p.location,
+        ship.type,
+        ship.maxCargo
+      )
+        .map((r) => r.fuelNeeded)
+        .reduce((a, b) => a + b),
+    }))
+    .sort((a, b) => a.totalFuel - b.totalFuel);
 
   const newAssignment = unassigned[0];
 
