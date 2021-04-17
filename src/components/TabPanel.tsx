@@ -4,7 +4,7 @@ import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Box from "@material-ui/core/Box";
-import { Link, Switch, useLocation, Route, Redirect } from "react-router-dom";
+import { Link, Switch, useLocation, Route } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -56,7 +56,6 @@ export const TabPanel = ({ tabs }: Props) => {
             <Box className={classes.tabPanel}>{tab.component}</Box>
           </Route>
         ))}
-        <Redirect from="/ships" to="/ships/owned" />
       </Switch>
     </div>
   );
