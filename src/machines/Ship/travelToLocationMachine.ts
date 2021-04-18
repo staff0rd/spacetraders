@@ -271,6 +271,7 @@ const config: MachineConfig<Context, any, any> = {
             neededFuel: undefined,
             nextStop: undefined,
             ship: (c) => ({ ...c.ship, location: c.nextStop }),
+            flightPlan: undefined,
           }) as any,
           target: States.Idle,
         },

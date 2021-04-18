@@ -35,7 +35,7 @@ const getAssignment = async (shipId: string) => {
         warps
       )
         .map((r) => r.fuelNeeded)
-        .reduce((a, b) => a + b),
+        .reduce((a, b) => a + b, 0),
     }))
     .sort((a, b) => a.totalFuel - b.totalFuel);
 

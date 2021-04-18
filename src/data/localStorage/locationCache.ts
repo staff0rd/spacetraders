@@ -17,14 +17,7 @@ export const getLocations = (): Location[] => {
 
 export const getWarp = (fromSystem: string, toSystem: string) => {
   const locations = getLocations();
-  const result = {
-    enter: locations.find((p) =>
-      p.symbol.startsWith(`${fromSystem}-${toSystem}-`)
-    )!,
-    exit: locations.find((p) =>
-      p.symbol.startsWith(`${toSystem}-${fromSystem}-`)
-    )!,
-  };
+  const result = findWarpsFrom(locations, fromSystem, toSystem);
   if (!result.enter || !result.exit) throw new Error("Could not find warp");
   return result;
 };
@@ -46,3 +39,18 @@ export const cacheLocation = (cacheThis: Location) => {
 
   localStorage.setItem("locations", JSON.stringify(locations));
 };
+
+export function findWarpsFrom(
+  locations: Location[],
+  fromSystem: string,
+  toSystem: string
+) {
+  return {
+    enter: locations.find((p) =>
+      p.symbol.startsWith(`${fromSystem}-${toSystem}-`)
+    )!,
+    exit: locations.find((p) =>
+      p.symbol.startsWith(`${toSystem}-${fromSystem}-`)
+    )!,
+  };
+}

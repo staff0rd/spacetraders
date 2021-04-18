@@ -19,46 +19,71 @@ describe("routing", () => {
   });
 
   describe("fuel (skip warps)", () => {
-    it("should cater for no fuel", () => {
+    it("should cater for no fuel - from entry warp", () => {
       const { graph, warps } = getGraph();
-      console.log(graph.getLinksCount());
-      let route = getRoute(graph, "OE-PM", "XV-CB-NM", "JW-MK-I", 50, warps);
+      let route = getRoute(
+        graph,
+        "OE-XV-91-2",
+        "XV-CB-NM",
+        "JW-MK-I",
+        50,
+        warps
+      );
       logRoute(route);
       expect(route.length).toBe(2);
+    });
+
+    it("should cater for no fuel - from exit warp", () => {
+      const { graph, warps } = getGraph();
+      let route = getRoute(
+        graph,
+        "XV-OE-2-91",
+        "XV-CB-NM",
+        "JW-MK-I",
+        50,
+        warps
+      );
+      logRoute(route);
+      expect(route.length).toBe(1);
+    });
+    it("should cater for no fuel", () => {
+      const { graph, warps } = getGraph();
+      let route = getRoute(graph, "OE-PM", "XV-CB-NM", "JW-MK-I", 50, warps);
+      logRoute(route);
+      expect(route.length).toBe(4);
     });
 
     it("should cater for no fuel - med", () => {
       const { graph, warps } = getGraph();
       let route = getRoute(graph, "OE-BO", "XV-CB-NM", "JW-MK-I", 50, warps);
       logRoute(route);
-      expect(route.length).toBe(2);
+      expect(route.length).toBe(4);
     });
 
     it("should cater for no fuel - long", () => {
       const { graph, warps } = getGraph();
       let route = getRoute(graph, "OE-BO", "XV-TLF", "JW-MK-I", 50, warps);
       logRoute(route);
-      expect(route.length).toBe(3);
+      expect(route.length).toBe(5);
     });
   });
 
   describe("warps", () => {
     it("should cater for no fuel", () => {
       const { graph, warps } = getGraph(false);
-      console.log(graph.getLinksCount());
       let route = getRoute(graph, "OE-PM", "XV-CB-NM", "JW-MK-I", 50, warps);
       logRoute(route);
-      expect(route.length).toBe(2);
+      expect(route.length).toBe(3);
     });
 
     it("should cater for no fuel - med", () => {
       const { graph, warps } = getGraph(false);
       let route = getRoute(graph, "OE-BO", "XV-CB-NM", "JW-MK-I", 50, warps);
       logRoute(route);
-      expect(route.length).toBe(2);
+      expect(route.length).toBe(4);
     });
 
-    it.only("should cater for no fuel - long", () => {
+    it("should cater for no fuel - long", () => {
       const { graph, warps } = getGraph(false);
       let route = getRoute(graph, "OE-BO", "XV-TLF", "JW-MK-I", 50, warps);
       logRoute(route);

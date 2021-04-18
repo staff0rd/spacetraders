@@ -1,8 +1,8 @@
 import createGraph, { Graph } from "ngraph.graph";
-import { getLocations } from "./locationCache";
-import { hasGood, Location } from "api/Location";
+import { getLocations, getWarp } from "./locationCache";
+import { Location } from "api/Location";
 import { aStar } from "ngraph.path";
-import { getLocationFuelNeeded } from "data/getFuelNeeded";
+import { getFromToSystems, getLocationFuelNeeded } from "data/getFuelNeeded";
 import { distancePoint } from "components/Locations/Map/geometry";
 
 const getSystems = (locations: Location[]): string[] => {
@@ -34,6 +34,7 @@ const addLink = (a: Location, b: Location, graph: Graph) => {
 };
 
 //const debug = ["OE-XV-91-2", "OE-CR", "OE-PM", "XV-OE-2-91", "XV-CB-NM"];
+//const debug = ["OE-XV-91-2", "XV-OE-2-91", "XV-CB-NM"];
 
 export const getGraph = (skipWarps = true) => {
   const locations = getLocations();
@@ -101,7 +102,7 @@ export const getRoute = (
       //   `${fromNode.id}>>${toNode.id} - distance: ${distance}, fuel: ${fuel}`
       // );
       if (fuel > maxCargo) return Infinity;
-      if (hasGood(toNode.data, "FUEL") === 0) return distance + 100; // no fuel penalty
+      //if (hasGood(toNode.data, "FUEL") === 0) return distance + 100; // no fuel penalty
       return distance;
     },
     heuristic(fromNode, toNode) {
@@ -131,8 +132,45 @@ export const getRoute = (
       });
     }
   });
+  return insertWarps(route);
+};
 
-  return route;
+const insertWarps = (routes: Route[]) => {
+  const result: Route[] = [];
+  routes.forEach((r) => {
+    const { fromSystem, toSystem } = getFromToSystems(r.from, r.to);
+    if (fromSystem === toSystem) {
+      result.push(r);
+    } else {
+      const { enter, exit } = getWarp(fromSystem, toSystem);
+      if (
+        ![enter.symbol, exit.symbol].includes(r.from.symbol) &&
+        ![enter.symbol, exit.symbol].includes(r.to.symbol)
+      ) {
+        result.push(
+          {
+            ...r,
+            to: enter,
+          },
+          {
+            from: enter,
+            to: exit,
+            fuelNeeded: 0,
+            fuelAvailable: 0,
+          },
+          {
+            from: exit,
+            to: r.to,
+            fuelNeeded: 0,
+            fuelAvailable: 0,
+          }
+        );
+      } else {
+        result.push(r);
+      }
+    }
+  });
+  return result;
 };
 
 const isWarp = (from: Location, to: Location) => {
@@ -146,14 +184,29 @@ function getDistance(from: Location, to: Location, warps: Location[]) {
     );
     if (!warpFrom) throw new Error("Could not find warpFrom");
     const warpTo = warps.find((p) =>
-      p.symbol.startsWith(from.symbol.substring(0, 2))
+      p.symbol.startsWith(to.symbol.substring(0, 2))
     );
     if (!warpTo) throw new Error("Could not find warpTo");
+
+    if (
+      (from.symbol === warpFrom.symbol && to.symbol === warpTo.symbol) ||
+      (from.symbol === warpTo.symbol && to.symbol === warpFrom.symbol)
+    ) {
+      // is WORMHOLE
+      //console.log("wormhole!");
+      return 0;
+    } else {
+      // console.log(
+      //   `not wormhole: ${from.symbol}>>${to.symbol} (${warpFrom.symbol}>>${warpTo.symbol})`
+      // );
+    }
 
     const fromDistance = distancePoint(warpFrom, from);
     const toDistance = distancePoint(warpTo, to);
 
     return fromDistance + toDistance;
+  } else {
+    //console.log(`not warp: ${from.symbol}>>${to.symbol}`);
   }
   return distancePoint(from, to);
 }

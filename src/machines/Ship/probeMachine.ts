@@ -81,7 +81,8 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.TravelToLocation]: travelToLocation<Context>(
       (c) => c.probe?.location || c.flightPlan?.destination || "", // should never hit empty string
-      States.Idle
+      States.Idle,
+      getDebug().debugProbeMachine
     ),
     [States.Done]: {
       type: "final",

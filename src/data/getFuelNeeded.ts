@@ -21,8 +21,7 @@ export const getLocationFuelNeeded = (
   to: Location,
   shipType: string
 ) => {
-  const fromSystem = from.symbol.substring(0, 2);
-  const toSystem = to.symbol.substring(0, 2);
+  const { fromSystem, toSystem } = getFromToSystems(from, to);
   if (fromSystem === toSystem)
     return getFuelNeeded(distancePoint(from, to), from.type, to.type, shipType);
   const warps = getWarp(fromSystem, toSystem);
@@ -57,3 +56,9 @@ export const getFuelNeeded = (
       shipPenalty(shipType)
   );
 };
+
+export function getFromToSystems(from: Location, to: Location) {
+  const fromSystem = from.symbol.substring(0, 2);
+  const toSystem = to.symbol.substring(0, 2);
+  return { fromSystem, toSystem };
+}

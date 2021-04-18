@@ -5,12 +5,13 @@ import { travelToLocationMachine } from "./travelToLocationMachine";
 
 export function travelToLocation<TContext extends ShipBaseContext>(
   destination: (c: TContext) => string,
-  nextState: any
+  nextState: any,
+  debug: boolean
 ) {
   return {
     invoke: {
       src: (c: TContext) =>
-        travelToLocationMachine(false).withContext({
+        travelToLocationMachine(debug).withContext({
           id: c.id,
           username: c.username,
           token: c.token,
