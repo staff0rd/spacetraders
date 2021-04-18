@@ -15,6 +15,9 @@ const useStyles = makeStyles((theme) => ({
       color: "white",
     },
   },
+  button: {
+    width: 170,
+  },
 }));
 
 export const Debug = () => {
@@ -66,6 +69,7 @@ export const Debug = () => {
         initialValue={debug.debugHaltMachine}
       />
       <Button
+        className={classes.button}
         variant="contained"
         color="primary"
         onClick={doit}

@@ -157,22 +157,6 @@ export const Settings = ({ resetDetected, stop }: Props) => {
           </Typography>
         </Box>
         <Box className={classes.box}>
-          <img
-            src="icons/Fusion_reactors.png"
-            alt="atom icon"
-            className={classes.img}
-          />
-          <Typography>
-            atom icon from{" "}
-            <a
-              className={classes.link}
-              href="https://pngtree.com/so/atom-icons"
-            >
-              pngtree.com
-            </a>
-          </Typography>
-        </Box>
-        <Box className={classes.box}>
           <GitHubIcon className={classes.icon} />
           <Typography>
             This project is{" "}
