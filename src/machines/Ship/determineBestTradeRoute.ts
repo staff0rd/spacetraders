@@ -1,6 +1,7 @@
+import { distancePoint } from "components/Locations/Map/geometry";
+import { getGraph, getRoute } from "data/localStorage/graph";
 import { getLocation } from "data/localStorage/locationCache";
 import db from "../../data";
-import { getFuelNeeded } from "../../data/getFuelNeeded";
 import { getDistance } from "../getDistance";
 import { groupByGood } from "./groupByGood";
 import { TradeRoute } from "./TradeRoute";
@@ -53,6 +54,7 @@ export async function determineBestTradeRoute(
 ): Promise<TradeRoute[]> {
   const goodLocation = await db.goodLocation.toArray();
   const grouped = groupByGood(goodLocation);
+  const { graph, warps } = getGraph();
 
   return grouped
     .map((g) =>
@@ -65,13 +67,19 @@ export async function determineBestTradeRoute(
               const profitPerUnit =
                 dest.sellPricePerUnit - depart.purchasePricePerUnit;
               const volume = depart.volumePerUnit;
-              const distance = getDistance(depart.x, depart.y, dest.x, dest.y);
-              const fuelNeeded = getFuelNeeded(
-                distance,
-                depart.type,
-                dest.type,
-                shipType
+              const route = getRoute(
+                graph,
+                depart.location,
+                dest.location,
+                shipType,
+                maxCargo,
+                warps
               );
+              const distance = route
+                .map((p) => (p.isWarp ? 10 : distancePoint(p.from, p.to)))
+                .reduce((a, b) => a + b);
+              const fuelNeeded = Math.max(...route.map((a) => a.fuelNeeded));
+
               const quantityToBuy = Math.floor(
                 (maxCargo - fuelNeeded) / volume
               );

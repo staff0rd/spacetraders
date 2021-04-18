@@ -4,6 +4,7 @@ import { Location } from "api/Location";
 import { aStar } from "ngraph.path";
 import { getFromToSystems, getLocationFuelNeeded } from "data/getFuelNeeded";
 import { distancePoint } from "components/Locations/Map/geometry";
+import { Route } from "./Route";
 
 const getSystems = (locations: Location[]): string[] => {
   const set = new Set(
@@ -36,7 +37,7 @@ const addLink = (a: Location, b: Location, graph: Graph) => {
 //const debug = ["OE-XV-91-2", "OE-CR", "OE-PM", "XV-OE-2-91", "XV-CB-NM"];
 //const debug = ["OE-XV-91-2", "XV-OE-2-91", "XV-CB-NM"];
 
-export const getGraph = (skipWarps = true) => {
+export const getGraph = () => {
   const locations = getLocations();
   const systems = getSystems(locations);
   const graph = createGraph();
@@ -66,24 +67,15 @@ export const getGraph = (skipWarps = true) => {
     });
   });
 
-  if (skipWarps) {
-    const notWormholes = locations.filter((p) => p.type !== "WORMHOLE");
+  const notWormholes = locations.filter((p) => p.type !== "WORMHOLE");
 
-    notWormholes.forEach((a) => {
-      notWormholes.forEach((b) => {
-        addLink(a, b, graph);
-      });
+  notWormholes.forEach((a) => {
+    notWormholes.forEach((b) => {
+      addLink(a, b, graph);
     });
-  }
+  });
 
   return { graph, warps };
-};
-
-type Route = {
-  from: Location;
-  to: Location;
-  fuelNeeded: number;
-  fuelAvailable: number;
 };
 
 export const getRoute = (
@@ -129,6 +121,7 @@ export const getRoute = (
         to,
         fuelNeeded,
         fuelAvailable,
+        isWarp: false,
       });
     }
   });
@@ -157,12 +150,14 @@ const insertWarps = (routes: Route[]) => {
             to: exit,
             fuelNeeded: 0,
             fuelAvailable: 0,
+            isWarp: true,
           },
           {
             from: exit,
             to: r.to,
             fuelNeeded: 0,
             fuelAvailable: 0,
+            isWarp: false,
           }
         );
       } else {

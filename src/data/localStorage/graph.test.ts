@@ -67,29 +67,6 @@ describe("routing", () => {
       expect(route.length).toBe(5);
     });
   });
-
-  describe("warps", () => {
-    it("should cater for no fuel", () => {
-      const { graph, warps } = getGraph(false);
-      let route = getRoute(graph, "OE-PM", "XV-CB-NM", "JW-MK-I", 50, warps);
-      logRoute(route);
-      expect(route.length).toBe(3);
-    });
-
-    it("should cater for no fuel - med", () => {
-      const { graph, warps } = getGraph(false);
-      let route = getRoute(graph, "OE-BO", "XV-CB-NM", "JW-MK-I", 50, warps);
-      logRoute(route);
-      expect(route.length).toBe(4);
-    });
-
-    it("should cater for no fuel - long", () => {
-      const { graph, warps } = getGraph(false);
-      let route = getRoute(graph, "OE-BO", "XV-TLF", "JW-MK-I", 50, warps);
-      logRoute(route);
-      expect(route.length).toBeGreaterThan(3);
-    });
-  });
 });
 
 function logRoute(

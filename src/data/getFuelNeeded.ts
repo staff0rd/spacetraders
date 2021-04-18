@@ -41,7 +41,7 @@ export const getLocationFuelNeeded = (
   );
 };
 
-export const getFuelNeeded = (
+const getFuelNeeded = (
   distance: number,
   fromType: string,
   toType: string,
