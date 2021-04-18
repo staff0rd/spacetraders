@@ -66,8 +66,10 @@ export const Errors = () => {
             onChange={(e) => setCode(e.target.value as number)}
           >
             <MenuItem value={0}>All</MenuItem>
-            {codes!.map((code: any) => (
-              <MenuItem value={code}>{code}</MenuItem>
+            {codes!.map((code: any, ix) => (
+              <MenuItem key={ix} value={code}>
+                {code}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
