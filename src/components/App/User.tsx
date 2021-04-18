@@ -106,8 +106,8 @@ export const User = ({ username }: { username: string }) => {
         <List>
           {activeUsers
             ?.filter((u) => u !== username)
-            .map((u) => (
-              <ListItem key={u} className={classes.text}>
+            .map((u, ix) => (
+              <ListItem key={ix} className={classes.text}>
                 {u ?? "unknown"}
               </ListItem>
             ))}
