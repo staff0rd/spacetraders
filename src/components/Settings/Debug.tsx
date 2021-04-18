@@ -1,10 +1,15 @@
 import React from "react";
 import { getDebug, setDebug } from "../../data/localStorage/IDebug";
 import { DebugCheckbox } from "./DebugCheckbox";
-import { Typography, makeStyles } from "@material-ui/core";
+import { Typography, makeStyles, Button } from "@material-ui/core";
 import { Link } from "react-router-dom";
+import { getGraph, getRoute } from "data/localStorage/graph";
 
 const useStyles = makeStyles((theme) => ({
+  root: {
+    display: "flex",
+    flexDirection: "column",
+  },
   text: {
     "& a": {
       color: "white",
@@ -15,9 +20,14 @@ const useStyles = makeStyles((theme) => ({
 export const Debug = () => {
   const classes = useStyles();
   const debug = getDebug();
+  const doit = () => {
+    const { graph, warps } = getGraph();
+    const route = getRoute(graph, "OE-KO", "XV-CB-NM", "JW-MK-I", 50, warps);
+    console.log(route);
+  };
 
   return (
-    <>
+    <div className={classes.root}>
       <DebugCheckbox
         hideWhenOff
         title={
@@ -55,6 +65,14 @@ export const Debug = () => {
         persist={(value) => setDebug({ debugHaltMachine: value })}
         initialValue={debug.debugHaltMachine}
       />
-    </>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={doit}
+        title="Fires the attached debug code"
+      >
+        Debug function
+      </Button>
+    </div>
   );
 };
