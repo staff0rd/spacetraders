@@ -1,0 +1,800 @@
+{
+  "OE-PM-TR": {
+    "symbol": "OE-PM-TR",
+    "type": "MOON",
+    "name": "Tritus",
+    "x": 23,
+    "y": -28,
+    "ships": [],
+    "marketplace": [
+      {
+        "symbol": "DRONES",
+        "volumePerUnit": 2,
+        "pricePerUnit": 27,
+        "spread": 1,
+        "purchasePricePerUnit": 28,
+        "sellPricePerUnit": 26,
+        "quantityAvailable": 70873
+      },
+      {
+        "symbol": "SHIP_PARTS",
+        "volumePerUnit": 4,
+        "pricePerUnit": 1124,
+        "spread": 3,
+        "purchasePricePerUnit": 1127,
+        "sellPricePerUnit": 1121,
+        "quantityAvailable": 38922
+      },
+      {
+        "symbol": "RESEARCH",
+        "volumePerUnit": 2,
+        "pricePerUnit": 2503,
+        "spread": 36,
+        "purchasePricePerUnit": 2539,
+        "sellPricePerUnit": 2467,
+        "quantityAvailable": 4948
+      },
+      {
+        "symbol": "CHEMICALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 524229
+      },
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 569048
+      },
+      {
+        "symbol": "MACHINERY",
+        "volumePerUnit": 2,
+        "pricePerUnit": 230,
+        "spread": 1,
+        "purchasePricePerUnit": 231,
+        "sellPricePerUnit": 229,
+        "quantityAvailable": 8281
+      },
+      {
+        "symbol": "SHIP_PLATING",
+        "volumePerUnit": 2,
+        "pricePerUnit": 127,
+        "spread": 1,
+        "purchasePricePerUnit": 128,
+        "sellPricePerUnit": 126,
+        "quantityAvailable": 51898
+      },
+      {
+        "symbol": "METALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 569307
+      }
+    ],
+    "structures": []
+  },
+  "OE-CR": {
+    "symbol": "OE-CR",
+    "type": "PLANET",
+    "name": "Carth",
+    "x": 16,
+    "y": 17,
+    "ships": [],
+    "marketplace": [
+      {
+        "symbol": "TEXTILES",
+        "volumePerUnit": 1,
+        "pricePerUnit": 39,
+        "spread": 1,
+        "purchasePricePerUnit": 40,
+        "sellPricePerUnit": 38,
+        "quantityAvailable": 32989
+      },
+      {
+        "symbol": "MACHINERY",
+        "volumePerUnit": 2,
+        "pricePerUnit": 226,
+        "spread": 1,
+        "purchasePricePerUnit": 227,
+        "sellPricePerUnit": 225,
+        "quantityAvailable": 11475
+      },
+      {
+        "symbol": "CHEMICALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 615648
+      },
+      {
+        "symbol": "DRONES",
+        "volumePerUnit": 2,
+        "pricePerUnit": 15,
+        "spread": 1,
+        "purchasePricePerUnit": 16,
+        "sellPricePerUnit": 14,
+        "quantityAvailable": 101903
+      },
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 597696
+      },
+      {
+        "symbol": "FOOD",
+        "volumePerUnit": 1,
+        "pricePerUnit": 25,
+        "spread": 1,
+        "purchasePricePerUnit": 26,
+        "sellPricePerUnit": 24,
+        "quantityAvailable": 53784
+      }
+    ],
+    "structures": []
+  },
+  "OE-NY": {
+    "symbol": "OE-NY",
+    "type": "ASTEROID",
+    "name": "Nyon",
+    "x": 74,
+    "y": 50,
+    "ships": [],
+    "marketplace": [
+      {
+        "symbol": "METALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 459056
+      },
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 495307
+      },
+      {
+        "symbol": "RARE_METALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 80,
+        "spread": 1,
+        "purchasePricePerUnit": 81,
+        "sellPricePerUnit": 79,
+        "quantityAvailable": 57757
+      },
+      {
+        "symbol": "MACHINERY",
+        "volumePerUnit": 2,
+        "pricePerUnit": 237,
+        "spread": 1,
+        "purchasePricePerUnit": 238,
+        "sellPricePerUnit": 236,
+        "quantityAvailable": 2858
+      },
+      {
+        "symbol": "SHIP_PARTS",
+        "volumePerUnit": 4,
+        "pricePerUnit": 1122,
+        "spread": 3,
+        "purchasePricePerUnit": 1125,
+        "sellPricePerUnit": 1119,
+        "quantityAvailable": 38645
+      },
+      {
+        "symbol": "DRONES",
+        "volumePerUnit": 2,
+        "pricePerUnit": 39,
+        "spread": 1,
+        "purchasePricePerUnit": 40,
+        "sellPricePerUnit": 38,
+        "quantityAvailable": 21607
+      },
+      {
+        "symbol": "SHIP_PLATING",
+        "volumePerUnit": 2,
+        "pricePerUnit": 137,
+        "spread": 1,
+        "purchasePricePerUnit": 138,
+        "sellPricePerUnit": 136,
+        "quantityAvailable": 36474
+      }
+    ],
+    "structures": []
+  },
+  "OE-KO": {
+    "symbol": "OE-KO",
+    "type": "PLANET",
+    "name": "Koria",
+    "x": -48,
+    "y": -7,
+    "ships": [],
+    "marketplace": [
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 579026
+      },
+      {
+        "symbol": "METALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 8,
+        "spread": 1,
+        "purchasePricePerUnit": 9,
+        "sellPricePerUnit": 7,
+        "quantityAvailable": 1113
+      },
+      {
+        "symbol": "MACHINERY",
+        "volumePerUnit": 2,
+        "pricePerUnit": 222,
+        "spread": 1,
+        "purchasePricePerUnit": 223,
+        "sellPricePerUnit": 221,
+        "quantityAvailable": 12993
+      },
+      {
+        "symbol": "CONSTRUCTION_MATERIALS",
+        "volumePerUnit": 3,
+        "pricePerUnit": 204,
+        "spread": 1,
+        "purchasePricePerUnit": 205,
+        "sellPricePerUnit": 203,
+        "quantityAvailable": 126053
+      },
+      {
+        "symbol": "CHEMICALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 10,
+        "spread": 1,
+        "purchasePricePerUnit": 11,
+        "sellPricePerUnit": 9,
+        "quantityAvailable": 20816
+      },
+      {
+        "symbol": "DRONES",
+        "volumePerUnit": 2,
+        "pricePerUnit": 21,
+        "spread": 1,
+        "purchasePricePerUnit": 22,
+        "sellPricePerUnit": 20,
+        "quantityAvailable": 79274
+      },
+      {
+        "symbol": "CONSUMER_GOODS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 62,
+        "spread": 1,
+        "purchasePricePerUnit": 63,
+        "sellPricePerUnit": 61,
+        "quantityAvailable": 23451
+      }
+    ],
+    "structures": []
+  },
+  "OE-PM": {
+    "symbol": "OE-PM",
+    "type": "PLANET",
+    "name": "Prime",
+    "x": 20,
+    "y": -25,
+    "ships": [],
+    "marketplace": [
+      {
+        "symbol": "FUSION_REACTORS",
+        "volumePerUnit": 6,
+        "pricePerUnit": 25600,
+        "spread": 723,
+        "purchasePricePerUnit": 26323,
+        "sellPricePerUnit": 24877,
+        "quantityAvailable": 0
+      },
+      {
+        "symbol": "METALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 5,
+        "spread": 1,
+        "purchasePricePerUnit": 6,
+        "sellPricePerUnit": 4,
+        "quantityAvailable": 273083
+      },
+      {
+        "symbol": "DRONES",
+        "volumePerUnit": 2,
+        "pricePerUnit": 19,
+        "spread": 1,
+        "purchasePricePerUnit": 20,
+        "sellPricePerUnit": 18,
+        "quantityAvailable": 81864
+      },
+      {
+        "symbol": "MACHINERY",
+        "volumePerUnit": 2,
+        "pricePerUnit": 222,
+        "spread": 1,
+        "purchasePricePerUnit": 223,
+        "sellPricePerUnit": 221,
+        "quantityAvailable": 14693
+      },
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 613127
+      },
+      {
+        "symbol": "CONSUMER_GOODS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 67,
+        "spread": 1,
+        "purchasePricePerUnit": 68,
+        "sellPricePerUnit": 66,
+        "quantityAvailable": 13946
+      },
+      {
+        "symbol": "SHIP_PARTS",
+        "volumePerUnit": 4,
+        "pricePerUnit": 1123,
+        "spread": 3,
+        "purchasePricePerUnit": 1126,
+        "sellPricePerUnit": 1120,
+        "quantityAvailable": 36432
+      },
+      {
+        "symbol": "RESEARCH",
+        "volumePerUnit": 2,
+        "pricePerUnit": 2598,
+        "spread": 30,
+        "purchasePricePerUnit": 2628,
+        "sellPricePerUnit": 2568,
+        "quantityAvailable": 5029
+      },
+      {
+        "symbol": "SHIP_PLATING",
+        "volumePerUnit": 2,
+        "pricePerUnit": 119,
+        "spread": 1,
+        "purchasePricePerUnit": 120,
+        "sellPricePerUnit": 118,
+        "quantityAvailable": 63988
+      },
+      {
+        "symbol": "ELECTRONICS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 360,
+        "spread": 1,
+        "purchasePricePerUnit": 361,
+        "sellPricePerUnit": 359,
+        "quantityAvailable": 0
+      },
+      {
+        "symbol": "FOOD",
+        "volumePerUnit": 1,
+        "pricePerUnit": 32,
+        "spread": 1,
+        "purchasePricePerUnit": 33,
+        "sellPricePerUnit": 31,
+        "quantityAvailable": 14352
+      },
+      {
+        "symbol": "TEXTILES",
+        "volumePerUnit": 1,
+        "pricePerUnit": 46,
+        "spread": 1,
+        "purchasePricePerUnit": 47,
+        "sellPricePerUnit": 45,
+        "quantityAvailable": 822
+      }
+    ],
+    "structures": []
+  },
+  "OE-UC-AD": {
+    "symbol": "OE-UC-AD",
+    "type": "MOON",
+    "name": "Ado",
+    "x": -82,
+    "y": 82,
+    "ships": [],
+    "marketplace": [
+      {
+        "symbol": "METALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 8,
+        "spread": 1,
+        "purchasePricePerUnit": 9,
+        "sellPricePerUnit": 7,
+        "quantityAvailable": 0
+      },
+      {
+        "symbol": "CHEMICALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 10,
+        "spread": 1,
+        "purchasePricePerUnit": 11,
+        "sellPricePerUnit": 9,
+        "quantityAvailable": 0
+      },
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 491749
+      },
+      {
+        "symbol": "SHIP_PARTS",
+        "volumePerUnit": 4,
+        "pricePerUnit": 1065,
+        "spread": 3,
+        "purchasePricePerUnit": 1068,
+        "sellPricePerUnit": 1062,
+        "quantityAvailable": 45742
+      },
+      {
+        "symbol": "ELECTRONICS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 353,
+        "spread": 1,
+        "purchasePricePerUnit": 354,
+        "sellPricePerUnit": 352,
+        "quantityAvailable": 3365
+      }
+    ],
+    "structures": []
+  },
+  "OE-BO": {
+    "symbol": "OE-BO",
+    "type": "GAS_GIANT",
+    "name": "Bo",
+    "x": -64,
+    "y": -89,
+    "ships": [],
+    "marketplace": [
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 638073
+      },
+      {
+        "symbol": "ELECTRONICS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 360,
+        "spread": 1,
+        "purchasePricePerUnit": 361,
+        "sellPricePerUnit": 359,
+        "quantityAvailable": 0
+      },
+      {
+        "symbol": "RESEARCH",
+        "volumePerUnit": 2,
+        "pricePerUnit": 2606,
+        "spread": 32,
+        "purchasePricePerUnit": 2638,
+        "sellPricePerUnit": 2574,
+        "quantityAvailable": 4546
+      },
+      {
+        "symbol": "MACHINERY",
+        "volumePerUnit": 2,
+        "pricePerUnit": 224,
+        "spread": 1,
+        "purchasePricePerUnit": 225,
+        "sellPricePerUnit": 223,
+        "quantityAvailable": 11279
+      },
+      {
+        "symbol": "CHEMICALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 628087
+      },
+      {
+        "symbol": "DRONES",
+        "volumePerUnit": 2,
+        "pricePerUnit": 31,
+        "spread": 1,
+        "purchasePricePerUnit": 32,
+        "sellPricePerUnit": 30,
+        "quantityAvailable": 49722
+      },
+      {
+        "symbol": "CONSTRUCTION_MATERIALS",
+        "volumePerUnit": 3,
+        "pricePerUnit": 232,
+        "spread": 1,
+        "purchasePricePerUnit": 233,
+        "sellPricePerUnit": 231,
+        "quantityAvailable": 84692
+      }
+    ],
+    "structures": []
+  },
+  "OE-UC": {
+    "symbol": "OE-UC",
+    "type": "PLANET",
+    "name": "Ucarro",
+    "x": -75,
+    "y": 82,
+    "ships": [],
+    "marketplace": [
+      {
+        "symbol": "CHEMICALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 10,
+        "spread": 1,
+        "purchasePricePerUnit": 11,
+        "sellPricePerUnit": 9,
+        "quantityAvailable": 0
+      },
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 451226
+      },
+      {
+        "symbol": "ELECTRONICS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 354,
+        "spread": 1,
+        "purchasePricePerUnit": 355,
+        "sellPricePerUnit": 353,
+        "quantityAvailable": 3421
+      },
+      {
+        "symbol": "DRONES",
+        "volumePerUnit": 2,
+        "pricePerUnit": 16,
+        "spread": 1,
+        "purchasePricePerUnit": 17,
+        "sellPricePerUnit": 15,
+        "quantityAvailable": 93437
+      },
+      {
+        "symbol": "FOOD",
+        "volumePerUnit": 1,
+        "pricePerUnit": 35,
+        "spread": 1,
+        "purchasePricePerUnit": 36,
+        "sellPricePerUnit": 34,
+        "quantityAvailable": 1327
+      },
+      {
+        "symbol": "RARE_METALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 85,
+        "spread": 1,
+        "purchasePricePerUnit": 86,
+        "sellPricePerUnit": 84,
+        "quantityAvailable": 40592
+      }
+    ],
+    "structures": []
+  },
+  "OE-UC-OB": {
+    "symbol": "OE-UC-OB",
+    "type": "MOON",
+    "name": "Obo",
+    "x": -77,
+    "y": 78,
+    "ships": [],
+    "marketplace": [
+      {
+        "symbol": "CONSTRUCTION_MATERIALS",
+        "volumePerUnit": 3,
+        "pricePerUnit": 200,
+        "spread": 1,
+        "purchasePricePerUnit": 201,
+        "sellPricePerUnit": 199,
+        "quantityAvailable": 104602
+      },
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 2,
+        "spread": 1,
+        "purchasePricePerUnit": 3,
+        "sellPricePerUnit": 1,
+        "quantityAvailable": 639768
+      },
+      {
+        "symbol": "SHIP_PLATING",
+        "volumePerUnit": 2,
+        "pricePerUnit": 105,
+        "spread": 1,
+        "purchasePricePerUnit": 106,
+        "sellPricePerUnit": 104,
+        "quantityAvailable": 90999
+      },
+      {
+        "symbol": "METALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 8,
+        "spread": 1,
+        "purchasePricePerUnit": 9,
+        "sellPricePerUnit": 7,
+        "quantityAvailable": 0
+      }
+    ],
+    "structures": []
+  },
+  "OE-XV-91-2": {
+    "symbol": "OE-XV-91-2",
+    "type": "WORMHOLE",
+    "name": "Wormhole",
+    "x": 0,
+    "y": 145,
+    "ships": [],
+    "messages": [
+      "Extensive research has revealed a partially functioning warp gate harnessing the power of an unstable but traversable wormhole.",
+      "The scientific community has determined a means of stabilizing the ancient structure.",
+      "Enter at your own risk.",
+      "POST https://api.spacetraders.io/game/structures/:structureId/deposit shipId=:shipId good=:goodSymbol quantity=:quantity",
+      "POST https://api.spacetraders.io/users/{username}/warp-jump shipId=:shipId"
+    ],
+    "marketplace": [],
+    "structures": [
+      {
+        "id": "ckne60t5x1496dkwwz2v3jj7o",
+        "name": "Warp Gate",
+        "completed": true,
+        "materials": [
+          { "good": "METALS", "quantity": 150300, "targetQuantity": 150000 },
+          {
+            "good": "CONSTRUCTION_MATERIALS",
+            "quantity": 25048,
+            "targetQuantity": 25000
+          },
+          { "good": "MACHINERY", "quantity": 15030, "targetQuantity": 15000 },
+          { "good": "ELECTRONICS", "quantity": 10020, "targetQuantity": 10000 }
+        ],
+        "stability": 1
+      }
+    ]
+  },
+  "XV-BN": {
+    "symbol": "XV-BN",
+    "type": "NEBULA",
+    "name": "Bear Nebula",
+    "x": 102,
+    "y": 92,
+    "ships": []
+  },
+  "XV-ST": {
+    "symbol": "XV-ST",
+    "type": "PLANET",
+    "name": "Straxabos",
+    "x": -16,
+    "y": 26,
+    "ships": []
+  },
+  "XV-ST-BG": {
+    "symbol": "XV-ST-BG",
+    "type": "MOON",
+    "name": "Bragi",
+    "x": -26,
+    "y": 28,
+    "ships": []
+  },
+  "XV-XA": {
+    "symbol": "XV-XA",
+    "type": "PLANET",
+    "name": "Xamarin",
+    "x": 9,
+    "y": 12,
+    "ships": []
+  },
+  "XV-TLF": {
+    "symbol": "XV-TLF",
+    "type": "PLANET",
+    "name": "Thorix LF",
+    "x": -79,
+    "y": -18,
+    "ships": []
+  },
+  "XV-OS": {
+    "symbol": "XV-OS",
+    "type": "PLANET",
+    "name": "Osuhines",
+    "x": -64,
+    "y": -35,
+    "ships": []
+  },
+  "XV-SN": {
+    "symbol": "XV-SN",
+    "type": "PLANET",
+    "name": "Sinope",
+    "x": 43,
+    "y": -37,
+    "ships": []
+  },
+  "XV-CB": {
+    "symbol": "XV-CB",
+    "type": "PLANET",
+    "name": "Ciubus",
+    "x": 105,
+    "y": -22,
+    "ships": []
+  },
+  "XV-CB-NM": {
+    "symbol": "XV-CB-NM",
+    "type": "MOON",
+    "name": "Nami",
+    "x": 111,
+    "y": -12,
+    "ships": []
+  },
+  "XV-CB-IT": {
+    "symbol": "XV-CB-IT",
+    "type": "MOON",
+    "name": "Ito",
+    "x": 112,
+    "y": -25,
+    "ships": []
+  },
+  "XV-OE-2-91": {
+    "symbol": "XV-OE-2-91",
+    "type": "WORMHOLE",
+    "name": "Wormhole",
+    "x": 145,
+    "y": 0,
+    "ships": [],
+    "marketplace": [],
+    "structures": [
+      {
+        "id": "ckne60t7s1515dkwwfvd29vaw",
+        "name": "Warp Gate",
+        "completed": true,
+        "materials": [
+          { "good": "METALS", "quantity": 150300, "targetQuantity": 150000 },
+          { "good": "MACHINERY", "quantity": 15030, "targetQuantity": 15000 },
+          {
+            "good": "CONSTRUCTION_MATERIALS",
+            "quantity": 25050,
+            "targetQuantity": 25000
+          },
+          { "good": "ELECTRONICS", "quantity": 9982, "targetQuantity": 10000 }
+        ],
+        "stability": 0.99991
+      }
+    ]
+  }
+}

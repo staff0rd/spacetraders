@@ -14,3 +14,6 @@ export interface Location {
   messages?: string[];
   structures?: Structure[];
 }
+
+export const hasGood = (location: Location, good: string) =>
+  location.marketplace?.find((p) => p.symbol === good)?.quantityAvailable || 0;

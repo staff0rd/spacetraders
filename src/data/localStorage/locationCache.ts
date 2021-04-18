@@ -15,6 +15,20 @@ export const getLocations = (): Location[] => {
   return Object.values(locations);
 };
 
+export const getWarp = (fromSystem: string, toSystem: string) => {
+  const locations = getLocations();
+  const result = {
+    enter: locations.find((p) =>
+      p.symbol.startsWith(`${fromSystem}-${toSystem}-`)
+    )!,
+    exit: locations.find((p) =>
+      p.symbol.startsWith(`${toSystem}-${fromSystem}-`)
+    )!,
+  };
+  if (!result.enter || !result.exit) throw new Error("Could not find warp");
+  return result;
+};
+
 export const cacheLocation = (cacheThis: Location) => {
   const locations: MarketContext =
     JSON.parse(localStorage.getItem("locations")!) || {};

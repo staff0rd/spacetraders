@@ -19,7 +19,7 @@ const getAssignment = async (shipId: string) => {
     throw new Error(message);
   }
 
-  const graph = getGraph();
+  const { graph, warps } = getGraph();
 
   const from: IProbe = probes.find((p) => p.location === ship?.location)!;
   const unassigned = probes
@@ -31,7 +31,8 @@ const getAssignment = async (shipId: string) => {
         from.location,
         p.location,
         ship.type,
-        ship.maxCargo
+        ship.maxCargo,
+        warps
       )
         .map((r) => r.fuelNeeded)
         .reduce((a, b) => a + b),

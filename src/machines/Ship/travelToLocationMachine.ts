@@ -12,14 +12,13 @@ import db from "../../data";
 import { FlightPlan } from "../../api/FlightPlan";
 import * as api from "../../api";
 import { DateTime } from "luxon";
-import { getFuelNeeded } from "../../data/getFuelNeeded";
-import { getDistance } from "../getDistance";
 import { ShipContext } from "./ShipBaseContext";
 import { printError, printErrorAction, print } from "./printError";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { debugMachineStates } from "../debugStates";
 import { persistStrategy } from "components/Strategy/persistStrategy";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
+import { getRoute, getGraph } from "data/localStorage/graph";
 
 const throwError = (message: string) => {
   console.warn(message);
@@ -46,6 +45,7 @@ export type Context = {
   flightPlan?: FlightPlan;
   neededFuel?: number;
   success?: boolean;
+  nextStop?: string;
 } & ShipContext;
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -60,6 +60,7 @@ const config: MachineConfig<Context, any, any> = {
     shipName: "",
     ship: {} as Ship,
     destination: "",
+    nextStop: "",
   },
   states: {
     [States.Wait]: {
@@ -195,7 +196,7 @@ const config: MachineConfig<Context, any, any> = {
             c.username,
             c.id,
             c.ship.location!,
-            c.destination
+            c.nextStop!
           ),
         onError: {
           actions: printErrorAction(),
@@ -232,28 +233,26 @@ const config: MachineConfig<Context, any, any> = {
     [States.CalculateNeededFuel]: {
       invoke: {
         src: async (c: Context) => {
-          if (!c.ship.location) throwError("Couldn't find departure");
-          const from = await db.probes.get(c.ship.location!);
-          if (!from) throwError("Couldn't find departure");
-          else {
-            const to = await db.probes.get(c.destination);
-            if (!to) throwError("Couldn't find destination");
-            else {
-              const distance = getDistance(from.x, from.y, to.x, to.y);
-              const neededFuel = getFuelNeeded(
-                distance,
-                from.type,
-                to.type,
-                c.ship.type
-              );
-              return neededFuel;
-            }
-          }
+          const { graph, warps } = getGraph();
+          const route = getRoute(
+            graph,
+            c.ship.location!,
+            c.destination,
+            c.ship.type,
+            c.ship.maxCargo,
+            warps
+          );
+          if (!route.length) throwError("Could not determine route!");
+          return {
+            neededFuel: route[0].fuelNeeded,
+            nextStop: route[0].to.symbol,
+          };
         },
         onError: printError(),
         onDone: {
           actions: assign<Context>({
-            neededFuel: (_, e: any) => e.data,
+            neededFuel: (_, e: any) => e.data.neededFuel,
+            nextStop: (_, e: any) => e.data.nextStop,
           }) as any,
           target: States.Idle,
         },
@@ -268,8 +267,12 @@ const config: MachineConfig<Context, any, any> = {
             ).milliseconds;
             return result;
           },
-          actions: assign<Context>({ success: true }) as any,
-          target: States.Done,
+          actions: assign<Context>({
+            neededFuel: undefined,
+            nextStop: undefined,
+            ship: (c) => ({ ...c.ship, location: c.nextStop }),
+          }) as any,
+          target: States.Idle,
         },
       ],
     },
