@@ -90,7 +90,11 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
             </Box>
             <FlightProgress
               flightPlan={ship.flightPlan}
-              fallback={actor?.state.value}
+              fallback={
+                <>
+                  {ship.ship?.location || ""} {actor?.state.value}{" "}
+                </>
+              }
             />
           </Box>
         </Grid>
