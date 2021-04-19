@@ -9,7 +9,7 @@ type Props = {
 };
 export const Structures = ({ structure }: Props) => {
   const columns = [right("Need"), "", right("Have"), right("Diff")];
-  const rows = structure.materials.map((row) => [
+  const rows = (structure.materials || []).map((row) => [
     right(
       <NumberFormat
         value={row.targetQuantity}
