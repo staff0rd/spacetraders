@@ -13,7 +13,7 @@ import { DateTime } from "luxon";
 import { GetFlightPlanResponse } from "./GetFlightPlanResponse";
 import { GetFlightPlansResponse } from "./GetFlightPlansResponse";
 import { getCachedResponse, createCache } from "./getCachedResponse";
-import { getShipName } from "../data/names";
+import { getShipName, newShipName } from "../data/names";
 import { TradeType } from "../data/ITrade";
 import { setLocalUser } from "../data/localStorage/getLocalUser";
 import { setCredits } from "data/localStorage/getCredits";
@@ -214,12 +214,23 @@ export const getLoans = (
   username: string
 ): Promise<GetLoansResponse> => getSecure(token, `users/${username}/loans`);
 
-export const requestNewLoan = (
+export type GetLoanResponse = {
+  credits: number;
+  loan: Loan;
+};
+export const requestNewLoan = async (
   token: string,
   username: string,
   type: LoanType
-): Promise<GetUserResponse> =>
-  persistUserResponse(postSecure(token, `users/${username}/loans`, { type }));
+): Promise<GetLoanResponse> => {
+  const result = await postSecure<GetLoanResponse>(
+    token,
+    `users/${username}/loans`,
+    { type }
+  );
+  setCredits(result.credits);
+  return result;
+};
 
 interface GetAvailableShipsResponse {
   ships: AvailableShip[];
@@ -373,20 +384,31 @@ export const scrapShip = async (
   }
 };
 
+export type BuyShipResponse = {
+  credits: number;
+  ship: Ship;
+};
+
 export const buyShip = async (
   token: string,
   username: string,
   location: string,
   type: string
-): Promise<GetUserResponse> => {
-  const result = await persistUserResponse(
-    postSecure<GetUserResponse>(token, `users/${username}/ships`, {
+): Promise<BuyShipResponse> => {
+  const result = await postSecure<BuyShipResponse>(
+    token,
+    `users/${username}/ships`,
+    {
       location,
       type,
-    })
+    }
   );
-  await Promise.all(result.user.ships.map((s) => getShipName(s.id)));
-  // TODO db.ships.put(result.ship);
+
+  setCredits(result.credits);
+  await db.ships.put(result.ship);
+  const newName = newShipName();
+  await db.shipDetail.put({ shipId: result.ship.id, name: newName });
+
   return result;
 };
 

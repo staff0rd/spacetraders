@@ -4,5 +4,5 @@ import { IShipDetail } from "../data/IShipDetail";
 
 export type BoughtShipEvent = EventObject & {
   type: "BOUGHT_SHIP";
-  data: { response: api.GetUserResponse; shipNames: IShipDetail[] };
+  data: { response: api.BuyShipResponse; shipNames: IShipDetail[] };
 };

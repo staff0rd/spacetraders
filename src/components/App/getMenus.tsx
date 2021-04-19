@@ -24,7 +24,7 @@ export function getMenus(
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null,
   stop: () => any
 ) {
-  const shipCount = state?.context.user?.ships?.length || 0;
+  const shipCount = state?.context.user?.ships.length || 0;
   const menu = [
     {
       icon: (

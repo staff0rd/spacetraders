@@ -101,8 +101,10 @@ const config: MachineConfig<Context, any, Event> = {
     },
     BOUGHT_SHIP: {
       actions: assign<Context, BoughtShipEvent>({
-        user: (c, e) => e.data.response.user,
-        ships: (c, e) => e.data.response.user.ships,
+        user: (c, e) => ({
+          ...c.user!,
+          ships: [...(c.user?.ships || []), e.data.response.ship],
+        }),
         shipNames: (c, e) => e.data.shipNames,
       }) as any,
     },
@@ -205,7 +207,16 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.Tick]: {
       entry: [
-        (c) => api.getFlightPlans(c.token!, c.username!, "OE") as any,
+        async (c) => {
+          const ships = await db.ships.toArray();
+          [
+            ...new Set(
+              ships
+                .filter((p) => p.location)
+                .map((p) => p.location!.substring(0, 2))
+            ),
+          ].map((system) => api.getFlightPlans(c.token!, c.username!, system));
+        },
         (c) => {
           const doneActors = c.actors.filter((a) => a.state.value === "done");
 
@@ -229,7 +240,7 @@ const config: MachineConfig<Context, any, Event> = {
             token: c.token!,
             available: c.availableShips,
             shipNames: c.shipNames || [],
-            ships: c.ships!,
+            ships: c.user!.ships!,
           }),
         onDone: States.GetStrategies,
         onError: {
@@ -306,7 +317,12 @@ const config: MachineConfig<Context, any, Event> = {
         },
         onDone: {
           target: States.Initialising,
-          actions: "assignUser",
+          actions: assign<Context>({
+            user: (c, e: any) => ({
+              ...c.user!,
+              loans: [...(c.user?.loans || []), e.data.response.loan],
+            }),
+          }),
         },
       },
     },
@@ -349,8 +365,10 @@ const options: Partial<MachineOptions<Context, Event>> = {
         );
 
         const debug = getDebug();
-        const toSpawn: { ship: Ship; strategy: ShipStrategy }[] = c
-          .ships!.filter((s: Ship) => {
+        const toSpawn: { ship: Ship; strategy: ShipStrategy }[] = (
+          c.user?.ships || []
+        )
+          .filter((s: Ship) => {
             const alreadySpawned = alreadySpawnedShipIds.find(
               (id) => id === s.id
             );
@@ -414,7 +432,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
   },
   guards: {
     noLoans: (c) => c.user?.loans.length === 0,
-    noPurchasedShips: (c) => c.user?.ships.length === 0,
+    noPurchasedShips: (c) => c.user!.ships.length === 0,
     noLocations: (c) => {
       const hasLocations = Object.entries(c.systems || {}).length > 0;
       return !hasLocations;
