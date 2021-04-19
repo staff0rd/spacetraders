@@ -218,7 +218,7 @@ const config: MachineConfig<Context, any, Event> = {
           ].map((system) => api.getFlightPlans(c.token!, c.username!, system));
         },
         (c) => {
-          const doneActors = c.actors.filter((a) => a.state.value === "done");
+          const doneActors = c.actors.filter((a) => a?.state.value === "done");
 
           doneActors.forEach((a) => {
             a.stop && a.stop(); // TODO: Is this required?
@@ -419,7 +419,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
     netWorth: assign<Context>({
       netWorth: (c: Context) =>
         calculateNetWorth(
-          c.actors.map((a) => a.state?.context).filter((p) => p),
+          c.actors.map((a) => a?.state?.context).filter((p) => p),
           c.availableShips,
           c.systems!
         ) as any,
