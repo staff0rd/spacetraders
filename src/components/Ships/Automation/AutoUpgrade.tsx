@@ -12,9 +12,9 @@ import {
 import DeleteIcon from "@material-ui/icons/DeleteForever";
 import AddIcon from "@material-ui/icons/AddCircle";
 import { useEffect, useState } from "react";
-import { AvailableShip } from "../../../api/AvailableShip";
+import { AvailableShip } from "api/AvailableShip";
 import { CustomSelect } from "../../CustomSelect";
-import { IAutoUpgrade } from "../../../data/localStorage/IAutomation";
+import { IAutoUpgrade } from "data/localStorage/IAutomation";
 import NumberFormat from "react-number-format";
 
 const useStyles = makeStyles((theme) => ({

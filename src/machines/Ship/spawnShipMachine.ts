@@ -13,7 +13,6 @@ export const getStrategy = (
 ): { strategy: ShipStrategy; data?: any } => {
   const strategy = c.strategies!.find((s) => s.shipId === ship.id);
   if (!strategy) {
-    //const { strategy: playerStrategy, data } = getPlayerStrategy();
     db.strategies.put({
       shipId: ship.id,
       strategy: ShipStrategy.Trade,

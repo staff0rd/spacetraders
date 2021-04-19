@@ -1,14 +1,11 @@
 import { Grid } from "@material-ui/core";
-import { AvailableShip } from "../../../api/AvailableShip";
+import { AvailableShip } from "api/AvailableShip";
 import { AutoBuy } from "./AutoBuy";
 import { AutoUpgrade } from "./AutoUpgrade";
 import { CircularProgress } from "@material-ui/core";
 import { useEffect, useState } from "react";
-import {
-  getAutomation,
-  IAutoUpgrade,
-  setAutomation,
-} from "../../../data/localStorage/IAutomation";
+import { IAutoUpgrade } from "data/localStorage/IAutomation";
+import { getAutomation, setAutomation } from "data/localStorage/getAutomation";
 
 type Props = {
   availableShips: AvailableShip[];

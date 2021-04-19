@@ -44,7 +44,7 @@ import {
 } from "../../machines/playerMachine";
 import { useTableCap } from "../../data/useTableCap";
 import db from "../../data";
-import { getAutomation } from "../../data/localStorage/IAutomation";
+import { getAutomation } from "../../data/localStorage/getAutomation";
 
 const drawerWidth = 180;
 

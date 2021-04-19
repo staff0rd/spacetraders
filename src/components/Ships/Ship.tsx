@@ -9,7 +9,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import db from "../../data";
 import { TradesDataTable } from "../Trades/TradesDataTable";
 import { DebugCheckbox } from "../Settings/DebugCheckbox";
-import { getDebug, setDebug } from "../../data/localStorage/IDebug";
+import { getDebug, setDebug } from "../../data/localStorage/getDebug";
 import { SystemContext } from "machines/MarketContext";
 import { Strategy } from "./Strategy";
 import { StrategyChange } from "../Strategy/StrategyChange";
@@ -19,6 +19,7 @@ const useStyles = makeStyles(() => ({
   strategy: {
     display: "flex",
   },
+  probeLabel: {},
 }));
 
 type Props = {
@@ -77,7 +78,10 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
                 ship.probe &&
                 ship.strategy &&
                 ship.strategy.strategy === ShipStrategy.Probe && (
-                  <> - {ship.probe.location}</>
+                  <div className={classes.probeLabel}>
+                    {" "}
+                    - {ship.probe.location}
+                  </div>
                 )}
               {ship && ship.strategy && (
                 <StrategyChange

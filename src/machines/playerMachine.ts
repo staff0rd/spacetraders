@@ -20,12 +20,13 @@ import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
 import { IShipDetail } from "../data/IShipDetail";
 import { getLocalUser } from "../data/localStorage/getLocalUser";
-import { getAutomation, IAutomation } from "../data/localStorage/IAutomation";
+import { IAutomation } from "../data/localStorage/IAutomation";
+import { getAutomation } from "../data/localStorage/getAutomation";
 import { log } from "xstate/lib/actions";
 import { upgradeShipMachine } from "./Ship/upgradeShipMachine";
-import { getUpgradingShip } from "../data/localStorage/IUpgradeShip";
+import { getUpgradingShip } from "../data/localStorage/getUpgradingShip";
 import { BoughtShipEvent } from "./BoughtShipEvent";
-import { getDebug } from "../data/localStorage/IDebug";
+import { getDebug } from "../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { ChangeStrategyPayload } from "data/Strategy/StrategyPayloads";
@@ -228,7 +229,7 @@ const config: MachineConfig<Context, any, Event> = {
       exit: assign<Context>({
         actors: (c, e) => {
           const actorsNotDone = c.actors.filter(
-            (a) => a.state.value !== "done"
+            (a) => a?.state.value !== "done"
           );
           return actorsNotDone;
         },
@@ -322,7 +323,7 @@ const config: MachineConfig<Context, any, Event> = {
               ...c.user!,
               loans: [...(c.user?.loans || []), e.data.response.loan],
             }),
-          }),
+          }) as any,
         },
       },
     },

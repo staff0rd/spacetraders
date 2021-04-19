@@ -1,4 +1,4 @@
-import { Location } from "../../../api/Location";
+import { Location } from "api/Location";
 
 export const drawMap = (
   locations: Location[],

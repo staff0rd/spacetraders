@@ -4,7 +4,7 @@ import { updateStrategy } from "./updateStrategy";
 import { ShipStrategyContext } from "./ShipBaseContext";
 import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
 import { assign } from "xstate";
-import { getDebug } from "data/localStorage/IDebug";
+import { getDebug } from "data/localStorage/getDebug";
 
 export function confirmStrategy(
   desired: ShipStrategy,

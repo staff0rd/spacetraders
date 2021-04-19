@@ -1,5 +1,5 @@
 import React from "react";
-import { getDebug, setDebug } from "../../data/localStorage/IDebug";
+import { getDebug, setDebug } from "../../data/localStorage/getDebug";
 import { DebugCheckbox } from "./DebugCheckbox";
 import { Typography, makeStyles, Button } from "@material-ui/core";
 import { Link } from "react-router-dom";

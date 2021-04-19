@@ -1,4 +1,4 @@
-import { IIntel } from "../../../data/IIntel";
+import { IIntel } from "data/IIntel";
 
 type GroupByLocation = {
   [key: string]: { docked: number; inTransit: number; symbol: string };

@@ -18,7 +18,7 @@ import { confirmStrategy } from "./confirmStrategy";
 import { initShipMachine } from "./initShipMachine";
 import { travelToLocation } from "./travelToLocation";
 import { debugShipMachineStates } from "../debugStates";
-import { getDebug } from "../../data/localStorage/IDebug";
+import { getDebug } from "../../data/localStorage/getDebug";
 import { persistStrategy } from "components/Strategy/persistStrategy";
 
 enum States {

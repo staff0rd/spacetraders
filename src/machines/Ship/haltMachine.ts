@@ -13,7 +13,7 @@ import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { confirmStrategy } from "./confirmStrategy";
 import { debugMachineStates } from "machines/debugStates";
-import { getDebug } from "data/localStorage/IDebug";
+import { getDebug } from "data/localStorage/getDebug";
 
 enum States {
   Waiting = "waiting",

@@ -1,8 +1,6 @@
 import { setCredits } from "data/localStorage/getCredits";
-import { setDebug } from "data/localStorage/IDebug";
+import { setDebug } from "data/localStorage/getDebug";
 import db from "../../data";
-import { setPlayerStrategy } from "../../data/localStorage/PlayerStrategy";
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 
 export async function clearPersistence() {
   console.log("Clearing localStorage...");
@@ -10,7 +8,6 @@ export async function clearPersistence() {
   localStorage.removeItem("locations");
 
   setCredits(0);
-  setPlayerStrategy(ShipStrategy.Trade);
   setDebug({ focusShip: undefined });
 
   console.log("Clearing IndexedDB...");

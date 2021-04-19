@@ -1,7 +1,7 @@
 import LocationIcon from "@material-ui/icons/FiberManualRecord";
 import { makeStyles, Popover, Typography } from "@material-ui/core";
 import { useState } from "react";
-import { Location as LocationSchema } from "../../../api/Location";
+import { Location as LocationSchema } from "api/Location";
 
 const useStyles = makeStyles((theme) => ({
   location: {

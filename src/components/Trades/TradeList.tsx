@@ -14,6 +14,8 @@ import { CustomSelect } from "../CustomSelect";
 import { useLiveQuery } from "dexie-react-hooks";
 import { TradesDataTable } from "./TradesDataTable";
 import { SystemContext } from "machines/MarketContext";
+import { useLocalStorage } from "components/useLocalStorage";
+import { Keys } from "data/localStorage/Keys";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -26,8 +28,11 @@ type Props = { systems?: SystemContext };
 
 export const TradeList = ({ systems }: Props) => {
   const classes = useStyles();
-  const [type, setType] = useState<string | number>("");
-  const [good, setGood] = useState("");
+  const [type, setType] = useLocalStorage<string | number>(
+    Keys.TradeList_Type,
+    ""
+  );
+  const [good, setGood] = useLocalStorage(Keys.TradeList_Good, "");
   const [shipId, setShipId] = useState("");
   const [trades, setTrades] = useState<ITrade[] | null>(null);
 

@@ -7,7 +7,7 @@ import {
   assign,
   sendParent,
 } from "xstate";
-import { getAutomation } from "../../data/localStorage/IAutomation";
+import { getAutomation } from "../../data/localStorage/getAutomation";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { debugMachineStates } from "../debugStates";
 import { UserContext } from "./ShipBaseContext";
@@ -17,7 +17,7 @@ import {
   clearUpgradingShip,
   getUpgradingShip,
   setUpgradingShip,
-} from "../../data/localStorage/IUpgradeShip";
+} from "../../data/localStorage/getUpgradingShip";
 import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
 import { persistStrategy } from "../../components/Strategy/persistStrategy";
 import { log } from "xstate/lib/actions";
@@ -29,12 +29,11 @@ import { Ship } from "../../api/Ship";
 import { getLocation } from "../../data/localStorage/locationCache";
 import { getDistance } from "../getDistance";
 import { travelToLocationMachine } from "./travelToLocationMachine";
-import { getDebug } from "data/localStorage/IDebug";
+import { getDebug } from "data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { printErrorAction } from "./printError";
 
 enum States {
-  //Init = "init",
   Started = "started",
   ShouldUpgrade = "shouldUpgrade",
   GetStrategy = "getStrategy",

@@ -30,7 +30,7 @@ import { debugShipMachineStates } from "../debugStates";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { persistStrategy } from "../../components/Strategy/persistStrategy";
 import { IShipDetail } from "../../data/IShipDetail";
-import { getDebug } from "../../data/localStorage/IDebug";
+import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 
 const MAX_CARGO_MOVE = 300;
