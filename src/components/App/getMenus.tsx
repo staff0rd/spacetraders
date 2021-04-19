@@ -14,11 +14,11 @@ import { Locations } from "../Locations";
 import { Settings } from "../Settings";
 import { NetWorth } from "../NetWorth";
 import { Intel } from "../Intel";
-import ErrorIcon from "@material-ui/icons/Error";
 import SettingsIcon from "@material-ui/icons/Settings";
 import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import LocationsIcon from "@material-ui/icons/Language";
 import IntelIcon from "@material-ui/icons/Visibility";
+import { ErrorComponent } from "./ErrorComponent";
 
 export function getMenus(
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null,
@@ -66,7 +66,7 @@ export function getMenus(
       component: <Intel />,
     },
     {
-      icon: <ErrorIcon />,
+      icon: <ErrorComponent />,
       title: "Errors",
       to: "/errors",
       component: <Errors />,
