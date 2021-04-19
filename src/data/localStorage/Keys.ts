@@ -6,4 +6,6 @@ export enum Keys {
   Automation = "automation",
   Debug = "debug",
   ShipUpgrade = "ship-upgrade",
+  Theme = "theme",
+  Locations = "locations",
 }

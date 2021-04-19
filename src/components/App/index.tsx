@@ -45,6 +45,7 @@ import {
 import { useTableCap } from "../../data/useTableCap";
 import db from "../../data";
 import { getAutomation } from "../../data/localStorage/getAutomation";
+import { Keys } from "data/localStorage/Keys";
 
 const drawerWidth = 180;
 
@@ -177,14 +178,14 @@ export function App() {
   const [theme, setTheme] = useState(
     createMuiTheme({
       palette: {
-        type: (localStorage.getItem("theme") || "dark") as PaletteType,
+        type: (localStorage.getItem(Keys.Theme) || "dark") as PaletteType,
       },
     })
   );
 
   const toggleTheme = () => {
     const newPaletteType = theme.palette.type === "light" ? "dark" : "light";
-    localStorage.setItem("theme", newPaletteType);
+    localStorage.setItem(Keys.Theme, newPaletteType);
     setTheme(
       createMuiTheme({
         palette: {

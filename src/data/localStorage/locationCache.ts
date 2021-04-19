@@ -1,16 +1,17 @@
 import { MarketContext } from "../../machines/MarketContext";
 import { Location } from "../../api/Location";
+import { Keys } from "./Keys";
 
 export const getLocation = (symbol: string): Location | undefined => {
   const locations: MarketContext = JSON.parse(
-    localStorage.getItem("locations")!
+    localStorage.getItem(Keys.Locations)!
   );
   return locations[symbol];
 };
 
 export const getLocations = (): Location[] => {
   const locations: MarketContext = JSON.parse(
-    localStorage.getItem("locations")!
+    localStorage.getItem(Keys.Locations)!
   );
   return Object.values(locations);
 };
@@ -24,7 +25,7 @@ export const getWarp = (fromSystem: string, toSystem: string) => {
 
 export const cacheLocation = (cacheThis: Location) => {
   const locations: MarketContext =
-    JSON.parse(localStorage.getItem("locations")!) || {};
+    JSON.parse(localStorage.getItem(Keys.Locations)!) || {};
 
   const existing = locations[cacheThis.symbol];
   if (existing && existing.marketplace && !cacheThis.marketplace) {
@@ -37,7 +38,7 @@ export const cacheLocation = (cacheThis: Location) => {
 
   locations[cacheThis.symbol] = cacheThis;
 
-  localStorage.setItem("locations", JSON.stringify(locations));
+  localStorage.setItem(Keys.Locations, JSON.stringify(locations));
 };
 
 export function findWarpsFrom(

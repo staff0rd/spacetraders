@@ -4,6 +4,7 @@ import db from "../../data";
 
 export async function clearPersistence() {
   console.log("Clearing localStorage...");
+  // TODO: Enumerate localStorage/Keys
   localStorage.removeItem("player");
   localStorage.removeItem("locations");
 
