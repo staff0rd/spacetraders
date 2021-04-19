@@ -1,6 +1,5 @@
 import { Typography, makeStyles } from "@material-ui/core";
 import { CircularProgress, Button, Box, Grid } from "@material-ui/core";
-import useInterval from "@use-it/interval";
 import { useState, useEffect } from "react";
 import { ConfirmDialog } from "./ConfirmDialog";
 import Alert from "@material-ui/lab/Alert";
@@ -8,6 +7,7 @@ import { clearPersistence } from "./clearPersistence";
 import { SpaceshipIcon } from "../App/SpaceshipIcon";
 import GitHubIcon from "@material-ui/icons/GitHub";
 import { Debug } from "./Debug";
+import { useInterval } from "components/useInterval";
 
 const useStyles = makeStyles((theme) => ({
   resetDetected: {
@@ -64,9 +64,6 @@ export const Settings = ({ resetDetected, stop }: Props) => {
       console.error("Couldn't get db size", e);
     }
   };
-  useEffect(() => {
-    getSize();
-  }, []);
 
   useInterval(async () => {
     getSize();
