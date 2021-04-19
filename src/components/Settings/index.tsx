@@ -1,6 +1,6 @@
 import { Typography, makeStyles } from "@material-ui/core";
 import { CircularProgress, Button, Box, Grid } from "@material-ui/core";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ConfirmDialog } from "./ConfirmDialog";
 import Alert from "@material-ui/lab/Alert";
 import { clearPersistence } from "./clearPersistence";
