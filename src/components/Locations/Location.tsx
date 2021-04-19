@@ -3,7 +3,7 @@ import { GoodIcon } from "components/Trades/GoodIcon";
 import { getLocation } from "data/localStorage/locationCache";
 import NumberFormat from "react-number-format";
 import { DataTable, right } from "../DataTable";
-import { Structures } from "./Structures";
+import { Structure } from "./Structure";
 
 type Props = {
   symbol: string;
@@ -72,7 +72,7 @@ export const Location = ({ symbol }: Props) => {
       <Grid item xs={12} md={6}>
         <Typography variant="h5">Structures</Typography>
         {location?.structures?.map((s) => (
-          <Structures structure={s} key={s.id} />
+          <Structure structure={s} key={s.id} />
         ))}
       </Grid>
     </Grid>

@@ -329,7 +329,10 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.GetAvailableShips]: {
       invoke: {
-        src: (context) => api.getAvailableShips(context.token!),
+        src: async (context) => {
+          await api.getAvailableStructures(context.token!);
+          return api.getAvailableShips(context.token!);
+        },
         onDone: {
           target: States.Initialising,
           actions: assign<Context>({

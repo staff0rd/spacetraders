@@ -1,45 +1,54 @@
-import { Typography } from "@material-ui/core";
-import { Structure } from "api/Structure";
+import { CircularProgress } from "@material-ui/core";
+import { AvailableStructure } from "api/AvailableStructure";
+import { DataTable, right } from "components/DataTable";
 import { GoodIcon } from "components/Trades/GoodIcon";
+import { useInterval } from "components/useInterval";
+import { getAvailableStructures } from "data/localStorage/getAvailableStructures";
+import React, { useState } from "react";
 import NumberFormat from "react-number-format";
-import { DataTable, right } from "../DataTable";
 
-type Props = {
-  structure: Structure;
-};
-export const Structures = ({ structure }: Props) => {
-  const columns = [right("Need"), "", right("Have"), right("Diff")];
-  const rows = (structure.materials || []).map((row) => [
+export const Structures = () => {
+  const [structures, setStructures] = useState<AvailableStructure[]>([]);
+  useInterval(() => {
+    if (!structures.length) {
+      const result = getAvailableStructures();
+      if (result) setStructures(result);
+    }
+  }, 1000);
+
+  if (!structures.length) return <CircularProgress color="primary" size={48} />;
+
+  const columns = [
+    "Name",
+    "Type",
+    right("Price"),
+    "Where",
+    "Consumes",
+    "Produces",
+  ];
+  const rows = structures.map((s) => [
+    s.name,
+    s.type,
     right(
       <NumberFormat
-        value={row.targetQuantity}
+        value={s.price}
         thousandSeparator=","
         displayType="text"
+        prefix="$"
       />
     ),
-    <GoodIcon good={row.good} />,
-    right(
-      <NumberFormat
-        value={row.quantity}
-        thousandSeparator=","
-        displayType="text"
-      />
-    ),
-    right(
-      <NumberFormat
-        value={row.targetQuantity - row.quantity}
-        thousandSeparator=","
-        displayType="text"
-      />
-    ),
+    s.allowedLocationTypes.join(", "),
+    <>
+      {s.consumes.map((g) => (
+        <GoodIcon good={g} />
+      ))}
+    </>,
+    <>
+      {s.produces.map((g) => (
+        <GoodIcon good={g} />
+      ))}
+    </>,
   ]);
 
-  return (
-    <>
-      <Typography>
-        {structure.name} - {structure.stability}
-      </Typography>
-      <DataTable title="Structures" rows={rows} columns={columns} />
-    </>
-  );
+  return <DataTable title={"Structures"} rows={rows} columns={columns} />;
 };

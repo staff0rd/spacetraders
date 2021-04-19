@@ -19,6 +19,8 @@ import { setLocalUser } from "../data/localStorage/getLocalUser";
 import { setCredits } from "data/localStorage/getCredits";
 import { cacheLocation, getLocation } from "data/localStorage/locationCache";
 import { shouldWarp } from "data/getFuelNeeded";
+import { setAvailableStructures } from "data/localStorage/getAvailableStructures";
+import { AvailableStructure } from "./AvailableStructure";
 
 class ApiError extends Error {
   code: number;
@@ -552,6 +554,19 @@ export type GetUserResponse = {
     ships: Ship[];
     loans: Loan[];
   };
+};
+
+export interface GetAvailableStructuresResponse {
+  structures: AvailableStructure[];
+}
+
+export const getAvailableStructures = async (token: string) => {
+  const result = await getSecure<GetAvailableStructuresResponse>(
+    token,
+    "game/structures"
+  );
+  setAvailableStructures(result);
+  return result;
 };
 
 export const getUser = async (

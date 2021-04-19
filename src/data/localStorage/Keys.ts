@@ -8,4 +8,5 @@ export enum Keys {
   ShipUpgrade = "ship-upgrade",
   Theme = "theme",
   Locations = "locations",
+  AvailableStructures = "available-structures",
 }

@@ -6,6 +6,7 @@ import { CircularProgress } from "@material-ui/core";
 import { LocationList } from "./LocationList";
 import { Map } from "./Map";
 import { Location } from "./Location";
+import { Structures } from "./Structures";
 
 type Props = {
   systems?: SystemContext;
@@ -16,7 +17,9 @@ export const Locations = ({ systems }: Props) => {
   const [locationName, setLocationName] = useState("");
 
   const symbol =
-    pathname.startsWith("/locations/") && !pathname.includes("map")
+    pathname.startsWith("/locations/") &&
+    !pathname.includes("map") &&
+    !pathname.includes("structures")
       ? (pathname as string).substring(11)
       : undefined;
 
@@ -48,6 +51,11 @@ export const Locations = ({ systems }: Props) => {
       label: "Map",
       path: "/locations/map",
       component: <Map systems={systems} />,
+    },
+    {
+      label: "Structures",
+      path: "/locations/structures",
+      component: <Structures />,
     },
 
     ...(symbol
