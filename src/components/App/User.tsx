@@ -79,7 +79,7 @@ export const User = ({ username }: { username: string }) => {
         onMouseEnter={handlePopoverOpen}
         onMouseLeave={handlePopoverClose}
       >
-        <Typography>{activeUsers?.length - 1}</Typography>
+        <Typography>{activeUsers?.length}</Typography>
         <PersonIcon />
       </div>
       <Popover
