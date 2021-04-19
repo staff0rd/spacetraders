@@ -21,7 +21,7 @@ import {
 const useStyles = makeStyles((theme) => ({
   formControl: {
     margin: theme.spacing(1),
-    minWidth: 60,
+    width: 120,
   },
   header: {
     display: "flex",
@@ -46,23 +46,6 @@ export const AutoBuy = ({ availableShips }: Props) => {
   const [shipType, setShipType] = useState(autoBuy.shipType);
   const [credits, setCredits] = useState(autoBuy.credits);
   const [maxShips, setMaxShips] = useState(autoBuy.maxShips);
-  const maxShipValues = [
-    1,
-    2,
-    3,
-    4,
-    5,
-    10,
-    20,
-    30,
-    40,
-    50,
-    60,
-    70,
-    80,
-    90,
-    100,
-  ];
 
   useEffect(() => {
     setAutomation({
@@ -125,13 +108,14 @@ export const AutoBuy = ({ availableShips }: Props) => {
           onValueChange={({ value: v }) => setCredits(Number(v))}
         />
       </FormControl>
-      <CustomSelect
-        name="Max ships"
-        setValue={(v) => setMaxShips(parseInt(v))}
-        values={maxShipValues}
-        value={maxShips.toString()}
-        hideAll
-      />
+      <FormControl className={classes.formControl}>
+        <TextField
+          type="number"
+          label="Max ships"
+          value={maxShips}
+          onChange={(e) => setMaxShips(Number(e.target.value))}
+        />
+      </FormControl>
     </Paper>
   );
 };
