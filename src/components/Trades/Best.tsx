@@ -76,7 +76,7 @@ export const Best = ({ systems }: Props) => {
       });
       let result = await determineBestTradeRoute(
         "GR-MK-III",
-        1000,
+        500,
         false,
         false
       );
