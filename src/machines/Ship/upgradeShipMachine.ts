@@ -148,11 +148,11 @@ const config: MachineConfig<Context, any, Event> = {
     [States.SellShipError]: {
       after: {
         1: [
-          // {
-          //   cond: (c, e: any) => c.errorCode === 42201,
-          //   actions: assign<Context>({ errorCode: undefined }) as any,
-          //   target: States.FlyToShipyard,
-          // },
+          {
+            cond: (c, e: any) => c.errorCode === 42201,
+            actions: assign<Context>({ errorCode: undefined }) as any,
+            target: States.FlyToShipyard,
+          },
           {
             target: States.Done,
             actions: log(),
@@ -181,7 +181,7 @@ const config: MachineConfig<Context, any, Event> = {
         },
       }) as any,
       invoke: {
-        src: travelToLocationMachine(true),
+        src: travelToLocationMachine(getDebug().debugUpgradeMachine),
         data: {
           id: (c: Context) => shipId(),
           token: (c: Context) => c.token,
