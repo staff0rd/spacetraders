@@ -85,8 +85,12 @@ export const TradeList = ({ systems }: Props) => {
 
   return (
     <>
-      <Grid container>
-        <Grid item xs={12} md={6}>
+      <TradesDataTable
+        trades={trades}
+        systems={systems}
+        getShipName={(shipId) => ships?.find((s) => s.shipId === shipId)?.name}
+      >
+        <Grid item style={{ flexShrink: 1 }}>
           <FormControl className={classes.formControl}>
             <InputLabel id="select-type-label">Type</InputLabel>
             <Select
@@ -128,13 +132,7 @@ export const TradeList = ({ systems }: Props) => {
             />
           )}
         </Grid>
-      </Grid>
-
-      <TradesDataTable
-        trades={trades}
-        systems={systems}
-        getShipName={(shipId) => ships?.find((s) => s.shipId === shipId)?.name}
-      />
+      </TradesDataTable>
     </>
   );
 };

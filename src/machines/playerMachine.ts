@@ -362,7 +362,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
     spawnShips: assign<Context>({
       actors: (c, e: any) => {
         const alreadySpawnedShipIds = c.actors.map(
-          (actor) => actor.state.context.id
+          (actor) => actor?.state.context.id
         );
 
         const debug = getDebug();

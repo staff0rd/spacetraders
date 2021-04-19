@@ -5,6 +5,7 @@ import SellIcon from "@material-ui/icons/RemoveCircle";
 import clsx from "clsx";
 import {
   makeStyles,
+  Grid,
   FormControl,
   Typography,
   CircularProgress,
@@ -21,6 +22,7 @@ import { Link } from "react-router-dom";
 import { GoodIcon } from "./GoodIcon";
 import { getLocationName } from "./getLocations";
 import { SystemContext } from "machines/MarketContext";
+import { ReactNode } from "react";
 
 const useStyles = makeStyles((theme) => ({
   buyIcon: {
@@ -56,9 +58,15 @@ type Props = {
   trades: ITrade[] | null | undefined;
   getShipName: (shipId: string) => string | undefined;
   systems?: SystemContext;
+  children?: ReactNode;
 };
 
-export const TradesDataTable = ({ trades, getShipName, systems }: Props) => {
+export const TradesDataTable = ({
+  trades,
+  getShipName,
+  systems,
+  children,
+}: Props) => {
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
@@ -159,36 +167,41 @@ export const TradesDataTable = ({ trades, getShipName, systems }: Props) => {
 
   return (
     <>
-      <FormControl className={classes.formControl}>
-        <Typography className="MuiInputLabel-shrink">Cost</Typography>
-        <NumberFormat
-          value={trades
-            .filter((t) => t.type === TradeType.Sell)
-            .map((t) => t.cost)
-            .reduce((a, b) => (a || 0) + (b || 0), 0)}
-          thousandSeparator=","
-          displayType="text"
-          prefix="$"
-        />
-      </FormControl>
-      <FormControl className={classes.formControl}>
-        <Typography className="MuiInputLabel-shrink">Profit</Typography>
-        <NumberFormat
-          value={profit}
-          thousandSeparator=","
-          displayType="text"
-          prefix="$"
-        />
-      </FormControl>
-      <FormControl className={classes.formControl}>
-        <Typography className="MuiInputLabel-shrink">per minute</Typography>
-        <NumberFormat
-          value={profitPerMinute}
-          thousandSeparator=","
-          displayType="text"
-          prefix="$"
-        />
-      </FormControl>
+      <Grid container>
+        {children}
+        <Grid item xs={12} md={6}>
+          <FormControl className={classes.formControl}>
+            <Typography className="MuiInputLabel-shrink">Cost</Typography>
+            <NumberFormat
+              value={trades
+                .filter((t) => t.type === TradeType.Sell)
+                .map((t) => t.cost)
+                .reduce((a, b) => (a || 0) + (b || 0), 0)}
+              thousandSeparator=","
+              displayType="text"
+              prefix="$"
+            />
+          </FormControl>
+          <FormControl className={classes.formControl}>
+            <Typography className="MuiInputLabel-shrink">Profit</Typography>
+            <NumberFormat
+              value={profit}
+              thousandSeparator=","
+              displayType="text"
+              prefix="$"
+            />
+          </FormControl>
+          <FormControl className={classes.formControl}>
+            <Typography className="MuiInputLabel-shrink">per minute</Typography>
+            <NumberFormat
+              value={profitPerMinute}
+              thousandSeparator=","
+              displayType="text"
+              prefix="$"
+            />
+          </FormControl>
+        </Grid>
+      </Grid>
 
       <DataTable
         title="Trades"
