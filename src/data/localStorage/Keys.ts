@@ -9,4 +9,6 @@ export enum Keys {
   Theme = "theme",
   Locations = "locations",
   AvailableStructures = "available-structures",
+  Markets_Location = "markets-location",
+  Markets_Good = "markets-good",
 }

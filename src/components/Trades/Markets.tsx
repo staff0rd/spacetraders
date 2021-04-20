@@ -15,6 +15,10 @@ import { getLocationName } from "./getLocations";
 import { GoodIcon } from "./GoodIcon";
 import { CustomSelect } from "components/CustomSelect";
 import { ChartComp as Chart } from "./Chart";
+import { useLocalStorage } from "components/useLocalStorage";
+import { Keys } from "data/localStorage/Keys";
+import { useInterval } from "components/useInterval";
+import { IMarket } from "data/IMarket";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -34,20 +38,26 @@ export const Markets = ({ systems }: Props) => {
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
-  const [location, setLocation] = useState("");
-  const [good, setGood] = useState("");
+  const [location, setLocation] = useLocalStorage(Keys.Markets_Location, "");
+  const [good, setGood] = useLocalStorage(Keys.Markets_Good, "");
+  const [markets, setMarkets] = useState<IMarket[]>([]);
 
-  const markets = useLiveQuery(() => {
-    return db.markets
-      .reverse()
-      .filter(
-        (p) =>
-          (location ? p.location === location : true) &&
-          (good ? p.good === good : true)
-      )
-      .limit(150)
-      .toArray();
-  }, [location, good]);
+  useInterval(
+    async () => {
+      const result = await db.markets
+        .reverse()
+        .filter(
+          (p) =>
+            (location ? p.location === location : true) &&
+            (good ? p.good === good : true)
+        )
+        .limit(150)
+        .toArray();
+      setMarkets(result);
+    },
+    5000,
+    [location, good]
+  );
 
   const locations = useLiveQuery(() =>
     db.markets.orderBy("location").uniqueKeys()
@@ -55,7 +65,7 @@ export const Markets = ({ systems }: Props) => {
   const goods = useLiveQuery(() => db.markets.orderBy("good").uniqueKeys());
 
   if (!markets || !systems)
-    return <CircularProgress color="primary" size={24} />;
+    return <CircularProgress color="primary" size={48} />;
 
   const columns = [
     "Location",
