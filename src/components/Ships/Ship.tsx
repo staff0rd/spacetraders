@@ -15,11 +15,11 @@ import { Strategy } from "./Strategy";
 import { StrategyChange } from "../Strategy/StrategyChange";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   strategy: {
     display: "flex",
   },
-  probeLabel: {},
+  probeLabel: { marginTop: 2, marginLeft: theme.spacing(1) },
 }));
 
 type Props = {
@@ -79,8 +79,7 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
                 ship.strategy &&
                 ship.strategy.strategy === ShipStrategy.Probe && (
                   <div className={classes.probeLabel}>
-                    {" "}
-                    - {ship.probe.location}
+                    {ship.probe.location}
                   </div>
                 )}
               {ship && ship.strategy && (
