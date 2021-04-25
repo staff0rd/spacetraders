@@ -3,4 +3,5 @@ export enum ShipStrategy {
   Halt,
   Change,
   Probe,
+  GoTo,
 }

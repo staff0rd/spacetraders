@@ -23,22 +23,27 @@ export function confirmStrategy(
               ShipStrategy[desired]
             }`
           );
-        if (currentStrategy.strategy === desired) return nextState;
+        if (currentStrategy.strategy === desired)
+          return { state: nextState, data: currentStrategy.data };
         console.log("updating strategy");
         await updateStrategy(c.id, desired, currentStrategy);
-        return doneState;
+        return { state: doneState };
       },
       onDone: [
         {
           target: nextState,
-          cond: (c: ShipStrategyContext, e: any) => e.data === nextState,
+          cond: (c: ShipStrategyContext, e: any) => e.data.state === nextState,
           actions: assign<ShipStrategyContext>({
             shouldCheckStrategy: false,
+            strategy: (c: ShipStrategyContext, e: any) => ({
+              ...c.strategy,
+              data: e.data.data,
+            }),
           }) as any,
         },
         {
           target: doneState,
-          cond: (c: ShipStrategyContext, e: any) => e.data === doneState,
+          cond: (c: ShipStrategyContext, e: any) => e.data.state === doneState,
         },
       ],
     },

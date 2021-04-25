@@ -294,15 +294,27 @@ const config: MachineConfig<Context, any, any> = {
           actions: printErrorAction(),
           target: States.Wait,
         },
-        onDone: {
-          target: States.ConfirmStrategy,
-          actions: [
-            assign({
-              ship: (c, e: any) => e.data.ship,
-            }) as any,
-            "shipUpdate",
-          ],
-        },
+        onDone: [
+          {
+            target: States.SellCargo,
+            cond: (c) => debugCond(c, atSellLocationWithSellableGoods),
+            actions: [
+              assign({
+                ship: (c, e: any) => e.data.ship,
+              }) as any,
+              "shipUpdate",
+            ],
+          },
+          {
+            target: States.ConfirmStrategy,
+            actions: [
+              assign({
+                ship: (c, e: any) => e.data.ship,
+              }) as any,
+              "shipUpdate",
+            ],
+          },
+        ],
       },
     },
     [States.GetMarket]: {
@@ -471,9 +483,11 @@ function atSellLocationWithSellableGoods(c: Context): boolean {
 function atBuyLocationWithTooMuchFuel(c: Context): boolean {
   const hasLocation = !!c.ship.location;
   const hasTradeRoute = !!c.tradeRoute;
+  const isBuyLocation = c.ship.location === c.tradeRoute?.buyLocation;
   return (
     hasLocation &&
     hasTradeRoute &&
+    isBuyLocation &&
     c.tradeRoute?.good !== "FUEL" &&
     getCargoQuantity(c.ship.cargo, "FUEL") > c.tradeRoute!.fuelNeeded
   );
@@ -513,6 +527,6 @@ function haveExcessCargo(c: Context): boolean {
 
 function debugCond(c: Context, cond: (c: Context) => boolean) {
   const result = cond(c);
-  if (getDebug().debugTradeMachine) console.log(`${cond.name}: ${result}`);
+  if (getDebug().focusShip === c.id) console.log(`${cond.name}: ${result}`);
   return result;
 }

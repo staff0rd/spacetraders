@@ -9,11 +9,35 @@ import { TradeRoute } from "./TradeRoute";
 export async function determineBestTradeRouteByCurrentLocation(
   shipType: string,
   maxCargo: number,
-  location?: string
+  location?: string,
+  excludeResearch = true,
+  excludeLoss = true
 ) {
-  return (await determineBestTradeRoute(shipType, maxCargo)).filter(
-    (dest) => dest.buyLocation === location
-  );
+  return (
+    await determineBestTradeRoute(
+      shipType,
+      maxCargo,
+      excludeResearch,
+      excludeLoss
+    )
+  ).filter((dest) => dest.buyLocation === location);
+}
+
+export async function determineBestTradeRouteByRoute(
+  shipType: string,
+  maxCargo: number,
+  depart?: string,
+  destination?: string
+) {
+  return (
+    await determineBestTradeRouteByCurrentLocation(
+      shipType,
+      maxCargo,
+      depart,
+      true,
+      false
+    )
+  ).filter((r) => r.sellLocation === destination);
 }
 
 export async function determineClosestBestTradeRoute(

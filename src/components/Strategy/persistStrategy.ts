@@ -6,7 +6,8 @@ export const persistStrategy = async (
   shipId: string,
   oldStrategy: ShipStrategy,
   newStrategy: ShipStrategy,
-  graceful = true
+  graceful = true,
+  data?: any
 ) => {
   if (graceful && oldStrategy !== ShipStrategy.Change)
     await db.strategies.put({
@@ -16,13 +17,14 @@ export const persistStrategy = async (
         from: {
           strategy: oldStrategy,
         },
-        to: { strategy: newStrategy },
+        to: { strategy: newStrategy, data },
       } as ChangeStrategyPayload,
     });
   else
     await db.strategies.put({
       shipId,
       strategy: newStrategy,
+      data,
     });
 
   if (oldStrategy === ShipStrategy.Probe) {

@@ -6,6 +6,7 @@ import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { Context } from "../playerMachine";
 import { haltMachine } from "./haltMachine";
 import { probeMachine } from "./probeMachine";
+import { gotoMachine } from "./gotoMachine";
 
 export const getStrategy = (
   c: Context,
@@ -71,6 +72,18 @@ export function spawnShipMachine(c: Context): any {
             id: ship.id,
             token: c.token!,
             strategy: { strategy: ShipStrategy.Halt },
+            username: c.user!.username,
+            ship,
+            shipName,
+          })
+        );
+
+      case ShipStrategy.GoTo:
+        return spawn(
+          gotoMachine.withContext({
+            id: ship.id,
+            token: c.token!,
+            strategy: { strategy: ShipStrategy.GoTo },
             username: c.user!.username,
             ship,
             shipName,

@@ -121,10 +121,7 @@ const config: MachineConfig<Context, any, any> = {
           target: States.ConfirmStrategy,
         },
         onError: {
-          actions: [
-            printErrorAction,
-            () => console.warn("going to wait after error"),
-          ],
+          actions: [printErrorAction()],
           target: States.WaitAfterErorr,
         },
       },
