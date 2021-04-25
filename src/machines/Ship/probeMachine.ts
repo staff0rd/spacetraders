@@ -107,16 +107,24 @@ const config: MachineConfig<Context, any, any> = {
     [States.Probe]: {
       invoke: {
         src: async (c) => {
-          await api.getMarket(c.token, c.ship!.location!);
-          await api.getDockedShips(c.token, c.ship!.location!);
-          await api.getStructures(c.token, c.ship!.location!);
+          try {
+            await api.getMarket(c.token, c.ship!.location!);
+            await api.getDockedShips(c.token, c.ship!.location!);
+            await api.getStructures(c.token, c.ship!.location!);
+          } catch (e) {
+            console.error("Couldn't probe", e);
+          }
+          return true;
         },
         onDone: {
           actions: assign<Context>({ lastProbe: () => DateTime.now() }) as any,
           target: States.ConfirmStrategy,
         },
         onError: {
-          actions: printErrorAction,
+          actions: [
+            printErrorAction,
+            () => console.warn("going to wait after error"),
+          ],
           target: States.WaitAfterErorr,
         },
       },
