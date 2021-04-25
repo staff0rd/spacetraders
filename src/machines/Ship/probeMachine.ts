@@ -20,6 +20,7 @@ import { travelToLocation } from "./travelToLocation";
 import { debugShipMachineStates } from "../debugStates";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { persistStrategy } from "components/Strategy/persistStrategy";
+import { printErrorAction } from "./printError";
 
 enum States {
   Init = "init",
@@ -114,7 +115,10 @@ const config: MachineConfig<Context, any, any> = {
           actions: assign<Context>({ lastProbe: () => DateTime.now() }) as any,
           target: States.ConfirmStrategy,
         },
-        onError: States.WaitAfterErorr,
+        onError: {
+          actions: printErrorAction,
+          target: States.WaitAfterErorr,
+        },
       },
     },
     [States.WaitAfterErorr]: {
