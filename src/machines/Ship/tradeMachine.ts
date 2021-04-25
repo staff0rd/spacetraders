@@ -115,10 +115,15 @@ const config: MachineConfig<Context, any, any> = {
             cond: (c) => !!c.shouldCheckStrategy,
           },
           {
-            target: States.DetermineTradeRoute,
+            target: States.Idle,
             cond: (c) =>
               !!c.ship.location &&
-              (!c.tradeRoute || c.tradeRoute?.sellLocation === c.ship.location),
+              c.tradeRoute?.sellLocation === c.ship.location,
+            actions: assign<Context>({ tradeRoute: undefined }),
+          },
+          {
+            target: States.DetermineTradeRoute,
+            cond: (c) => debugCond(c, shouldDetermineTradeRoute),
           },
           {
             target: States.BuyCargo,
@@ -479,6 +484,13 @@ function atBuyLocationWaitingToBuy(c: Context): boolean {
     getCargoQuantity(c.ship.cargo, c.tradeRoute!.good) <
       c.tradeRoute!.quantityToBuy
   );
+}
+
+function shouldDetermineTradeRoute(c: Context): boolean {
+  const hasLocation = !!c.ship.location;
+  const hasTradeRoute = !!c.tradeRoute;
+  const atSellLocation = c.tradeRoute?.sellLocation === c.ship.location;
+  return hasLocation && (!hasTradeRoute || atSellLocation);
 }
 
 function haveExcessCargo(c: Context): boolean {

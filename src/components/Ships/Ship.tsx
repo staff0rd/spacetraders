@@ -37,6 +37,7 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
       detail: await db.shipDetail.get(shipId),
       ship: await db.ships.get(shipId),
       probe: await db.probes.where("shipId").equals(shipId).first(),
+      tradeRoute: await db.tradeRoutes.where("shipId").equals(shipId).first(),
     }),
     [shipId]
   );
@@ -103,6 +104,12 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
         </Grid>
         <Grid item xs={6}>
           <Cargo ship={ship!.ship} />
+        </Grid>
+        <Grid item xs={12}>
+          <Box>
+            <Typography variant="h6">Last trade route</Typography>
+            <pre>{JSON.stringify(ship.tradeRoute, null, 2)}</pre>
+          </Box>
         </Grid>
         <Grid item xs={12}>
           <Box>
