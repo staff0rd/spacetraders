@@ -543,6 +543,18 @@ export const newFlightPlan = async (
         { shipId, destination }
       ));
   await db.flightPlans.put(result.flightPlan);
+  const ship = await db.ships.get(shipId);
+  ship!.cargo = [
+    ...ship!.cargo.map((c) =>
+      c.good !== "FUEL"
+        ? c
+        : {
+            ...c,
+            quantity: result.flightPlan.fuelRemaining,
+          }
+    ),
+  ];
+  await db.ships.put(ship!);
   flightPlanToIntel(result.flightPlan);
   return result;
 };
