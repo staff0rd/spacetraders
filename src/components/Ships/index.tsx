@@ -61,7 +61,7 @@ export const Ships = ({ state, availableShips }: Props) => {
               <Ship
                 systems={state?.context.systems}
                 actor={state?.context.actors.find(
-                  (x) => x.state.context.id === shipId
+                  (x) => x?.state.context.id === shipId
                 )}
                 shipId={shipId}
               />

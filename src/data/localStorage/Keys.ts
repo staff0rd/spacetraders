@@ -11,4 +11,6 @@ export enum Keys {
   AvailableStructures = "available-structures",
   Markets_Location = "markets-location",
   Markets_Good = "markets-good",
+  FuelCalc_From = "fuelcalc-from",
+  FuelCalc_To = "fuelcalc-to",
 }

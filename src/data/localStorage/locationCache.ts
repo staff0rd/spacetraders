@@ -9,6 +9,17 @@ export const getLocation = (symbol: string): Location | undefined => {
   return locations[symbol];
 };
 
+export const getLocationName = (symbol: string): string | undefined => {
+  const location = getLocation(symbol);
+  if (location) {
+    if (location.name === "Wormhole") {
+      return `${location.name} ${location.symbol.substring(0, 5)}`;
+    }
+    return location.name;
+  }
+  return symbol;
+};
+
 export const getLocations = (): Location[] => {
   const result = Object.values(locations);
   return result;

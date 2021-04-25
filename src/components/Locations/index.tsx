@@ -7,6 +7,7 @@ import { LocationList } from "./LocationList";
 import { Map } from "./Map";
 import { Location } from "./Location";
 import { Structures } from "./Structures";
+import { FuelCalcs } from "./FuelCalcs";
 
 type Props = {
   systems?: SystemContext;
@@ -19,6 +20,7 @@ export const Locations = ({ systems }: Props) => {
   const symbol =
     pathname.startsWith("/locations/") &&
     !pathname.includes("map") &&
+    pathname !== "/locations/fuel" &&
     !pathname.includes("structures")
       ? (pathname as string).substring(11)
       : undefined;
@@ -51,6 +53,11 @@ export const Locations = ({ systems }: Props) => {
       label: "Map",
       path: "/locations/map",
       component: <Map systems={systems} />,
+    },
+    {
+      label: "Fuel Calcs",
+      path: "/locations/fuel",
+      component: <FuelCalcs />,
     },
     {
       label: "Structures",

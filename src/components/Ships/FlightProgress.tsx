@@ -2,7 +2,7 @@ import React, { ReactNode } from "react";
 import { FlightPlan } from "../../api/FlightPlan";
 import { DateTime } from "luxon";
 import { LinearProgress, makeStyles, Typography } from "@material-ui/core";
-import { getLocation } from "data/localStorage/locationCache";
+import { getLocationName } from "data/localStorage/locationCache";
 
 const useStyles = makeStyles((theme) => ({
   flightPlanText: {
@@ -45,7 +45,7 @@ export default function LinearStatic({ flightPlan, fallback }: Props) {
     return (
       <Typography className={classes.flightPlanText}>
         {fallback ||
-          (flightPlan ? getLocation(flightPlan.destination)?.name || "" : "")}
+          (flightPlan ? getLocationName(flightPlan.destination) || "" : "")}
       </Typography>
     );
 }
