@@ -32,6 +32,7 @@ import { persistStrategy } from "../../components/Strategy/persistStrategy";
 import { IShipDetail } from "../../data/IShipDetail";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
+import { formatCurrency } from "./formatNumber";
 
 const MAX_CARGO_MOVE = 300;
 
@@ -356,6 +357,11 @@ const config: MachineConfig<Context, any, any> = {
             );
             const cost = quantity * c.tradeRoute!.purchasePricePerUnit;
             if (cost > getCredits()) {
+              console.warn(
+                `[${c.shipName}] Will wait, need ${formatCurrency(
+                  cost
+                )}, but have ${formatCurrency(getCredits())}`
+              );
               return { bought: false, ship: result.ship };
             }
             result = await api.purchaseOrder(

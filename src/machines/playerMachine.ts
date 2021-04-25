@@ -368,7 +368,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
           (actor) => actor?.state.context.id
         );
 
-        const debug = getDebug();
         const toSpawn: { ship: Ship; strategy: ShipStrategy }[] = (
           c.user?.ships || []
         )
