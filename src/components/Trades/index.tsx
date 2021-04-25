@@ -15,6 +15,11 @@ export const Trades = ({ systems }: Props) => {
       component: <TradeList systems={systems} />,
     },
     {
+      label: "Best",
+      path: "/trades/best",
+      component: <Best systems={systems} />,
+    },
+    {
       label: "Markets",
       path: "/trades/markets",
       component: <Markets systems={systems} />,
@@ -23,11 +28,6 @@ export const Trades = ({ systems }: Props) => {
       label: "Current",
       path: "/trades/current",
       component: <Current systems={systems} />,
-    },
-    {
-      label: "Best",
-      path: "/trades/best",
-      component: <Best systems={systems} />,
     },
   ];
   return <TabPanel tabs={tabs} />;
