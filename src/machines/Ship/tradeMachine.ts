@@ -52,7 +52,6 @@ enum States {
   Done = "done",
   ConfirmStrategy = "confirmStrategy",
   DetermineTradeRoute = "determineTradeRoute",
-  InFlight = "inFlight",
   GetMarket = "getMarket",
   GetTradeRoute = "getTradeRoute",
   TravelToLocation = "travelToLocation",
@@ -67,10 +66,6 @@ export type Context = ShipBaseContext & {
 };
 
 export type ShipActor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
-
-const sleep = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
 
 const config: MachineConfig<Context, any, any> = {
   id: "trade",
@@ -106,7 +101,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.Idle]: {
       after: {
         1: [
-          { target: States.InFlight, cond: (c) => !!c.flightPlan },
+          { target: States.TravelToLocation, cond: (c) => !!c.flightPlan },
           { target: States.GetMarket, cond: "noLocation" },
           {
             target: States.SellCargo,
@@ -298,35 +293,6 @@ const config: MachineConfig<Context, any, any> = {
               ship: (c, e: any) => e.data.ship,
             }) as any,
             "shipUpdate",
-          ],
-        },
-      },
-    },
-    [States.InFlight]: {
-      invoke: {
-        src: async (c) => {
-          await sleep(
-            DateTime.fromISO(c.flightPlan!.arrivesAt).diffNow("seconds")
-              .seconds * 1000
-          );
-        },
-        onDone: {
-          target: States.Idle,
-          actions: [
-            sendParent((c: Context, e) => ({
-              type: "SHIP_ARRIVED",
-              data: c.id,
-            })),
-            assign({
-              ship: (c: Context, e) => {
-                return {
-                  ...c.ship,
-                  location: c.flightPlan!.destination,
-                };
-              },
-              flightPlan: undefined,
-              location: undefined,
-            }) as any,
           ],
         },
       },
