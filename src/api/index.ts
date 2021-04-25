@@ -138,13 +138,11 @@ const deleteSecure = async <T>(
 };
 
 type GetDockedShipsResponse = {
-  location: {
-    ships: {
-      shipId: string;
-      username: string;
-      shipType: string;
-    }[];
-  };
+  ships: {
+    shipId: string;
+    username: string;
+    shipType: string;
+  }[];
 };
 
 export const getStructures = async (token: string, location: string) => {
@@ -164,7 +162,7 @@ export const getDockedShips = async (token: string, location: string) => {
     `game/locations/${location}/ships`
   );
   await Promise.all(
-    result.location.ships.map((ship) =>
+    result.ships.map((ship) =>
       db.intel.put({
         destination: location,
         lastSeen: DateTime.now().toISO(),
