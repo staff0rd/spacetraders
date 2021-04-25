@@ -118,9 +118,7 @@ const config: MachineConfig<Context, any, any> = {
             target: States.DetermineTradeRoute,
             cond: (c) =>
               !!c.ship.location &&
-              (!c.tradeRoute ||
-                c.tradeRoute?.sellLocation === c.ship.location ||
-                c.tradeRoute?.buyLocation !== c.ship.location),
+              (!c.tradeRoute || c.tradeRoute?.sellLocation === c.ship.location),
           },
           {
             target: States.BuyCargo,
