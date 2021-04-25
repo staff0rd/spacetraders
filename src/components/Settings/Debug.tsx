@@ -63,24 +63,9 @@ export const Debug = () => {
         initialValue={debug.debugPlayerMachine}
       />
       <DebugCheckbox
-        title="Debug Probe Machine"
-        persist={(value) => setDebug({ debugProbeMachine: value })}
-        initialValue={debug.debugProbeMachine}
-      />
-      <DebugCheckbox
-        title="Debug Trade Machine"
-        persist={(value) => setDebug({ debugTradeMachine: value })}
-        initialValue={debug.debugTradeMachine}
-      />
-      <DebugCheckbox
         title="Debug Upgrade Machine"
         persist={(value) => setDebug({ debugUpgradeMachine: value })}
         initialValue={debug.debugUpgradeMachine}
-      />
-      <DebugCheckbox
-        title="Debug Halt Machine"
-        persist={(value) => setDebug({ debugHaltMachine: value })}
-        initialValue={debug.debugHaltMachine}
       />
       <Button
         className={classes.button}

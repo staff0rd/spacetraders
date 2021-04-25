@@ -15,7 +15,7 @@ import { DateTime } from "luxon";
 import { ShipContext } from "./ShipBaseContext";
 import { printError, printErrorAction, print } from "./printError";
 import { getCargoQuantity } from "./getCargoQuantity";
-import { debugMachineStates } from "../debugStates";
+import { debugShipMachineStates } from "../debugStates";
 import { persistStrategy } from "components/Strategy/persistStrategy";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { getRoute, getGraph } from "data/localStorage/graph";
@@ -118,6 +118,7 @@ const config: MachineConfig<Context, any, any> = {
           const neededFuel = c.neededFuel! - currentFuel;
 
           if (neededFuel > c.ship.spaceAvailable) {
+            console.log("need more fuel than have space");
             const sellGood = c.ship.cargo!.find((p) => p.good !== "FUEL")!.good;
             console.warn(
               `[${c.shipName}] Selling 1x${sellGood} to make room for ${neededFuel} fuel`
@@ -282,9 +283,4 @@ const config: MachineConfig<Context, any, any> = {
 };
 
 export const travelToLocationMachine = (shouldDebug: boolean = false) =>
-  createMachine(
-    debugMachineStates(
-      { ...config, id: `${config.id}-debug-${shouldDebug}` },
-      shouldDebug
-    )
-  );
+  createMachine(debugShipMachineStates(config));

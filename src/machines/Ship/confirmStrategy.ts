@@ -17,7 +17,7 @@ export function confirmStrategy(
         const currentStrategy: IShipStrategy = (await db.strategies
           .where({ shipId: c.id })
           .first())!;
-        if (getDebug().focusShip)
+        if (getDebug().focusShip === c.id)
           console.warn(
             `${ShipStrategy[currentStrategy.strategy]} === ${
               ShipStrategy[desired]

@@ -13,11 +13,10 @@ export function debugShipMachineStates<
   TContext extends ShipContext,
   TStateSchema extends StateSchema,
   TEvent extends EventObject
->(config: MachineConfig<TContext, TStateSchema, TEvent>, debugOn = true) {
+>(config: MachineConfig<TContext, TStateSchema, TEvent>) {
   return debugStates<TContext, TStateSchema, TEvent>(
     config,
-    debugShipMachine as any,
-    debugOn
+    debugShipMachine as any
   );
 }
 
@@ -25,7 +24,7 @@ export function debugMachineStates<
   TContext,
   TStateSchema extends StateSchema,
   TEvent extends EventObject
->(config: MachineConfig<TContext, TStateSchema, TEvent>, debugOn = true) {
+>(config: MachineConfig<TContext, TStateSchema, TEvent>, debugOn = () => true) {
   return debugStates(config, debugMachine, debugOn);
 }
 
@@ -36,10 +35,11 @@ function debugStates<
 >(
   config: MachineConfig<TContext, TStateSchema, TEvent>,
   debugHandler: <TContext>(
+    shouldDebug: () => boolean,
     machineName: string,
     message?: string
   ) => (c: TContext, e: any, d: ActionMeta<TContext, any>) => void,
-  debugOn: boolean
+  debugOn = () => true
 ): MachineConfig<TContext, TStateSchema, TEvent> {
   if (!debugOn) return config;
   const clone = cloneDeep(config);
@@ -49,12 +49,12 @@ function debugStates<
 
     if (node.entry) {
       if (Array.isArray(node.entry)) {
-        node.entry.push(debugHandler(clone.id!));
+        node.entry.push(debugHandler(debugOn, clone.id!));
       } else {
-        node.entry = [node.entry, debugHandler(clone.id!)];
+        node.entry = [node.entry, debugHandler(debugOn, clone.id!)];
       }
     } else {
-      node.entry = debugHandler(clone.id!);
+      node.entry = debugHandler(debugOn, clone.id!);
     }
   });
 

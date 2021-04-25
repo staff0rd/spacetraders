@@ -381,7 +381,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
             }
             return true;
           })
-          .filter((p) => !debug.focusShip || p.id === debug.focusShip)
           .map((ts) => {
             const strat = getStrategy(c, ts);
             const strategy =
@@ -456,6 +455,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
 };
 
 export const playerMachine = createMachine(
-  debugMachineStates(config, getDebug().debugPlayerMachine),
+  debugMachineStates(config, () => getDebug().debugPlayerMachine),
   options
 );

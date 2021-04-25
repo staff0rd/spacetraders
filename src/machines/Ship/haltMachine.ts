@@ -12,7 +12,7 @@ import db from "../../data";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { confirmStrategy } from "./confirmStrategy";
-import { debugMachineStates } from "machines/debugStates";
+import { debugShipMachineStates } from "machines/debugStates";
 import { getDebug } from "data/localStorage/getDebug";
 
 enum States {
@@ -72,6 +72,6 @@ const options: Partial<MachineOptions<Context, any>> = {
 };
 
 export const haltMachine = createMachine(
-  debugMachineStates(config, getDebug().debugHaltMachine),
+  debugShipMachineStates(config),
   options
 );

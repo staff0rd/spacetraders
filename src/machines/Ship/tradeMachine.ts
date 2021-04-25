@@ -130,7 +130,11 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             target: States.Done,
-            actions: debugShipMachine("trade", "Nothing left to do"),
+            actions: debugShipMachine(
+              () => true,
+              "trade",
+              "Nothing left to do"
+            ),
           },
         ],
       },
@@ -439,7 +443,7 @@ const options: Partial<MachineOptions<Context, any>> = {
 };
 
 export const tradeMachine = createMachine(
-  debugShipMachineStates(config, getDebug().debugTradeMachine),
+  debugShipMachineStates(config),
   options
 );
 

@@ -147,6 +147,6 @@ const options: Partial<MachineOptions<Context, any>> = {
 };
 
 export const probeMachine = createMachine(
-  debugShipMachineStates(config, getDebug().debugProbeMachine),
+  debugShipMachineStates(config),
   options
 );
