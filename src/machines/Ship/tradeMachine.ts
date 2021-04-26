@@ -146,7 +146,7 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.TravelToLocation]: {
-      exit: (c) => assign<Context>({ goto: undefined }),
+      exit: (c) => assign<Context>({ goto: (c) => undefined }),
       ...travelToLocation<Context>(
         (c) => c.goto || c.tradeRoute!.sellLocation,
         States.Idle,
