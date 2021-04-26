@@ -76,7 +76,7 @@ export const Markets = ({ systems }: Props) => {
     right("Spread"),
     "When",
   ];
-  const rows = markets.map((market) => [
+  const rows = markets.slice(0, 50).map((market) => [
     getLocationName(systems, market.location),
     ...(isMdDown
       ? [
@@ -129,7 +129,9 @@ export const Markets = ({ systems }: Props) => {
   ]);
   return (
     <>
-      {location && <Chart markets={markets} />}
+      {(location || good) && (
+        <Chart markets={markets} good={good} location={location} />
+      )}
       {locations && (
         <CustomSelect
           name="Location"
