@@ -10,13 +10,12 @@ import {
 import db from "data";
 import NumberFormat from "react-number-format";
 import { GoodIcon } from "./GoodIcon";
-import { SystemContext } from "machines/MarketContext";
-import { getLocationName, getLocations } from "./getLocations";
 import { determineBestTradeRoute } from "machines/Ship/determineBestTradeRoute";
 import { useState, useEffect } from "react";
 import { TradeRoute } from "machines/Ship/TradeRoute";
 import { CustomSelect } from "components/CustomSelect";
 import { useLiveQuery } from "dexie-react-hooks";
+import { getLocation, getLocations } from "data/localStorage/locationCache";
 
 const useStyles = makeStyles((theme) => ({
   text: {
@@ -41,13 +40,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-type Props = { systems?: SystemContext };
-
 type TradeRouteWithCount = TradeRoute & {
   shipCount: number;
 };
 
-export const Best = ({ systems }: Props) => {
+export const Best = () => {
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
@@ -97,9 +94,8 @@ export const Best = ({ systems }: Props) => {
     return () => clearInterval(interval);
   }, [from, to, good]);
 
-  if (!systems || !goods) return <CircularProgress size={24} />;
+  if (!goods) return <CircularProgress size={24} />;
 
-  const locations = getLocations(systems).map((x) => x.symbol);
   const columns = [
     ...(isMdDown ? ["Good"] : ["Good", "Qty"]),
     ...(isMdDown ? ["From/To"] : ["From", "To"]),
@@ -137,16 +133,16 @@ export const Best = ({ systems }: Props) => {
       ? [
           <div className={classes.left}>
             <Typography className={classes.text}>
-              {getLocationName(systems, route.buyLocation)}
+              {getLocation(route.buyLocation)?.name}
             </Typography>
             <Typography className={classes.text}>
-              {getLocationName(systems, route.sellLocation)}
+              {getLocation(route.sellLocation)?.name}
             </Typography>
           </div>,
         ]
       : [
-          getLocationName(systems, route.buyLocation),
-          getLocationName(systems, route.sellLocation),
+          getLocation(route.buyLocation)?.name,
+          getLocation(route.sellLocation)?.name,
         ]),
     ...(isMdDown
       ? [
@@ -215,6 +211,8 @@ export const Best = ({ systems }: Props) => {
     ),
     route.shipCount,
   ]);
+
+  const locations = getLocations().map((p) => p.symbol);
   return (
     <>
       <CustomSelect
@@ -222,14 +220,14 @@ export const Best = ({ systems }: Props) => {
         setValue={setFrom}
         value={from}
         values={locations}
-        displayMap={(value) => getLocationName(systems, value as string)}
+        displayMap={(value) => getLocation(value as string)?.name}
       />
       <CustomSelect
         name="To"
         setValue={setTo}
         value={to}
         values={locations}
-        displayMap={(value) => getLocationName(systems, value as string)}
+        displayMap={(value) => getLocation(value as string)?.name}
       />
       <CustomSelect
         name="Good"

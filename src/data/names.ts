@@ -5,7 +5,6 @@ import {
   colors,
   animals,
 } from "unique-names-generator";
-import db from "./";
 
 export const newPlayerName: () => string = () => {
   const nameConfig: Config = {

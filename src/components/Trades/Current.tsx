@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 import { DateTime } from "luxon";
 import { GoodIcon } from "./GoodIcon";
 import { SystemContext } from "machines/MarketContext";
-import { getLocationName } from "./getLocations";
+import { getLocation } from "data/localStorage/locationCache";
 
 const useStyles = makeStyles((theme) => ({
   text: {
@@ -64,16 +64,16 @@ export const Current = ({ systems }: Props) => {
       ? [
           <div className={classes.left}>
             <Typography className={classes.text}>
-              {getLocationName(systems, route.buyLocation)}
+              {getLocation(route.buyLocation)?.name}
             </Typography>
             <Typography className={classes.text}>
-              {getLocationName(systems, route.sellLocation)}
+              {getLocation(route.sellLocation)?.name}
             </Typography>
           </div>,
         ]
       : [
-          getLocationName(systems, route.buyLocation),
-          getLocationName(systems, route.sellLocation),
+          getLocation(route.buyLocation)?.name,
+          getLocation(route.sellLocation)?.name,
         ]),
     <NumberFormat
       value={Math.round(route.distance)}

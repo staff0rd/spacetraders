@@ -1,19 +1,20 @@
-import { CircularProgress, Typography } from "@material-ui/core";
+import { CircularProgress, Tab, Tabs, Typography } from "@material-ui/core";
 import React from "react";
-import FlightProgress from "./FlightProgress";
+import FlightProgress from "../FlightProgress";
 import { Grid } from "@material-ui/core";
 import { Box, makeStyles } from "@material-ui/core";
-import Cargo from "./Cargo";
-import { ShipActor } from "../../machines/Ship/tradeMachine";
+import Cargo from "../Cargo";
+import { ShipActor } from "machines/Ship/tradeMachine";
 import { useLiveQuery } from "dexie-react-hooks";
-import db from "../../data";
-import { TradesDataTable } from "../Trades/TradesDataTable";
-import { DebugCheckbox } from "../Settings/DebugCheckbox";
-import { getDebug, setDebug } from "../../data/localStorage/getDebug";
+import db from "data";
+import { DebugCheckbox } from "components/Settings/DebugCheckbox";
+import { getDebug, setDebug } from "data/localStorage/getDebug";
 import { SystemContext } from "machines/MarketContext";
-import { Strategy } from "./Strategy";
-import { StrategyChange } from "../Strategy/StrategyChange";
+import { Strategy } from "../Strategy";
+import { StrategyChange } from "components/Strategy/StrategyChange";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
+import { Trades } from "./Trades";
+import { Requests } from "./Requests";
 
 const useStyles = makeStyles((theme) => ({
   strategy: {
@@ -30,6 +31,11 @@ type Props = {
 
 export const ShipComponent = ({ shipId, actor, systems }: Props) => {
   const classes = useStyles();
+  const [tab, setTab] = React.useState(0);
+  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+    setTab(newValue);
+  };
+
   const ship = useLiveQuery(
     async () => ({
       flightPlan: await db.flightPlans.get(shipId),
@@ -39,12 +45,6 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
       probe: await db.probes.where("shipId").equals(shipId).first(),
       tradeRoute: await db.tradeRoutes.where("shipId").equals(shipId).first(),
     }),
-    [shipId]
-  );
-
-  const trades = useLiveQuery(
-    () =>
-      db.trades.where("shipId").equals(shipId).reverse().limit(50).toArray(),
     [shipId]
   );
 
@@ -105,23 +105,15 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
         <Grid item xs={6}>
           <Cargo ship={ship!.ship} />
         </Grid>
-        <Grid item xs={12}>
-          <Box>
-            <Typography variant="h6">Last trade route</Typography>
-            <pre>{JSON.stringify(ship.tradeRoute, null, 2)}</pre>
-          </Box>
-        </Grid>
-        <Grid item xs={12}>
-          <Box>
-            <Typography variant="h6">Recent trades</Typography>
-            <TradesDataTable
-              trades={trades}
-              getShipName={(_) => ship.detail?.name}
-              systems={systems}
-            />
-          </Box>
-        </Grid>
       </Grid>
+      <Tabs value={tab} onChange={handleTabChange}>
+        <Tab label="Recent trades" />
+        <Tab label="Last trade route" />
+        <Tab label="Recent Requests" />
+      </Tabs>
+      {tab === 0 && <Trades shipId={shipId} />}
+      {tab === 1 && <pre>{JSON.stringify(ship.tradeRoute, null, 2)}</pre>}
+      {tab === 2 && <Requests shipId={shipId} />}
     </>
   );
 };

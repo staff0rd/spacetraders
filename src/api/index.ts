@@ -24,6 +24,9 @@ import { AvailableStructure } from "./AvailableStructure";
 import * as shipCache from "data/localStorage/shipCache";
 import { saveTradeData } from "./saveTradeData";
 import { GetLeaderboardResponse } from "./GetLeaderboardResponse";
+import Dexie from "dexie";
+
+const MAX_SHIP_REQUESTS = 20;
 
 class ApiError extends Error {
   code: number;
@@ -58,6 +61,7 @@ const makeRequest = async (
   data: any = undefined,
   retry = 0
 ): Promise<any> => {
+  const isShipRequest = !!data?.shipId;
   const body = data ? JSON.stringify(data) : undefined;
   const response = await fetch(getUrl(path), {
     method,
@@ -79,6 +83,17 @@ const makeRequest = async (
         created: DateTime.now().toISO(),
       })
       .catch((reason) => console.error("Cound not save error: ", reason));
+    if (isShipRequest) {
+      await db.requests.put({
+        isError: true,
+        path,
+        request: data,
+        response: result.error,
+        shipId: data.shipId,
+        timestamp: DateTime.local().toISO(),
+      });
+      await trimShipRequests(data.shipId);
+    }
     // if (result.error.code === 42901) {
     //   // throttle
     //   if (retry < 3) {
@@ -89,6 +104,17 @@ const makeRequest = async (
     //   }
     // }
     throw new ApiError(result.error.message, result.error.code);
+  }
+  if (isShipRequest) {
+    await db.requests.put({
+      isError: false,
+      path,
+      request: data,
+      response: result,
+      shipId: data.shipId,
+      timestamp: DateTime.local().toISO(),
+    });
+    await trimShipRequests(data.shipId);
   }
   return result;
 };
@@ -487,7 +513,8 @@ export const sellOrder = async (
 
 export const getLeaderboard = async (
   token: string
-): Promise<GetLeaderboardResponse> => getSecure(token, 'game/leaderboard/net-worth');
+): Promise<GetLeaderboardResponse> =>
+  getSecure(token, "game/leaderboard/net-worth");
 
 const flightPlansCache = createCache<GetFlightPlansResponse>();
 
@@ -601,6 +628,15 @@ const persistUserResponse = async (promise: Promise<GetUserResponse>) => {
   setCredits(result.user.credits);
   return result;
 };
+
+async function trimShipRequests(shipId: string) {
+  await db.requests
+    .where("[shipId+id]")
+    .between([shipId, Dexie.minKey], [shipId, Dexie.maxKey])
+    .reverse()
+    .offset(MAX_SHIP_REQUESTS)
+    .delete();
+}
 
 function flightPlanToIntel(fp: FlightPlan) {
   return db.intel.put({

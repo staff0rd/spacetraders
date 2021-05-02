@@ -56,7 +56,7 @@ export const Leaderboard = () => {
 
   return (
     <Grid container>
-      <Grid item xs={12} sm={6}>
+      <Grid item xs={12} md={6}>
         <DataTable rows={rows} columns={columns} title="Leaderboard" />
       </Grid>
     </Grid>

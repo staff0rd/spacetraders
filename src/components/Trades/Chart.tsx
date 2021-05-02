@@ -62,16 +62,16 @@ export function groupByLocation(intel: IMarket[] | undefined) {
   return Object.values(grouped);
 }
 
-type Dataset = {
-  label: string;
-  data: {
-    x: DateTime;
-    y: number;
-  }[];
-  fill: boolean;
-  borderColor: string;
-  tension: number;
-};
+// type Dataset = {
+//   label: string;
+//   data: {
+//     x: DateTime;
+//     y: number;
+//   }[];
+//   fill: boolean;
+//   borderColor: string;
+//   tension: number;
+// };
 
 export const ChartComp = ({ good, location, markets }: Props) => {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -132,6 +132,7 @@ export const ChartComp = ({ good, location, markets }: Props) => {
       );
       return () => chart?.destroy();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [good, location]);
 
   return (

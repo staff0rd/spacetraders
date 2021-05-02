@@ -10,6 +10,7 @@ import { ITradeRoute } from "./ITradeRoute";
 import { ITradeRouteData } from "./ITradeRouteData";
 import { FlightPlan } from "../api/FlightPlan";
 import { Ship } from "../api/Ship";
+import { IRequestResponse } from "./IRequestResponse";
 
 class Database extends Dexie {
   apiErrors: Dexie.Table<IApiError, number>; // number = type of the primkey
@@ -24,10 +25,11 @@ class Database extends Dexie {
   flightPlans: Dexie.Table<FlightPlan, string>;
   ships: Dexie.Table<Ship, string>;
   tradeData: Dexie.Table<ITradeRouteData, number>;
+  requests: Dexie.Table<IRequestResponse, number>;
 
   constructor() {
     super("Database");
-    this.version(58).stores({
+    this.version(61).stores({
       apiErrors: "++id, code, created",
       trades: "++id, good, shipId, location, type, timestamp",
       market: "++id,location,good,created",
@@ -40,6 +42,7 @@ class Database extends Dexie {
       flightPlans: "&shipId, &id, arrivesAt",
       ships2: "&id",
       tradeData: "++id, [shipId+created+complete], [updated+complete]",
+      requests: "++id, [shipId+id]",
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -55,6 +58,7 @@ class Database extends Dexie {
     this.flightPlans = this.table("flightPlans");
     this.ships = this.table("ships2");
     this.tradeData = this.table("tradeData");
+    this.requests = this.table("requests");
   }
 }
 

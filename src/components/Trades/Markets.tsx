@@ -11,7 +11,6 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import { SystemContext } from "machines/MarketContext";
-import { getLocationName } from "./getLocations";
 import { GoodIcon } from "./GoodIcon";
 import { CustomSelect } from "components/CustomSelect";
 import { ChartComp as Chart } from "./Chart";
@@ -19,6 +18,7 @@ import { useLocalStorage } from "components/useLocalStorage";
 import { Keys } from "data/localStorage/Keys";
 import { useInterval } from "components/useInterval";
 import { IMarket } from "data/IMarket";
+import { getLocation } from "data/localStorage/locationCache";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -77,7 +77,7 @@ export const Markets = ({ systems }: Props) => {
     "When",
   ];
   const rows = markets.slice(0, 50).map((market) => [
-    getLocationName(systems, market.location),
+    getLocation(market.location)?.name,
     ...(isMdDown
       ? [
           <div className={classes.center}>
@@ -138,7 +138,7 @@ export const Markets = ({ systems }: Props) => {
           setValue={setLocation}
           value={location}
           values={locations}
-          displayMap={(value) => getLocationName(systems, value as string)}
+          displayMap={(value) => getLocation(value as string)?.name}
         />
       )}
       {goods && (

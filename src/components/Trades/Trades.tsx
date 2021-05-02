@@ -5,8 +5,20 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import { getShip } from "data/localStorage/shipCache";
 import { formatCurrency } from "machines/Ship/formatNumber";
 import Dexie from "dexie";
+import { makeStyles, Typography } from "@material-ui/core";
+import { Link } from "react-router-dom";
+
+const useStyles = makeStyles((theme) => ({
+  text: {
+    fontSize: 14,
+    "& a": {
+      color: "white",
+    },
+  },
+}));
 
 export const Trades = () => {
+  const classes = useStyles();
   const trades = useLiveQuery(() => {
     return db.tradeData
       .where("[updated+complete]")
@@ -19,7 +31,9 @@ export const Trades = () => {
   if (!trades) return <CircularProgress color="primary" size={48} />;
 
   const rows = trades.map((row) => [
-    getShip(row.shipId).name,
+    <Typography className={classes.text}>
+      <Link to={`/ships/owned/${row.shipId}`}>{getShip(row.shipId).name}</Link>
+    </Typography>,
     right(formatCurrency(row.profit)),
   ]);
   const columns = ["Ship", right("Profit")];

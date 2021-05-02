@@ -23,7 +23,7 @@ export const Trades = ({ systems }: Props) => {
     {
       label: "Best",
       path: "/trades/best",
-      component: <Best systems={systems} />,
+      component: <Best />,
     },
     {
       label: "Markets",

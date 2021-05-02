@@ -20,9 +20,9 @@ import NumberFormat from "react-number-format";
 import { DateTime } from "luxon";
 import { Link } from "react-router-dom";
 import { GoodIcon } from "./GoodIcon";
-import { getLocationName } from "./getLocations";
-import { SystemContext } from "machines/MarketContext";
 import { ReactNode } from "react";
+import { getLocation } from "data/localStorage/locationCache";
+import { getShip } from "data/localStorage/shipCache";
 
 const useStyles = makeStyles((theme) => ({
   buyIcon: {
@@ -56,23 +56,15 @@ const useStyles = makeStyles((theme) => ({
 
 type Props = {
   trades: ITrade[] | null | undefined;
-  getShipName: (shipId: string) => string | undefined;
-  systems?: SystemContext;
   children?: ReactNode;
 };
 
-export const TradesDataTable = ({
-  trades,
-  getShipName,
-  systems,
-  children,
-}: Props) => {
+export const TradesDataTable = ({ trades, children }: Props) => {
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
-  if (!trades || !systems)
-    return <CircularProgress color="primary" size={24} />;
+  if (!trades) return <CircularProgress color="primary" size={24} />;
 
   const profit = trades
     .filter((t) => t.type === TradeType.Sell)
@@ -109,10 +101,10 @@ export const TradesDataTable = ({
     ),
     <Typography className={classes.link}>
       <Link to={`/ships/owned/${trade.shipId}`}>
-        {getShipName(trade.shipId)}
+        {getShip(trade.shipId)!.name}
       </Link>
     </Typography>,
-    getLocationName(systems, trade.location),
+    getLocation(trade.location)!.name,
     ...(isMdDown
       ? [
           <div className={classes.center}>

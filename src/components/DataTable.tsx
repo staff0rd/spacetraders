@@ -27,7 +27,7 @@ export const right = (value: React.ReactNode) => ({
 
 export type Props = {
   title: string;
-  columns: React.ReactNode[];
+  columns?: React.ReactNode[];
   rows: React.ReactNode[][];
   rowClassName?: (index: number) => string;
   lastColumnIsRowKey?: boolean;
@@ -60,11 +60,13 @@ export const DataTable = ({
   return (
     <TableContainer component={Paper}>
       <Table size="small" aria-label={title}>
-        <TableHead>
-          <TableRow>
-            {columns.map((col, ix) => convertCell(col, ix, classes))}
-          </TableRow>
-        </TableHead>
+        {columns && (
+          <TableHead>
+            <TableRow>
+              {columns.map((col, ix) => convertCell(col, ix, classes))}
+            </TableRow>
+          </TableHead>
+        )}
         <TableBody>
           {rows.map((row, ix) => (
             <TableRow
