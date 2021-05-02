@@ -29,7 +29,11 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
-import { PaletteType, useMediaQuery } from "@material-ui/core";
+import {
+  CircularProgress,
+  PaletteType,
+  useMediaQuery,
+} from "@material-ui/core";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { IconAndValue } from "./IconAndValue";
@@ -46,6 +50,7 @@ import { useTableCap } from "../../data/useTableCap";
 import db from "../../data";
 import { getAutomation } from "../../data/localStorage/getAutomation";
 import { Keys } from "data/localStorage/Keys";
+import * as shipCache from "data/localStorage/shipCache";
 
 const drawerWidth = 180;
 
@@ -169,8 +174,14 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export function App() {
+  const [loaded, setLoaded] = useState(false);
   useTableCap(db.trades, "timestamp", 6);
   useTableCap(db.markets, "created", 6);
+  useEffect(() => {
+    shipCache.load().then(() => {
+      setLoaded(true);
+    });
+  }, []);
 
   const classes = useStyles();
   const [drawerOpen, setDrawerOpen] = React.useState(true);
@@ -340,17 +351,21 @@ export function App() {
             </div>
           </div>
         </Drawer>
-        <main className={classes.content}>
-          <Toolbar />
-          <Switch>
-            {menu.map((item) => (
-              <Route key={item.title} path={item.to}>
-                {item.component}
-              </Route>
-            ))}
-            <Redirect from="/" to="/ships" />
-          </Switch>
-        </main>
+        {loaded ? (
+          <main className={classes.content}>
+            <Toolbar />
+            <Switch>
+              {menu.map((item) => (
+                <Route key={item.title} path={item.to}>
+                  {item.component}
+                </Route>
+              ))}
+              <Redirect from="/" to="/ships" />
+            </Switch>
+          </main>
+        ) : (
+          <CircularProgress size={48} />
+        )}
       </div>
     </ThemeProvider>
   );

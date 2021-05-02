@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { DateTime } from "luxon";
+import Dexie from "dexie";
 
 export const useTableCap = (
   table: Dexie.Table<any, any>,

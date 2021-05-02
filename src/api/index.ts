@@ -13,7 +13,7 @@ import { DateTime } from "luxon";
 import { GetFlightPlanResponse } from "./GetFlightPlanResponse";
 import { GetFlightPlansResponse } from "./GetFlightPlansResponse";
 import { getCachedResponse, createCache } from "./getCachedResponse";
-import { getShipName, newShipName } from "../data/names";
+import { newShipName } from "../data/names";
 import { TradeType } from "../data/ITrade";
 import { setLocalUser } from "../data/localStorage/getLocalUser";
 import { setCredits } from "data/localStorage/getCredits";
@@ -21,6 +21,8 @@ import { cacheLocation, getLocation } from "data/localStorage/locationCache";
 import { shouldWarp } from "data/getFuelNeeded";
 import { setAvailableStructures } from "data/localStorage/getAvailableStructures";
 import { AvailableStructure } from "./AvailableStructure";
+import * as shipCache from "data/localStorage/shipCache";
+import { saveTradeData } from "./saveTradeData";
 
 class ApiError extends Error {
   code: number;
@@ -334,7 +336,7 @@ export const getShip = async (
     token,
     `users/${username}/ships/${shipId}`
   );
-  await db.ships.put(result.ship);
+  await shipCache.saveShip(result.ship);
   return result;
 };
 
@@ -350,8 +352,7 @@ export const getShips = async (
     token,
     `users/${username}/ships`
   );
-  await db.ships.clear();
-  await db.ships.bulkPut(result.ships);
+  shipCache.saveShips(result.ships);
   return result;
 };
 
@@ -405,14 +406,14 @@ export const buyShip = async (
   );
 
   setCredits(result.credits);
-  await db.ships.put(result.ship);
+  await shipCache.saveShip(result.ship);
   const newName = newShipName();
-  await db.shipDetail.put({ shipId: result.ship.id, name: newName });
+  await shipCache.saveDetail({ shipId: result.ship.id, name: newName });
 
   return result;
 };
 
-type Order = {
+export type MarketOrder = {
   good: string;
   pricePerUnit: number;
   quantity: number;
@@ -422,7 +423,7 @@ type Order = {
 export type PurchaseOrderResponse = {
   ship: Ship;
   credits: number;
-  order: Order;
+  order: MarketOrder;
 };
 
 export const purchaseOrder = async (
@@ -454,7 +455,8 @@ export const purchaseOrder = async (
     timestamp: DateTime.now().toISO(),
     profit,
   });
-  await db.ships.put(result.ship);
+  await shipCache.saveShip(result.ship);
+  await saveTradeData(shipId, result.order, location, TradeType.Buy);
   return result;
 };
 
@@ -463,7 +465,8 @@ export const sellOrder = async (
   username: string,
   shipId: string,
   good: string,
-  quantity: number
+  quantity: number,
+  location: string
 ): Promise<PurchaseOrderResponse> => {
   const result = await postSecure<PurchaseOrderResponse>(
     token,
@@ -475,7 +478,8 @@ export const sellOrder = async (
     }
   );
   setCredits(result.credits);
-  await db.ships.put(result.ship);
+  await shipCache.saveShip(result.ship);
+  await saveTradeData(shipId, result.order, location, TradeType.Sell);
 
   return result;
 };
@@ -552,7 +556,7 @@ export const newFlightPlan = async (
           }
     ),
   ];
-  await db.ships.put(ship!);
+  await shipCache.saveShip(ship!);
   flightPlanToIntel(result.flightPlan);
   return result;
 };
@@ -587,8 +591,8 @@ export const getUser = async (
 
 const persistUserResponse = async (promise: Promise<GetUserResponse>) => {
   const result = await promise;
-  await result.user.ships.map((ship) => getShipName(ship.id));
-  await db.ships.bulkPut(result.user.ships);
+  await result.user.ships.map((ship) => shipCache.getShip(ship.id).name);
+  await shipCache.saveShips(result.user.ships);
   setCredits(result.user.credits);
   return result;
 };

@@ -21,7 +21,7 @@
     "bottleneck": "^2.19.5",
     "chart.js": "^3.1.0",
     "chartjs-adapter-luxon": "^1.0.0",
-    "dexie": "^3.1.0-alpha.8",
+    "dexie": "^3.1.0-alpha.10",
     "dexie-react-hooks": "^1.0.6",
     "lodash": "^4.17.21",
     "luxon": "^1.26.0",

@@ -3,14 +3,17 @@ export enum TradeType {
   Sell,
 }
 
-export interface ITrade {
+export interface ITrade extends Trade {
   id?: number;
   shipId: string;
-  type: TradeType;
+  profit?: number;
+}
+
+export interface Trade {
   good: string;
+  type: TradeType;
   quantity: number;
   cost: number;
-  profit?: number;
-  location?: string;
+  location: string;
   timestamp: string;
 }

@@ -123,7 +123,15 @@ const config: MachineConfig<Context, any, any> = {
             console.warn(
               `[${c.shipName}] Selling 1x${sellGood} to make room for ${neededFuel} fuel`
             );
-            await api.sellOrder(c.token, c.username, c.id, sellGood, 1);
+            if (!c.ship.location) throw new Error("No ship location!");
+            await api.sellOrder(
+              c.token,
+              c.username,
+              c.id,
+              sellGood,
+              1,
+              c.ship.location
+            );
           }
           const result = await api.purchaseOrder(
             c.token,

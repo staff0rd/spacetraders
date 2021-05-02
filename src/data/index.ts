@@ -7,6 +7,7 @@ import { IIntel } from "./IIntel";
 import { IProbe } from "./IProbe";
 import { IShipDetail } from "./IShipDetail";
 import { ITradeRoute } from "./ITradeRoute";
+import { ITradeRouteData } from "./ITradeRouteData";
 import { FlightPlan } from "../api/FlightPlan";
 import { Ship } from "../api/Ship";
 
@@ -22,10 +23,11 @@ class Database extends Dexie {
   tradeRoutes: Dexie.Table<ITradeRoute, number>;
   flightPlans: Dexie.Table<FlightPlan, string>;
   ships: Dexie.Table<Ship, string>;
+  tradeData: Dexie.Table<ITradeRouteData, number>;
 
   constructor() {
     super("Database");
-    this.version(54).stores({
+    this.version(58).stores({
       apiErrors: "++id, code, created",
       trades: "++id, good, shipId, location, type, timestamp",
       market: "++id,location,good,created",
@@ -37,6 +39,7 @@ class Database extends Dexie {
       tradeRoutes2: "&shipId",
       flightPlans: "&shipId, &id, arrivesAt",
       ships2: "&id",
+      tradeData: "++id, [shipId+created+complete], [updated+complete]",
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -51,6 +54,7 @@ class Database extends Dexie {
     this.tradeRoutes = this.table("tradeRoutes2");
     this.flightPlans = this.table("flightPlans");
     this.ships = this.table("ships2");
+    this.tradeData = this.table("tradeData");
   }
 }
 

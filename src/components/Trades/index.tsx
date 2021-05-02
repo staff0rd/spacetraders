@@ -4,6 +4,7 @@ import { Markets } from "./Markets";
 import { Current } from "./Current";
 import { Best } from "./Best";
 import { SystemContext } from "machines/MarketContext";
+import { Trades as TradesNew } from "./Trades";
 
 type Props = { systems?: SystemContext };
 
@@ -12,6 +13,11 @@ export const Trades = ({ systems }: Props) => {
     {
       label: "Trades",
       path: "/trades",
+      component: <TradesNew />,
+    },
+    {
+      label: "Trades (Old)",
+      path: "/trades/old",
       component: <TradeList systems={systems} />,
     },
     {

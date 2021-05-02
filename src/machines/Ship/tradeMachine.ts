@@ -33,8 +33,9 @@ import { IShipDetail } from "../../data/IShipDetail";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
+import { newTradeRoute } from "api/saveTradeData";
 
-const MAX_CARGO_MOVE = 300;
+const MAX_CARGO_MOVE = 500;
 
 export type LocationWithDistance = Location & { distance: number };
 
@@ -148,7 +149,8 @@ const config: MachineConfig<Context, any, any> = {
     [States.TravelToLocation]: {
       exit: (c) => assign<Context>({ goto: (c) => undefined }),
       ...travelToLocation<Context>(
-        (c) => c.goto || c.tradeRoute!.sellLocation,
+        (c) =>
+          c.goto || c.tradeRoute?.sellLocation || c.flightPlan!.destination,
         States.Idle,
         getDebug().debugTradeMachine
       ),
@@ -167,11 +169,7 @@ const config: MachineConfig<Context, any, any> = {
             console.log(
               `Rank: ${tradeRoute.rank}, ${tradeRoute.buyLocation}->${tradeRoute.sellLocation} ${tradeRoute.good}`
             );
-            db.tradeRoutes.put({
-              ...tradeRoute,
-              created: DateTime.now().toISO(),
-              shipId: c.id,
-            });
+            await newTradeRoute(tradeRoute, c.id);
             return tradeRoute;
           }
 
@@ -246,12 +244,14 @@ const config: MachineConfig<Context, any, any> = {
               MAX_CARGO_MOVE,
               getCargoQuantity(ship.cargo, sellOrder.good)
             );
+            if (!c.ship.location) throw new Error("No ship location");
             result = await api.sellOrder(
               c.token,
               c.username,
               c.id,
               sellOrder.good,
-              quantity
+              quantity,
+              c.ship.location!
             );
             ship = result.ship!;
             const lastBuy = await db.trades

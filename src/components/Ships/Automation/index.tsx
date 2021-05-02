@@ -67,7 +67,7 @@ export const Automation = ({ availableShips }: Props) => {
           <AutoBuy availableShips={availableShips} />
         </Grid>
         {upgrades.map((upgrade, index) => (
-          <Grid item xs={12} md={6}>
+          <Grid key={index} item xs={12} md={6}>
             <AutoUpgrade
               availableShips={availableShips}
               upgrade={upgrade}

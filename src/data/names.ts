@@ -26,13 +26,3 @@ export const newShipName: () => string = () => {
   };
   return `${uniqueNamesGenerator(nameConfig)}`;
 };
-
-export const getShipName = async (shipId: string): Promise<string> => {
-  const name = await db.shipDetail.get(shipId);
-  if (!name) {
-    const newName = newShipName();
-    await db.shipDetail.put({ shipId, name: newName });
-    return newName;
-  }
-  return name.name;
-};
