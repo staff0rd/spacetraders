@@ -19,6 +19,7 @@ import { debugShipMachineStates } from "../debugStates";
 import { persistStrategy } from "components/Strategy/persistStrategy";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { getRoute, getGraph } from "data/localStorage/graph";
+import { getShip } from "data/localStorage/shipCache";
 
 const throwError = (message: string) => {
   console.warn(message);
@@ -107,7 +108,7 @@ const config: MachineConfig<Context, any, any> = {
       data: {
         ship: (c: Context) => {
           if (c.success) return { ...c.ship, location: c.destination };
-          else return c.ship;
+          else return getShip(c.id);
         },
       },
     },
@@ -158,7 +159,7 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             cond: (c, e: any) => e.data?.code !== 2001,
-            target: States.Wait,
+            target: States.Done,
             actions: printErrorAction(),
           },
         ],
