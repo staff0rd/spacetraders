@@ -61,8 +61,8 @@ export const Location = ({ symbol }: Props) => {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        {location?.messages?.map((m) => (
-          <Typography>{m}</Typography>
+        {location?.messages?.map((m, ix) => (
+          <Typography key={ix}>{m}</Typography>
         ))}
       </Grid>
       <Grid item xs={12} md={6}>
@@ -71,8 +71,8 @@ export const Location = ({ symbol }: Props) => {
       </Grid>
       <Grid item xs={12} md={6}>
         <Typography variant="h5">Structures</Typography>
-        {location?.structures?.map((s) => (
-          <Structure structure={s} key={s.id} />
+        {location?.structures?.map((s, ix) => (
+          <Structure structure={s} key={ix} />
         ))}
       </Grid>
     </Grid>
