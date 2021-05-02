@@ -13,7 +13,6 @@ import Grid from "@material-ui/core/Grid";
 import { CustomSelect } from "../CustomSelect";
 import { useLiveQuery } from "dexie-react-hooks";
 import { TradesDataTable } from "./TradesDataTable";
-import { SystemContext } from "machines/MarketContext";
 import { useLocalStorage } from "components/useLocalStorage";
 import { Keys } from "data/localStorage/Keys";
 
@@ -24,9 +23,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-type Props = { systems?: SystemContext };
-
-export const TradeList = ({ systems }: Props) => {
+export const TradeList = () => {
   const classes = useStyles();
   const [type, setType] = useLocalStorage<string | number>(
     Keys.TradeList_Type,

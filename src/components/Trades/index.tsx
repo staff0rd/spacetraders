@@ -13,12 +13,12 @@ export const Trades = ({ systems }: Props) => {
     {
       label: "Trades",
       path: "/trades",
-      component: <TradesNew />,
+      component: <TradeList />,
     },
     {
-      label: "Trades (Old)",
-      path: "/trades/old",
-      component: <TradeList systems={systems} />,
+      label: "Trades (New)",
+      path: "/trades/new",
+      component: <TradesNew />,
     },
     {
       label: "Best",
