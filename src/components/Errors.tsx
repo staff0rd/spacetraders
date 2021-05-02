@@ -39,7 +39,7 @@ export const Errors = () => {
   );
   const codes = useLiveQuery(() => db.apiErrors.orderBy("code").uniqueKeys());
 
-  if (!errors) return <CircularProgress color="primary" size={24} />;
+  if (!errors) return <CircularProgress color="primary" size={48} />;
   const columns = ["Code", "Message / Path", "Data", "When"];
   const rows = errors.map((error) => [
     error.code,

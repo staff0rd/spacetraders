@@ -23,6 +23,7 @@ import { setAvailableStructures } from "data/localStorage/getAvailableStructures
 import { AvailableStructure } from "./AvailableStructure";
 import * as shipCache from "data/localStorage/shipCache";
 import { saveTradeData } from "./saveTradeData";
+import { GetLeaderboardResponse } from "./GetLeaderboardResponse";
 
 class ApiError extends Error {
   code: number;
@@ -483,6 +484,10 @@ export const sellOrder = async (
 
   return result;
 };
+
+export const getLeaderboard = async (
+  token: string
+): Promise<GetLeaderboardResponse> => getSecure(token, 'game/leaderboard/net-worth');
 
 const flightPlansCache = createCache<GetFlightPlansResponse>();
 
