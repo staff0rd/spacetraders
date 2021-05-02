@@ -199,7 +199,10 @@ const config: MachineConfig<Context, any, any> = {
         onError: States.Done,
         onDone: [
           {
-            actions: assign<Context>({ goto: (c, e: any) => e.data }) as any,
+            actions: assign<Context>({
+              goto: (c, e: any) => e.data,
+              tradeRoute: undefined,
+            }) as any,
             cond: (c, e: any) => typeof e.data === "string",
             target: States.TravelToLocation,
           },
