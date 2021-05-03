@@ -95,8 +95,6 @@ export const ChartComp = ({ good, location, markets }: Props) => {
     }
   }, 1000);
 
-  console.log("good", good, "location", location);
-
   useEffect(() => {
     if (ref.current) {
       const ctx = ref.current.getContext("2d")!;
