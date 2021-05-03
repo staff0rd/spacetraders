@@ -1,6 +1,6 @@
 import { spawn } from "xstate";
 import db from "../../data";
-import { LocationWithDistance, tradeMachine } from "./tradeMachine";
+import { tradeMachine } from "./tradeMachine";
 import { Ship } from "../../api/Ship";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { Context } from "../playerMachine";
@@ -31,8 +31,6 @@ export function spawnShipMachine(c: Context): any {
       console.warn("No flightPlan or ship.location for shipId " + ship.id);
       return;
     }
-    const system = (ship.location || flightPlan!.destination).substring(0, 2);
-    const markets = c.systems![system]!;
     const shipName = c.shipNames?.find((s) => s.shipId === ship.id)?.name || "";
     if (!shipName) console.error("No ship name for " + ship.id);
 
@@ -56,9 +54,6 @@ export function spawnShipMachine(c: Context): any {
             token: c.token!,
             username: c.user!.username,
             ship,
-            locations: Object.keys(markets).map(
-              (symbol) => markets[symbol] as LocationWithDistance
-            ),
             flightPlan,
             strategy: { strategy: ShipStrategy.Trade },
             shipName,

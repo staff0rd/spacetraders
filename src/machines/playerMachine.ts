@@ -5,10 +5,8 @@ import { newPlayerName } from "../data/names";
 import { getLoanMachine } from "./getLoanMachine";
 import { buyShipMachine } from "./buyShipMachine";
 import * as api from "../api";
-import { Location } from "../api/Location";
 import { ShipActor } from "./Ship/tradeMachine";
 import { MarketContext, SystemContext } from "./MarketContext";
-import { cacheLocation } from "../data/localStorage/locationCache";
 import { AvailableShip } from "../api/AvailableShip";
 import { calculateNetWorth } from "./calculateNetWorth";
 import { NetWorthLineItem } from "./NetWorthLineItem";
@@ -58,8 +56,7 @@ export type Schema = {
 export type Event =
   | { type: "SHIP_UPDATE" }
   | { type: "STOP_ACTOR"; data: string }
-  | BoughtShipEvent
-  | { type: "UPDATE_LOCATION" };
+  | BoughtShipEvent;
 
 export type Context = {
   token?: string;
@@ -107,16 +104,6 @@ const config: MachineConfig<Context, any, Event> = {
           ships: [...(c.user?.ships || []), e.data.response.ship],
         }),
         shipNames: (c, e) => e.data.shipNames,
-      }) as any,
-    },
-    UPDATE_LOCATION: {
-      actions: assign<Context>({
-        systems: (c, e: any) => {
-          cacheLocation(e.data);
-          const symbol = (e.data as Location).symbol.substr(0, 2);
-          c.systems![symbol]![e.data.symbol] = e.data;
-          return { ...c.systems };
-        },
       }) as any,
     },
   },

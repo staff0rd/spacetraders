@@ -10,7 +10,6 @@ import {
 } from "xstate";
 import * as api from "../../api";
 import { Ship } from "../../api/Ship";
-import { Location } from "../../api/Location";
 import { DateTime } from "luxon";
 import db from "../../data";
 import { TradeType } from "../../data/ITrade";
@@ -37,8 +36,6 @@ import { newTradeRoute } from "api/saveTradeData";
 
 const MAX_CARGO_MOVE = 500;
 
-export type LocationWithDistance = Location & { distance: number };
-
 export type ShouldBuy = {
   good: string;
   quantity: number;
@@ -61,10 +58,8 @@ enum States {
 }
 
 export type Context = ShipBaseContext & {
-  location?: Location;
-  locations: LocationWithDistance[];
   tradeRoute?: TradeRoute;
-  goto?: string;
+  gotMarket?: boolean;
 };
 
 export type ShipActor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -78,7 +73,7 @@ const config: MachineConfig<Context, any, any> = {
     username: "",
     ship: {} as Ship,
     shipName: "",
-    locations: [],
+    gotMarket: false,
     strategy: { strategy: ShipStrategy.Trade },
   },
   states: {
@@ -104,7 +99,7 @@ const config: MachineConfig<Context, any, any> = {
       after: {
         1: [
           { target: States.TravelToLocation, cond: (c) => !!c.flightPlan },
-          { target: States.GetMarket, cond: "noLocation" },
+          { target: States.GetMarket, cond: (c) => !c.gotMarket },
           {
             target: States.SellCargo,
             cond: (c) =>
@@ -147,10 +142,8 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.TravelToLocation]: {
-      exit: (c) => assign<Context>({ goto: (c) => undefined }),
       ...travelToLocation<Context>(
-        (c) =>
-          c.goto || c.tradeRoute?.sellLocation || c.flightPlan!.destination,
+        (c) => c.tradeRoute?.sellLocation || c.flightPlan!.destination,
         States.Idle,
         getDebug().debugTradeMachine
       ),
@@ -180,11 +173,16 @@ const config: MachineConfig<Context, any, any> = {
           );
 
           if (closest.length) {
-            console.log(
-              `[${c.shipName}] Going to closest`,
-              closest[0].route.buyLocation
+            const message = `[${c.shipName}] Going to closest: ${closest[0].route.buyLocation}`;
+            console.warn(message);
+            persistStrategy(
+              c.id,
+              ShipStrategy.Trade,
+              ShipStrategy.GoTo,
+              false,
+              { location: closest[0].route.buyLocation }
             );
-            return closest[0].route.buyLocation;
+            throw new Error(message);
           } else {
             console.warn("No trade routes, switching to probe");
             persistStrategy(
@@ -200,7 +198,6 @@ const config: MachineConfig<Context, any, any> = {
         onDone: [
           {
             actions: assign<Context>({
-              goto: (c, e: any) => e.data,
               tradeRoute: undefined,
             }) as any,
             cond: (c, e: any) => typeof e.data === "string",
@@ -277,7 +274,7 @@ const config: MachineConfig<Context, any, any> = {
               type: TradeType.Sell,
               good: sellOrder.good,
               quantity,
-              location: c.location!.symbol,
+              location: c.ship.location!,
               shipId: c.id,
               timestamp: DateTime.now().toISO(),
               profit,
@@ -330,16 +327,7 @@ const config: MachineConfig<Context, any, any> = {
         },
         onDone: {
           target: States.Idle,
-          actions: [
-            assign({
-              location: (c, e: any) =>
-                (e.data as api.GetLocationResponse).location,
-            }) as any,
-            sendParent((c, e: any) => ({
-              type: "UPDATE_LOCATION",
-              data: (e.data as api.GetLocationResponse).location,
-            })),
-          ],
+          actions: assign<Context>({ gotMarket: () => true }) as any,
         },
       },
     },
@@ -463,7 +451,6 @@ const options: Partial<MachineOptions<Context, any>> = {
     })),
   },
   guards: {
-    noLocation: (c) => !c.location,
     shouldDone: (c) => c.strategy.strategy !== ShipStrategy.Trade,
   },
 };
