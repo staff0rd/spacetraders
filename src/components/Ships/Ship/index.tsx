@@ -15,6 +15,7 @@ import { StrategyChange } from "components/Strategy/StrategyChange";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { Trades } from "./Trades";
 import { Requests } from "./Requests";
+import Dexie from "dexie";
 
 const useStyles = makeStyles((theme) => ({
   strategy: {
@@ -44,6 +45,14 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
       ship: await db.ships.get(shipId),
       probe: await db.probes.where("shipId").equals(shipId).first(),
       tradeRoute: await db.tradeRoutes.where("shipId").equals(shipId).first(),
+      tradeData: await db.tradeData
+        .where("[shipId+created+complete]")
+        .between(
+          [shipId, Dexie.minKey, Dexie.minKey],
+          [shipId, Dexie.maxKey, Dexie.maxKey]
+        )
+        .reverse()
+        .first(),
     }),
     [shipId]
   );
@@ -112,7 +121,12 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
         <Tab label="Recent Requests" />
       </Tabs>
       {tab === 0 && <Trades shipId={shipId} />}
-      {tab === 1 && <pre>{JSON.stringify(ship.tradeRoute, null, 2)}</pre>}
+      {tab === 1 && (
+        <>
+          <pre>{JSON.stringify(ship.tradeRoute, null, 2)}</pre>
+          <pre>{JSON.stringify(ship.tradeData, null, 2)}</pre>
+        </>
+      )}
       {tab === 2 && <Requests shipId={shipId} />}
     </>
   );
