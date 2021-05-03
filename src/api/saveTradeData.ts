@@ -22,8 +22,18 @@ export async function saveTradeData(
       location,
       quantity: order.quantity,
       timestamp: now.toISO(),
-      type: TradeType.Buy,
+      type,
     });
+
+    if (
+      tradeData.trades
+        .filter((p) => p.type === TradeType.Sell)
+        .map((p) => p.quantity)
+        .reduce((a, b) => a + b, 0) === tradeData.tradeRoute.quantityToBuy
+    ) {
+      tradeData.complete = 1;
+    }
+
     tradeData.timeTaken = now.diff(
       DateTime.fromISO(tradeData.created),
       "seconds"
