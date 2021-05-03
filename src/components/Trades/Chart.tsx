@@ -29,7 +29,6 @@ type Grouped = {
 };
 
 export function groupByGood(intel: IMarket[] | undefined) {
-  console.log("grouping by good");
   const grouped: Grouped = {};
   intel?.reduce(function (res: Grouped, value: IMarket) {
     if (!res[value.good]) {
@@ -46,7 +45,6 @@ export function groupByGood(intel: IMarket[] | undefined) {
 }
 
 export function groupByLocation(intel: IMarket[] | undefined) {
-  console.log("grouping by location");
   const grouped: Grouped = {};
   intel?.reduce(function (res: Grouped, value: IMarket) {
     if (!res[value.location]) {
@@ -62,53 +60,62 @@ export function groupByLocation(intel: IMarket[] | undefined) {
   return Object.values(grouped);
 }
 
-// type Dataset = {
-//   label: string;
-//   data: {
-//     x: DateTime;
-//     y: number;
-//   }[];
-//   fill: boolean;
-//   borderColor: string;
-//   tension: number;
-// };
+type Data = {
+  x: DateTime;
+  y: number;
+};
+
+type Dataset = {
+  label: string;
+  data: Data[];
+  fill: boolean;
+  borderColor: string;
+  tension: number;
+};
 
 export const ChartComp = ({ good, location, markets }: Props) => {
   const ref = useRef<HTMLCanvasElement>(null);
   const classes = useStyles();
   const [chart, setChart] = useState<Chart>();
 
-  useInterval(() => {
-    if (chart) {
-      // chart.data.datasets.forEach((dataset: Dataset) => {
-      //   console.log(dataset.data.length);
-      //   const newData = [...marketsFromProps]
-      //     .reverse()
-      //     .map((d) => ({
-      //       x: DateTime.fromISO(d.created),
-      //       y: d.purchasePricePerUnit,
-      //     }));
-      //   console.log("adding", newData);
-      //   dataset.data.push(...newData);
-      //   chart.update();
-      //});
-    }
-  }, 1000);
+  useEffect(
+    () => {
+      if (chart && markets) {
+        const datasets = groupDatasets(good, markets);
+
+        chart.data.datasets.forEach((dataset: Dataset) => {
+          const chartData = dataset.data;
+          const marketData = datasets[0].data;
+          const removeFromChart = chartData
+            .map((value, ix) => ({ value, ix }))
+            .filter(
+              (p) =>
+                !marketData.map((p) => p.x.toISO()).includes(p.value.x.toISO())
+            )
+            .map((p) => p.ix)
+            .sort((a, b) => b - a);
+
+          const addToChart = marketData.filter(
+            (p) => !chartData.map((p) => p.x.toISO()).includes(p.x.toISO())
+          );
+          if (addToChart.length) {
+            addToChart.forEach((d) => chartData.push(d));
+          }
+          removeFromChart.forEach((ix) => chartData.splice(ix, 1));
+          chartData.sort((a, b) => b.x.diff(a.x, "seconds").seconds);
+          chart.update();
+        });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [markets]
+  );
 
   useEffect(() => {
     if (ref.current) {
       const ctx = ref.current.getContext("2d")!;
       chart?.destroy();
-      const grouped = good
-        ? groupByLocation([...markets].reverse())
-        : groupByGood([...markets].reverse());
-      const datasets = grouped.map((g, ix) => ({
-        label: g.name,
-        data: g.values,
-        fill: false,
-        borderColor: colors[ix],
-        tension: 0.1,
-      }));
+      const datasets = groupDatasets(good, markets);
       setChart(
         new Chart(ctx, {
           type: "line",
@@ -139,3 +146,16 @@ export const ChartComp = ({ good, location, markets }: Props) => {
     </div>
   );
 };
+function groupDatasets(good: string | undefined, markets: IMarket[]) {
+  const grouped = good
+    ? groupByLocation([...markets])
+    : groupByGood([...markets]);
+  const datasets = grouped.map((g, ix) => ({
+    label: g.name,
+    data: g.values,
+    fill: false,
+    borderColor: colors[ix],
+    tension: 0.1,
+  }));
+  return datasets;
+}

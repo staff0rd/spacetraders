@@ -6,6 +6,8 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import { DateTime } from "luxon";
 import NumberFormat from "react-number-format";
 import { makeStyles, useTheme, useMediaQuery } from "@material-ui/core";
+import ToggleButton from "@material-ui/lab/ToggleButton";
+import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
@@ -16,9 +18,8 @@ import { CustomSelect } from "components/CustomSelect";
 import { ChartComp as Chart } from "./Chart";
 import { useLocalStorage } from "components/useLocalStorage";
 import { Keys } from "data/localStorage/Keys";
-import { useInterval } from "components/useInterval";
-import { IMarket } from "data/IMarket";
 import { getLocation } from "data/localStorage/locationCache";
+import Dexie from "dexie";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -30,42 +31,74 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
     alignItems: "center",
   },
+  duration: {
+    marginTop: 18,
+    marginLeft: theme.spacing(1),
+  },
 }));
 
 type Props = { systems?: SystemContext };
 
 export const Markets = ({ systems }: Props) => {
+  const [duration, setDuration] = useState<number>(30);
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const [location, setLocation] = useLocalStorage(Keys.Markets_Location, "");
   const [good, setGood] = useLocalStorage(Keys.Markets_Good, "");
-  const [markets, setMarkets] = useState<IMarket[]>([]);
 
-  useInterval(
-    async () => {
-      const result = await db.markets
-        .reverse()
-        .filter(
-          (p) =>
-            (location ? p.location === location : true) &&
-            (good ? p.good === good : true)
+  const markets = useLiveQuery(() => {
+    if (location && good)
+      return db.markets
+        .where("[location+good+created]")
+        .between(
+          [
+            location,
+            good,
+            DateTime.local().minus({ minutes: duration }).toISO(),
+          ],
+          [location, good, DateTime.local().toISO()]
         )
-        .limit(150)
+        .reverse()
+        .limit(200)
         .toArray();
-      setMarkets(result);
-    },
-    5000,
-    [location, good]
-  );
+    else if (location) {
+      return db.markets
+        .where("[location+created]")
+        .between(
+          [
+            location,
+            Dexie.minKey,
+            DateTime.local().minus({ minutes: duration }).toISO(),
+          ],
+          [location, Dexie.maxKey, DateTime.local().toISO()]
+        )
+        .reverse()
+        .limit(200)
+        .toArray();
+    } else if (good) {
+      return db.markets
+        .where("[good+created]")
+        .between(
+          [
+            Dexie.minKey,
+            good,
+            DateTime.local().minus({ minutes: duration }).toISO(),
+          ],
+          [Dexie.maxKey, good, DateTime.local().toISO()]
+        )
+        .reverse()
+        .limit(200)
+        .toArray();
+    } else return db.markets.reverse().limit(200).toArray();
+  }, [location, good, duration]);
 
   const locations = useLiveQuery(() =>
     db.markets.orderBy("location").uniqueKeys()
   );
   const goods = useLiveQuery(() => db.markets.orderBy("good").uniqueKeys());
 
-  if (!markets || !systems)
-    return <CircularProgress color="primary" size={48} />;
+  if (!markets) return <CircularProgress color="primary" size={48} />;
 
   const columns = [
     "Location",
@@ -160,6 +193,20 @@ export const Markets = ({ systems }: Props) => {
           </Select>
         </FormControl>
       )}
+
+      <ToggleButtonGroup
+        value={duration}
+        exclusive
+        className={classes.duration}
+        onChange={(_: any, v: number | null) => setDuration(v || 30)}
+        size="small"
+      >
+        <ToggleButton value={30}>30m</ToggleButton>
+        <ToggleButton value={60}>1h</ToggleButton>
+        <ToggleButton value={120}>2h</ToggleButton>
+        <ToggleButton value={240}>4h</ToggleButton>
+      </ToggleButtonGroup>
+
       <DataTable title="Markets" rows={rows} columns={columns} />
     </>
   );
