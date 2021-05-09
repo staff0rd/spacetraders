@@ -36,10 +36,10 @@ export const Leaderboard = () => {
   ]);
 
   if (
-    response.userNetWorth[0].rank >
+    response.userNetWorth.rank >
     response.netWorth[response.netWorth.length - 1].rank
   ) {
-    const { rank, netWorth, username } = response.userNetWorth[0];
+    const { rank, netWorth, username } = response.userNetWorth;
     rows.push([
       rank,
       username,

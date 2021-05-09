@@ -1,6 +1,6 @@
 export type GetLeaderboardResponse = {
   netWorth: NetWorth[];
-  userNetWorth: UserNetWorth[];
+  userNetWorth: UserNetWorth;
 };
 
 export interface NetWorth {
