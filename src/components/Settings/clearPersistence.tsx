@@ -1,6 +1,6 @@
-import { setCredits } from "data/localStorage/getCredits";
-import { setDebug } from "data/localStorage/getDebug";
+import { setResetting } from "data/localStorage/getResetting";
 import { Keys } from "data/localStorage/Keys";
+import { format } from "machines/Ship/formatNumber";
 import db from "../../data";
 
 export async function clearPersistence() {
@@ -9,13 +9,26 @@ export async function clearPersistence() {
   for (let item in Keys) {
     if (isNaN(Number(item))) {
       console.log(`Clearing localStorage.${item}`);
+      // @ts-ignore
+      localStorage.removeItem(Keys[item]);
     }
   }
 
-  setCredits(0);
-  setDebug({ focusShip: undefined });
+  setResetting(true);
 
   console.log("Clearing IndexedDB...");
-  await Promise.all(db.tables.map((table) => table.clear()));
+
+  const tables = db.tables;
+  for (const table of tables) {
+    console.log(`Clearing ${table.name}`);
+    const count = await table.count();
+    console.log(`${table.name} has ${format(count)} records`);
+    console.time("Clearing");
+    await table.clear();
+    console.timeEnd("Clearing");
+  }
+
   console.log("Everything cleared");
+
+  setResetting(false);
 }

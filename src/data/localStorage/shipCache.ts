@@ -1,6 +1,7 @@
 import db from "data";
 import { Ship } from "api/Ship";
 import { IShipDetail } from "data/IShipDetail";
+import { getResetting } from "./getResetting";
 
 type CachedShip = Ship & {
   name: string;
@@ -11,14 +12,21 @@ const local: { ships: CachedShip[] } = {
 };
 
 export const load = async () => {
-  local.ships = [];
-  const ships = await db.ships.toArray();
-  const shipNames = await db.shipDetail.toArray();
-  ships.forEach((s) => {
-    const name = shipNames.find((p) => p.shipId === s.id)?.name;
-    if (!name) throw new Error(`Could not find name for ${s.id}`);
-    addShip(s, name);
-  });
+  if (getResetting()) return;
+  try {
+    console.info("Loading ships...");
+    local.ships = [];
+    const ships = await db.ships.toArray();
+    const shipNames = await db.shipDetail.toArray();
+    for (const s of ships) {
+      const name = shipNames.find((p) => p.shipId === s.id)?.name;
+      if (!name) throw new Error(`Could not find name for ${s.id}`);
+      addShip(s, name);
+    }
+    console.info("Ships loaded!");
+  } catch (e) {
+    console.log("Error loading:", e);
+  }
 };
 
 export const saveShips = async (ships: Ship[]) => {

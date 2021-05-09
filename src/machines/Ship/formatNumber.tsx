@@ -10,6 +10,13 @@ export const formatNumber = (props: NumberFormatProps) =>
     />
   );
 
+export const format = (value: number) => {
+  formatNumber({
+    value,
+    thousandSeparator: ",",
+  });
+};
+
 export const formatCurrency = (value: number) =>
   formatNumber({
     value,

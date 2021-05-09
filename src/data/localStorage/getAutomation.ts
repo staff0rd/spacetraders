@@ -8,7 +8,7 @@ export const getAutomation = (): IAutomation => {
     : {
         autoBuy: {
           shipType: "JW-MK-I",
-          credits: 100000,
+          credits: 50000,
           maxShips: 20,
           on: true,
         },

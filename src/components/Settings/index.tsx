@@ -1,6 +1,6 @@
 import { Typography, makeStyles } from "@material-ui/core";
 import { CircularProgress, Button, Box, Grid } from "@material-ui/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConfirmDialog } from "./ConfirmDialog";
 import Alert from "@material-ui/lab/Alert";
 import { clearPersistence } from "./clearPersistence";
@@ -8,6 +8,7 @@ import { SpaceshipIcon } from "../App/SpaceshipIcon";
 import GitHubIcon from "@material-ui/icons/GitHub";
 import { Debug } from "./Debug";
 import { useInterval } from "components/useInterval";
+import { getResetting } from "data/localStorage/getResetting";
 
 const useStyles = makeStyles((theme) => ({
   resetDetected: {
@@ -81,6 +82,11 @@ export const Settings = ({ resetDetected, stop }: Props) => {
     setResetting(false);
     setResetMessage("Reset complete, you should refresh the browser");
   };
+
+  useEffect(() => {
+    if (getResetting()) handleClearPlayer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Grid container spacing={2}>

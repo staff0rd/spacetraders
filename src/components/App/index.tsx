@@ -51,6 +51,7 @@ import db from "../../data";
 import { getAutomation } from "../../data/localStorage/getAutomation";
 import { Keys } from "data/localStorage/Keys";
 import * as shipCache from "data/localStorage/shipCache";
+import { getResetting } from "data/localStorage/getResetting";
 
 const drawerWidth = 180;
 
@@ -64,7 +65,9 @@ const interpreter = xstate.interpret(
   })
 );
 
-interpreter.start();
+if (!getResetting()) {
+  interpreter.start();
+}
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -178,9 +181,12 @@ export function App() {
   useTableCap(db.trades, "timestamp", 6);
   useTableCap(db.markets, "created", 6);
   useEffect(() => {
-    shipCache.load().then(() => {
-      setLoaded(true);
-    });
+    shipCache
+      .load()
+      .then(() => {
+        setLoaded(true);
+      })
+      .catch((e) => console.error(e));
   }, []);
 
   const classes = useStyles();
@@ -242,7 +248,10 @@ export function App() {
 
   const history = useHistory();
 
-  if (pathname !== "/settings" && state?.context.resetDetected) {
+  if (
+    pathname !== "/settings" &&
+    (state?.context.resetDetected || getResetting())
+  ) {
     history.push("/settings");
   }
 
@@ -257,6 +266,8 @@ export function App() {
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  console.log("Loaded: " + loaded);
 
   return (
     <ThemeProvider theme={theme}>

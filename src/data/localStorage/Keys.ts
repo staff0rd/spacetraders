@@ -13,4 +13,5 @@ export enum Keys {
   Markets_Good = "markets-good",
   FuelCalc_From = "fuelcalc-from",
   FuelCalc_To = "fuelcalc-to",
+  Resetting = "resetting",
 }
