@@ -45,13 +45,6 @@ export const buyShipMachine = createMachine<Context, any, any>({
         },
         onDone: {
           target: "done",
-          actions: sendParent((c: Context, e) => ({
-            type: "BOUGHT_SHIP",
-            data: {
-              response: e.data.response,
-              shipNames: e.data.shipNames,
-            },
-          })),
         },
       },
     },
