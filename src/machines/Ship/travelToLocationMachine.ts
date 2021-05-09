@@ -58,7 +58,6 @@ const config: MachineConfig<Context, any, any> = {
     id: "",
     token: "",
     username: "",
-    shipName: "",
     ship: {} as Ship,
     destination: "",
     nextStop: "",
@@ -122,7 +121,9 @@ const config: MachineConfig<Context, any, any> = {
             console.log("need more fuel than have space");
             const sellGood = c.ship.cargo!.find((p) => p.good !== "FUEL")!.good;
             console.warn(
-              `[${c.shipName}] Selling 1x${sellGood} to make room for ${neededFuel} fuel`
+              `[${
+                getShip(c.id).name
+              }] Selling 1x${sellGood} to make room for ${neededFuel} fuel`
             );
             if (!c.ship.location) throw new Error("No ship location!");
             await api.sellOrder(

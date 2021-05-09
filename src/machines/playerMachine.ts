@@ -16,18 +16,17 @@ import { getStrategy, spawnShipMachine } from "./Ship/spawnShipMachine";
 import db from "../data";
 import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
-import { IShipDetail } from "../data/IShipDetail";
 import { getLocalUser } from "../data/localStorage/getLocalUser";
 import { IAutomation } from "../data/localStorage/IAutomation";
 import { getAutomation } from "../data/localStorage/getAutomation";
 import { log } from "xstate/lib/actions";
 import { upgradeShipMachine } from "./Ship/upgradeShipMachine";
 import { getUpgradingShip } from "../data/localStorage/getUpgradingShip";
-import { BoughtShipEvent } from "./BoughtShipEvent";
 import { getDebug } from "../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { ChangeStrategyPayload } from "data/Strategy/StrategyPayloads";
+import { getShips } from "data/localStorage/shipCache";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -45,7 +44,6 @@ export enum States {
   GetLoan = "getLoan",
   GetAvailableShips = "getAvailableShips",
   BuyShip = "buyShip",
-  GetShipNames = "getShipNames",
 }
 
 export type Schema = {
@@ -55,8 +53,7 @@ export type Schema = {
 
 export type Event =
   | { type: "SHIP_UPDATE" }
-  | { type: "STOP_ACTOR"; data: string }
-  | BoughtShipEvent;
+  | { type: "STOP_ACTOR"; data: string };
 
 export type Context = {
   token?: string;
@@ -68,8 +65,6 @@ export type Context = {
   actors: ShipActor[];
   flightPlans: FlightPlan[];
   strategies?: IShipStrategy[];
-  ships?: Ship[];
-  shipNames?: IShipDetail[];
   resetDetected?: boolean;
   automation: IAutomation;
 };
@@ -97,15 +92,6 @@ const config: MachineConfig<Context, any, Event> = {
         if (actor !== undefined && actor.stop) actor.stop();
       },
     },
-    BOUGHT_SHIP: {
-      actions: assign<Context, BoughtShipEvent>({
-        user: (c, e) => ({
-          ...c.user!,
-          ships: [...(c.user?.ships || []), e.data.response.ship],
-        }),
-        shipNames: (c, e) => e.data.shipNames,
-      }) as any,
-    },
   },
   states: {
     [States.CheckStorage]: {
@@ -126,7 +112,6 @@ const config: MachineConfig<Context, any, Event> = {
     [States.Initialising]: {
       after: {
         1: [
-          { target: States.GetShipNames, cond: (c) => !c.shipNames },
           { target: States.GetSystems, cond: "noLocations" },
           { target: States.GetAvailableShips, cond: "noAvailableShips" },
           { target: States.GetLoan, cond: "noLoans" },
@@ -134,15 +119,6 @@ const config: MachineConfig<Context, any, Event> = {
           { target: States.GetFlightPlans, cond: "noShipActors" },
           { target: States.Ready },
         ],
-      },
-    },
-    [States.GetShipNames]: {
-      invoke: {
-        src: async () => db.shipDetail.toArray(),
-        onDone: {
-          target: States.Initialising,
-          actions: assign<Context>({ shipNames: (c, e: any) => e.data }) as any,
-        },
       },
     },
     [States.GetToken]: {
@@ -196,7 +172,7 @@ const config: MachineConfig<Context, any, Event> = {
     [States.Tick]: {
       entry: [
         async (c) => {
-          const ships = await db.ships.toArray();
+          const ships = getShips();
           [
             ...new Set(
               ships
@@ -227,8 +203,6 @@ const config: MachineConfig<Context, any, Event> = {
             username: c.username!,
             token: c.token!,
             available: c.availableShips,
-            shipNames: c.shipNames || [],
-            ships: c.user!.ships!,
           }),
         onDone: States.GetStrategies,
         onError: {
@@ -241,12 +215,13 @@ const config: MachineConfig<Context, any, Event> = {
       invoke: {
         src: (c) => api.getFlightPlans(c.token!, c.username!, "OE"),
         onDone: {
-          target: States.GetShips,
+          target: States.GetStrategies,
           actions: assign<Context>({
             flightPlans: (c: Context, e: any) => {
+              const ships = getShips();
               const filtered = (e.data
                 .flightPlans as FlightPlan[]).filter((fp) =>
-                c.user!.ships.find((ship) => ship.id === fp.shipId)
+                ships.find((s) => s.id === fp.shipId)
               );
               return filtered;
             },
@@ -270,17 +245,6 @@ const config: MachineConfig<Context, any, Event> = {
       after: {
         1: {
           target: [States.Ready],
-        },
-      },
-    },
-    [States.GetShips]: {
-      invoke: {
-        src: (c) => api.getShips(c.token!, c.username!),
-        onDone: {
-          target: States.GetStrategies,
-          actions: assign<Context>({
-            ships: (c, e: any) => (e.data as api.GetShipsResponse).ships,
-          }) as any,
         },
       },
     },
@@ -317,6 +281,7 @@ const config: MachineConfig<Context, any, Event> = {
     [States.GetAvailableShips]: {
       invoke: {
         src: async (context) => {
+          await api.getShips(context.token!, context.username!);
           await api.getAvailableStructures(context.token!);
           return api.getAvailableShips(context.token!);
         },
@@ -355,9 +320,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
           (actor) => actor?.state.context.id
         );
 
-        const toSpawn: { ship: Ship; strategy: ShipStrategy }[] = (
-          c.user?.ships || []
-        )
+        const toSpawn: { ship: Ship; strategy: ShipStrategy }[] = getShips()
           .filter((s: Ship) => {
             const alreadySpawned = alreadySpawnedShipIds.find(
               (id) => id === s.id
@@ -421,7 +384,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
   },
   guards: {
     noLoans: (c) => c.user?.loans.length === 0,
-    noPurchasedShips: (c) => c.user!.ships.length === 0,
+    noPurchasedShips: (c) => getShips().length === 0,
     noLocations: (c) => {
       const hasLocations = Object.entries(c.systems || {}).length > 0;
       return !hasLocations;
@@ -434,7 +397,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
         !getUpgradingShip() &&
         autoBuy.on &&
         getCredits() > autoBuy.credits &&
-        c.user!.ships.length < autoBuy.maxShips
+        getShips().length < autoBuy.maxShips
       );
     },
   },

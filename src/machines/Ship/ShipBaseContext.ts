@@ -27,5 +27,4 @@ export type ShipBaseContext = UserContext &
 
 export type ShipContext = {
   id: string;
-  shipName: string;
 };

@@ -64,8 +64,12 @@ export const addShip = (ship: Ship, name: string) => {
   local.ships.push({ ...ship, name });
 };
 
+export const getShips = (): CachedShip[] => local.ships;
+
 export const getShip = (id: string): CachedShip => {
   const result = local.ships.find((p) => p.id === id);
-  if (!result) throw new Error(`Could not find ship ${id}`);
+  if (!result) {
+    throw new Error(`Could not find ship ${id}`);
+  }
   return result;
 };

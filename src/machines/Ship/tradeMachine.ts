@@ -33,6 +33,7 @@ import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
 import { newTradeRoute } from "api/saveTradeData";
+import { getShip } from "data/localStorage/shipCache";
 
 const MAX_CARGO_MOVE = 500;
 
@@ -72,7 +73,6 @@ const config: MachineConfig<Context, any, any> = {
     token: "",
     username: "",
     ship: {} as Ship,
-    shipName: "",
     gotMarket: false,
     strategy: { strategy: ShipStrategy.Trade },
   },
@@ -173,7 +173,9 @@ const config: MachineConfig<Context, any, any> = {
           );
 
           if (closest.length) {
-            const message = `[${c.shipName}] Going to closest: ${closest[0].route.buyLocation}`;
+            const message = `[${getShip(c.id).name}] Going to closest: ${
+              closest[0].route.buyLocation
+            }`;
             console.warn(message);
             persistStrategy(
               c.id,
@@ -361,7 +363,7 @@ const config: MachineConfig<Context, any, any> = {
             const cost = quantity * c.tradeRoute!.purchasePricePerUnit;
             if (cost > getCredits()) {
               console.warn(
-                `[${c.shipName}] Will wait, need ${formatCurrency(
+                `[${getShip(c.id).name}] Will wait, need ${formatCurrency(
                   cost
                 )}, but have ${formatCurrency(getCredits())}`
               );

@@ -50,7 +50,6 @@ const config: MachineConfig<Context, any, any> = {
     id: "",
     token: "",
     username: "",
-    shipName: "",
     ship: {} as Ship,
     strategy: { strategy: ShipStrategy.Probe },
     probe: undefined,

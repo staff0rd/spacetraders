@@ -23,15 +23,13 @@ import { persistStrategy } from "../../components/Strategy/persistStrategy";
 import { log } from "xstate/lib/actions";
 import { AvailableShip } from "../../api/AvailableShip";
 import { buyShipMachine } from "../buyShipMachine";
-import { BoughtShipEvent } from "../BoughtShipEvent";
-import { IShipDetail } from "../../data/IShipDetail";
-import { Ship } from "../../api/Ship";
 import { getLocation } from "../../data/localStorage/locationCache";
 import { getDistance } from "../getDistance";
 import { travelToLocationMachine } from "./travelToLocationMachine";
 import { getDebug } from "data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { printErrorAction } from "./printError";
+import { getShip } from "data/localStorage/shipCache";
 
 enum States {
   Started = "started",
@@ -50,28 +48,21 @@ enum States {
 export type Context = UserContext & {
   available: AvailableShip[];
   strategy?: IShipStrategy;
-  shipNames: IShipDetail[];
-  shipName?: string;
-  ships: Ship[];
   errorCode?: number;
   flyTo?: string;
 };
-
-type Event = BoughtShipEvent;
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
 const shipId = () => getUpgradingShip()!.fromShipId;
 
-const config: MachineConfig<Context, any, Event> = {
+const config: MachineConfig<Context, any, any> = {
   id: "upgradeShip",
   initial: States.Started,
   context: {
     token: "",
     username: "",
     available: [],
-    shipNames: [],
-    ships: [],
   },
   states: {
     [States.Started]: {
@@ -89,8 +80,6 @@ const config: MachineConfig<Context, any, Event> = {
           target: States.BranchOffStrategy,
           actions: assign<Context>({
             strategy: (c, e: any) => e.data,
-            shipName: (c: Context) =>
-              c.shipNames.find((n) => n.shipId === shipId())?.name,
           }) as any,
         },
       },
@@ -163,7 +152,7 @@ const config: MachineConfig<Context, any, Event> = {
     [States.FlyToShipyard]: {
       entry: assign<Context>({
         flyTo: (c) => {
-          const ship = c.ships.find((s) => s.id === shipId());
+          const ship = getShip(shipId());
           const shipYards = c.available
             .map((av) =>
               av.purchaseLocations.map((lo) => getLocation(lo.location)!)
@@ -186,8 +175,7 @@ const config: MachineConfig<Context, any, Event> = {
           id: (c: Context) => shipId(),
           token: (c: Context) => c.token,
           username: (c: Context) => c.username,
-          shipName: (c: Context) => c.shipName,
-          ship: (c: Context) => c.ships.find((p) => p.id === shipId()),
+          ship: (c: Context) => getShip(shipId()),
           destination: (c: Context) => c.flyTo!,
         },
         onDone: States.SellShip,

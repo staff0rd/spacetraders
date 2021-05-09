@@ -267,8 +267,6 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  console.log("Loaded: " + loaded);
-
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root}>

@@ -31,8 +31,6 @@ export function spawnShipMachine(c: Context): any {
       console.warn("No flightPlan or ship.location for shipId " + ship.id);
       return;
     }
-    const shipName = c.shipNames?.find((s) => s.shipId === ship.id)?.name || "";
-    if (!shipName) console.error("No ship name for " + ship.id);
 
     switch (strategy) {
       case ShipStrategy.Probe:
@@ -43,7 +41,6 @@ export function spawnShipMachine(c: Context): any {
             strategy: { strategy: ShipStrategy.Probe },
             username: c.user!.username,
             ship,
-            shipName,
           })
         );
 
@@ -56,7 +53,6 @@ export function spawnShipMachine(c: Context): any {
             ship,
             flightPlan,
             strategy: { strategy: ShipStrategy.Trade },
-            shipName,
           }),
           { name: `ship-${ship.id}`, sync: true }
         ) as any;
@@ -69,7 +65,6 @@ export function spawnShipMachine(c: Context): any {
             strategy: { strategy: ShipStrategy.Halt },
             username: c.user!.username,
             ship,
-            shipName,
           })
         );
 
@@ -81,7 +76,6 @@ export function spawnShipMachine(c: Context): any {
             strategy: { strategy: ShipStrategy.GoTo },
             username: c.user!.username,
             ship,
-            shipName,
             flightPlan,
           })
         );

@@ -1,4 +1,5 @@
 import { getDebug } from "data/localStorage/getDebug";
+import { getShip } from "data/localStorage/shipCache";
 import { ActionMeta } from "xstate";
 import { ShipContext } from "./ShipBaseContext";
 
@@ -10,7 +11,7 @@ export function debugShipMachine<TContext extends ShipContext>(
   return (c: TContext, e: any, d: ActionMeta<TContext, any>) => {
     if (c.id === getDebug().focusShip) {
       console.log(
-        `[${c.shipName}] ${machineName}:${d.state.value}` +
+        `[${getShip(c.id).name}] ${machineName}:${d.state.value}` +
           (message !== undefined ? ` - ${message}` : ""),
         c
       );

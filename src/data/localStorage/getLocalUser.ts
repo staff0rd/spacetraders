@@ -11,4 +11,5 @@ export const getLocalUser = () => {
     const parsed: api.GetTokenResponse = JSON.parse(player);
     return { token: parsed.token, username: parsed.user.username };
   }
+  return { token: "", username: "" };
 };

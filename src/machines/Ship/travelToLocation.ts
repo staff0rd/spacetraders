@@ -17,7 +17,6 @@ export function travelToLocation<TContext extends ShipBaseContext>(
           token: c.token,
           destination: destination(c),
           ship: c.ship!,
-          shipName: c.shipName,
           flightPlan: c.flightPlan,
         }),
       onError: printError<TContext>(),
