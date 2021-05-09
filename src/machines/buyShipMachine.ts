@@ -1,4 +1,4 @@
-import { createMachine, sendParent } from "xstate";
+import { createMachine } from "xstate";
 import * as api from "../api";
 import { AvailableShip } from "../api/AvailableShip";
 import db from "../data";

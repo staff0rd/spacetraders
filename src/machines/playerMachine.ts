@@ -241,7 +241,7 @@ const config: MachineConfig<Context, any, Event> = {
       },
     },
     [States.SpawnShips]: {
-      exit: ["spawnShips"],
+      entry: ["spawnShips"],
       after: {
         1: {
           target: [States.Ready],
