@@ -19,7 +19,6 @@ import { ChartComp as Chart } from "./Chart";
 import { useLocalStorage } from "components/useLocalStorage";
 import { Keys } from "data/localStorage/Keys";
 import { getLocation } from "data/localStorage/locationCache";
-import Dexie from "dexie";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
