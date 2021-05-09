@@ -110,7 +110,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.TravelToLocation]: {
       ...travelToLocation<Context>(
         (c) => c.flightPlan?.destination || c.strategy.data.location,
-        States.Done,
+        States.SwitchToTrade,
         false
       ),
     },
