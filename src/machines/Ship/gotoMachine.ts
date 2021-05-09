@@ -15,11 +15,15 @@ import { determineBestTradeRouteByRoute } from "./determineBestTradeRoute";
 import { DateTime } from "luxon";
 import { persistStrategy } from "components/Strategy/persistStrategy";
 import { printErrorAction } from "./printError";
+import { travelToLocation } from "./travelToLocation";
 
 enum States {
+  Idle = "idle",
   ConfirmStrategy = "confirmStrategy",
   DetermineTradeRoute = "determineTradeRoute",
   Done = "done",
+  TravelToLocation = "travelToLocation",
+  SwitchToTrade = "switchToTrade",
 }
 
 export type Context = ShipBaseContext;
@@ -38,6 +42,25 @@ const config: MachineConfig<Context, any, any> = {
     strategy: { strategy: ShipStrategy.GoTo },
   },
   states: {
+    [States.Idle]: {
+      after: {
+        1: [
+          {
+            cond: (c) => c.ship.location === c.strategy.data.location,
+            target: States.SwitchToTrade,
+          },
+          { cond: (c) => !!c.flightPlan, target: States.TravelToLocation },
+          { target: States.DetermineTradeRoute },
+        ],
+      },
+    },
+    [States.SwitchToTrade]: {
+      invoke: {
+        src: (c) =>
+          persistStrategy(c.id, ShipStrategy.GoTo, ShipStrategy.Trade, false),
+        onDone: States.Done,
+      },
+    },
     [States.DetermineTradeRoute]: {
       invoke: {
         src: async (c) => {
@@ -50,11 +73,10 @@ const config: MachineConfig<Context, any, any> = {
             c.ship.location,
             c.strategy.data.location
           );
-          console.log(
-            `${c.ship.location}>>${c.strategy.data.location}: `,
-            tradeRoutes
-          );
           const tradeRoute = tradeRoutes[0];
+          if (!tradeRoute) {
+            return;
+          }
           if (tradeRoute.totalProfit < 0) {
             tradeRoute.quantityToBuy = 0;
             tradeRoute.totalProfit = 0;
@@ -65,8 +87,12 @@ const config: MachineConfig<Context, any, any> = {
             shipId: c.id,
           });
           persistStrategy(c.id, ShipStrategy.GoTo, ShipStrategy.Trade);
+          return true;
         },
-        onDone: States.ConfirmStrategy,
+        onDone: [
+          { cond: (c, e) => e.data, target: States.ConfirmStrategy },
+          { target: States.TravelToLocation },
+        ],
         onError: {
           target: States.Done,
           actions: printErrorAction(),
@@ -78,9 +104,16 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.ConfirmStrategy]: confirmStrategy(
       ShipStrategy.GoTo,
-      States.DetermineTradeRoute,
+      States.Idle,
       States.Done
     ),
+    [States.TravelToLocation]: {
+      ...travelToLocation<Context>(
+        (c) => c.flightPlan?.destination || c.strategy.data.location,
+        States.Done,
+        false
+      ),
+    },
   },
 };
 

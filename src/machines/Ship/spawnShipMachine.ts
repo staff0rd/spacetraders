@@ -82,6 +82,7 @@ export function spawnShipMachine(c: Context): any {
             username: c.user!.username,
             ship,
             shipName,
+            flightPlan,
           })
         );
 
