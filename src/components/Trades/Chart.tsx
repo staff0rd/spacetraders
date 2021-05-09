@@ -4,7 +4,6 @@ import "chartjs-adapter-luxon";
 import { IMarket } from "data/IMarket";
 import { DateTime } from "luxon";
 import { makeStyles } from "@material-ui/core";
-import { useInterval } from "components/useInterval";
 import { Colors, ColorUtils } from "./Colors";
 const colors = Object.values(Colors)
   .filter((p) => (p as any).C500 !== undefined)
@@ -73,38 +72,63 @@ type Dataset = {
   tension: number;
 };
 
+type ChartType = {
+  data: {
+    datasets: Dataset[];
+  };
+  update: () => void;
+  destroy: () => void;
+};
+
+const updateDataset = (chartDataset: Dataset, marketDataset: Dataset) => {
+  const chartData = chartDataset.data;
+  const marketData = marketDataset.data;
+  const removeFromChart = chartData
+    .map((value, ix) => ({ value, ix }))
+    .filter(
+      (p) => !marketData.map((p) => p.x.toISO()).includes(p.value.x.toISO())
+    )
+    .map((p) => p.ix)
+    .sort((a, b) => b - a);
+
+  const addToChart = marketData.filter(
+    (p) => !chartData.map((p) => p.x.toISO()).includes(p.x.toISO())
+  );
+  if (addToChart.length) {
+    addToChart.forEach((d) => chartData.push(d));
+  }
+  removeFromChart.forEach((ix) => chartData.splice(ix, 1));
+  chartData.sort((a, b) => b.x.diff(a.x, "seconds").seconds);
+};
+
 export const ChartComp = ({ good, location, markets }: Props) => {
   const ref = useRef<HTMLCanvasElement>(null);
   const classes = useStyles();
-  const [chart, setChart] = useState<Chart>();
+  const [chart, setChart] = useState<ChartType>();
 
   useEffect(
     () => {
-      if (chart && markets) {
-        const datasets = groupDatasets(good, markets);
-
-        chart.data.datasets.forEach((dataset: Dataset) => {
-          const chartData = dataset.data;
-          const marketData = datasets[0].data;
-          const removeFromChart = chartData
-            .map((value, ix) => ({ value, ix }))
-            .filter(
-              (p) =>
-                !marketData.map((p) => p.x.toISO()).includes(p.value.x.toISO())
-            )
-            .map((p) => p.ix)
-            .sort((a, b) => b - a);
-
-          const addToChart = marketData.filter(
-            (p) => !chartData.map((p) => p.x.toISO()).includes(p.x.toISO())
+      if (chart && chart.data && markets) {
+        const marketDatasets = groupDatasets(good, markets);
+        marketDatasets.forEach((marketDataset) => {
+          const chartDataset = chart.data.datasets.find(
+            (ds: Dataset) => ds.label === marketDataset.label
           );
-          if (addToChart.length) {
-            addToChart.forEach((d) => chartData.push(d));
-          }
-          removeFromChart.forEach((ix) => chartData.splice(ix, 1));
-          chartData.sort((a, b) => b.x.diff(a.x, "seconds").seconds);
-          chart.update();
+          if (chartDataset) {
+            updateDataset(chartDataset, marketDataset);
+          } else chart.data.datasets.push(marketDataset);
         });
+
+        ((chart.data.datasets as Dataset[]) || [])
+          .map((value: Dataset, ix: number) => ({ value, ix }))
+          .filter(
+            (p) => !marketDatasets.map((p) => p.label).includes(p.value.label)
+          )
+          .map((p) => p.ix)
+          .sort((a, b) => b - a)
+          .forEach((ix) => chart.data.datasets.splice(ix, 1));
+
+        chart.update();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

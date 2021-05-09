@@ -66,26 +66,19 @@ export const Markets = ({ systems }: Props) => {
       return db.markets
         .where("[location+created]")
         .between(
-          [
-            location,
-            Dexie.minKey,
-            DateTime.local().minus({ minutes: duration }).toISO(),
-          ],
-          [location, Dexie.maxKey, DateTime.local().toISO()]
+          [location, DateTime.local().minus({ minutes: duration }).toISO()],
+          [location, DateTime.local().toISO()]
         )
         .reverse()
         .limit(200)
         .toArray();
     } else if (good) {
+      console.log("you chose good");
       return db.markets
         .where("[good+created]")
         .between(
-          [
-            Dexie.minKey,
-            good,
-            DateTime.local().minus({ minutes: duration }).toISO(),
-          ],
-          [Dexie.maxKey, good, DateTime.local().toISO()]
+          [good, DateTime.local().minus({ minutes: duration }).toISO()],
+          [good, DateTime.local().toISO()]
         )
         .reverse()
         .limit(200)
@@ -205,6 +198,7 @@ export const Markets = ({ systems }: Props) => {
         <ToggleButton value={60}>1h</ToggleButton>
         <ToggleButton value={120}>2h</ToggleButton>
         <ToggleButton value={240}>4h</ToggleButton>
+        <ToggleButton value={346}>6h</ToggleButton>
       </ToggleButtonGroup>
 
       <DataTable title="Markets" rows={rows} columns={columns} />
