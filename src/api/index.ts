@@ -436,6 +436,7 @@ export const buyShip = async (
   await shipCache.saveShip(result.ship);
   const newName = newShipName();
   await shipCache.saveDetail({ shipId: result.ship.id, name: newName });
+  shipCache.addShip(result.ship, newName);
 
   return result;
 };

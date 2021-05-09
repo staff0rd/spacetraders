@@ -26,7 +26,7 @@ import { getDebug } from "../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { ChangeStrategyPayload } from "data/Strategy/StrategyPayloads";
-import { getShips } from "data/localStorage/shipCache";
+import { CachedShip, getShips } from "data/localStorage/shipCache";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -67,6 +67,7 @@ export type Context = {
   strategies?: IShipStrategy[];
   resetDetected?: boolean;
   automation: IAutomation;
+  ships?: CachedShip[];
 };
 
 export const initialContext = {
@@ -289,6 +290,7 @@ const config: MachineConfig<Context, any, Event> = {
           target: States.Initialising,
           actions: assign<Context>({
             availableShips: (c: Context, e: any) => e.data.ships,
+            ships: () => getShips(),
           }) as any,
         },
       },
@@ -306,7 +308,10 @@ const config: MachineConfig<Context, any, Event> = {
           target: States.Ready,
           actions: (c, e) => console.error(e),
         },
-        onDone: States.GetStrategies,
+        onDone: {
+          target: States.GetStrategies,
+          actions: assign<Context>({ ships: () => getShips() }),
+        },
       },
     },
   },
@@ -338,6 +343,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
                 : strat.strategy;
             return { ship: ts, strategy };
           });
+        console.log("toSpawn", toSpawn);
         type GroupByStrat = { strategy: ShipStrategy; count: number };
         if (toSpawn.length) {
           toSpawn
@@ -353,7 +359,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
                 `Spawning ${s.count} x ${ShipStrategy[s.strategy]} machines`
               )
             );
-        }
+        } else console.log("Nothing to spawn");
 
         return [
           ...c.actors,

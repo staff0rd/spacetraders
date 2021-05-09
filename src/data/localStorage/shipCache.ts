@@ -3,7 +3,7 @@ import { Ship } from "api/Ship";
 import { IShipDetail } from "data/IShipDetail";
 import { getResetting } from "./getResetting";
 
-type CachedShip = Ship & {
+export type CachedShip = Ship & {
   name: string;
 };
 
@@ -64,7 +64,10 @@ export const addShip = (ship: Ship, name: string) => {
   local.ships.push({ ...ship, name });
 };
 
-export const getShips = (): CachedShip[] => local.ships;
+export const getShips = (): CachedShip[] => {
+  console.log("localShips:", local.ships.length);
+  return local.ships;
+};
 
 export const getShip = (id: string): CachedShip => {
   const result = local.ships.find((p) => p.id === id);
