@@ -1,4 +1,10 @@
-import { CircularProgress, Tab, Tabs, Typography } from "@material-ui/core";
+import {
+  Button,
+  CircularProgress,
+  Tab,
+  Tabs,
+  Typography,
+} from "@material-ui/core";
 import React from "react";
 import FlightProgress from "../FlightProgress";
 import { Grid } from "@material-ui/core";
@@ -16,6 +22,8 @@ import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { Trades } from "./Trades";
 import { Requests } from "./Requests";
 import Dexie from "dexie";
+import * as api from "api";
+import { getLocalUser } from "data/localStorage/getLocalUser";
 
 const useStyles = makeStyles((theme) => ({
   strategy: {
@@ -59,6 +67,20 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
 
   if (!ship) return <CircularProgress size={48} />;
 
+  const { token, username } = getLocalUser()!;
+  const sellCargo = () => {
+    ship?.ship?.cargo.map((c) =>
+      api.sellOrder(
+        token!,
+        username,
+        ship!.ship!.id,
+        c!.good,
+        c.quantity,
+        ship!.ship!.location!
+      )
+    );
+  };
+
   return (
     <>
       <Grid container spacing={2}>
@@ -78,6 +100,13 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
                 : setDebug({ focusShip: undefined })
             }
           />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => sellCargo()}
+          >
+            Sell cargo
+          </Button>
         </Grid>
         <Grid item xs={6}>
           <Box>
