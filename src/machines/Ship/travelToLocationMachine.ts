@@ -20,6 +20,8 @@ import { persistStrategy } from "components/Strategy/persistStrategy";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { getRoute, getGraph } from "data/localStorage/graph";
 import { getShip } from "data/localStorage/shipCache";
+import { getCredits } from "data/localStorage/getCredits";
+import { formatCurrency } from "./formatNumber";
 
 const throwError = (message: string) => {
   console.warn(message);
@@ -135,6 +137,21 @@ const config: MachineConfig<Context, any, any> = {
               c.ship.location
             );
           }
+
+          const fuel = await db.goodLocation
+            .where("[location+good]")
+            .equals([c.ship.location!, "FUEL"])
+            .last();
+          const cost = fuel!.purchasePricePerUnit * neededFuel;
+          if (cost > getCredits()) {
+            console.warn(
+              `[${getShip(c.id).name}] Will wait, need ${formatCurrency(
+                cost
+              )}, but have ${formatCurrency(getCredits())}`
+            );
+            return States.Wait;
+          }
+
           const result = await api.purchaseOrder(
             c.token,
             c.username,
@@ -164,12 +181,15 @@ const config: MachineConfig<Context, any, any> = {
             actions: printErrorAction(),
           },
         ],
-        onDone: {
-          target: States.Idle,
-          actions: assign<Context>({
-            ship: (c, e: any) => e.data.ship,
-          }) as any,
-        },
+        onDone: [
+          { cond: (c, e: any) => e.data === States.Wait, target: States.Wait },
+          {
+            target: States.Idle,
+            actions: assign<Context>({
+              ship: (c, e: any) => e.data.ship,
+            }) as any,
+          },
+        ],
       },
     },
     [States.GetShip]: {
