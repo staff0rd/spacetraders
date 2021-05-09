@@ -16,6 +16,8 @@ import { TradeRoute } from "machines/Ship/TradeRoute";
 import { CustomSelect } from "components/CustomSelect";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getLocation, getLocations } from "data/localStorage/locationCache";
+import { getDebug, setDebug } from "data/localStorage/getDebug";
+import { DebugCheckbox } from "components/Settings/DebugCheckbox";
 
 const useStyles = makeStyles((theme) => ({
   text: {
@@ -108,7 +110,9 @@ export const Best = () => {
       </Tooltip>
     ),
     "Ships",
+    "Focus",
   ];
+  const debug = getDebug();
   const rows = routes.map((route) => [
     ...(isMdDown
       ? [
@@ -210,6 +214,25 @@ export const Best = () => {
       />
     ),
     route.shipCount,
+    <DebugCheckbox
+      title=""
+      persist={(value) =>
+        value
+          ? setDebug({
+              focusTradeRoute: {
+                from: route.buyLocation,
+                to: route.sellLocation,
+                good: route.good,
+              },
+            })
+          : setDebug({ focusTradeRoute: undefined })
+      }
+      initialValue={
+        debug.focusTradeRoute?.to === route.sellLocation &&
+        debug.focusTradeRoute?.from === route.buyLocation &&
+        debug.focusTradeRoute?.good === route.good
+      }
+    />,
   ]);
 
   const locations = getLocations().map((p) => p.symbol);

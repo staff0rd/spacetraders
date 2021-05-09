@@ -1,4 +1,5 @@
 import { distancePoint } from "components/Locations/Map/geometry";
+import { getDebug } from "data/localStorage/getDebug";
 import { getGraph, getRoute } from "data/localStorage/graph";
 import { getLocation } from "data/localStorage/locationCache";
 import db from "../../data";
@@ -79,6 +80,7 @@ export async function determineBestTradeRoute(
   const goodLocation = await db.goodLocation.toArray();
   const grouped = groupByGood(goodLocation);
   const { graph, warps } = getGraph();
+  const { focusTradeRoute } = getDebug();
 
   return grouped
     .map((g) =>
@@ -131,6 +133,13 @@ export async function determineBestTradeRoute(
     )
     .flat()
     .filter((a) => !excludeLoss || a.costVolumeDistance > 0)
+    .filter(
+      (a) =>
+        !focusTradeRoute ||
+        (focusTradeRoute.from === a.buyLocation &&
+          focusTradeRoute.to === a.sellLocation &&
+          focusTradeRoute.good === a.good)
+    )
     .sort((a, b) => b.costVolumeDistance - a.costVolumeDistance)
     .map((r, ix) => ({
       ...r,
