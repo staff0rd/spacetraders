@@ -5,45 +5,32 @@ import { fuelCache, getLocation } from "data/localStorage/locationCache";
 import db from "../../data";
 import { getDistance } from "../getDistance";
 import { groupByGood } from "./groupByGood";
+import { ITradeShip } from "./ITradeShip";
 import { TradeRoute } from "./TradeRoute";
 
 export async function determineBestTradeRouteByCurrentLocation(
-  shipType: string,
-  maxCargo: number,
+  ship: ITradeShip,
   location?: string,
   excludeResearch = true,
   excludeLoss = true
 ) {
   return (
-    await determineBestTradeRoute(
-      shipType,
-      maxCargo,
-      excludeResearch,
-      excludeLoss
-    )
+    await determineBestTradeRoute(ship, excludeResearch, excludeLoss)
   ).filter((dest) => dest.buyLocation === location);
 }
 
 export async function determineBestTradeRouteByRoute(
-  shipType: string,
-  maxCargo: number,
+  ship: ITradeShip,
   depart?: string,
   destination?: string
 ) {
   return (
-    await determineBestTradeRouteByCurrentLocation(
-      shipType,
-      maxCargo,
-      depart,
-      true,
-      false
-    )
+    await determineBestTradeRouteByCurrentLocation(ship, depart, true, false)
   ).filter((r) => r.sellLocation === destination);
 }
 
 export async function determineClosestBestTradeRoute(
-  shipType: string,
-  maxCargo: number,
+  ship: ITradeShip,
   locationSymbol?: string
 ) {
   if (!locationSymbol)
@@ -53,7 +40,7 @@ export async function determineClosestBestTradeRoute(
   if (!location)
     throw new Error("Couldn't find location from " + locationSymbol);
 
-  const routes = await determineBestTradeRoute(shipType, maxCargo);
+  const routes = await determineBestTradeRoute(ship);
   return routes
     .slice(0, 5)
     .map((route) => {
@@ -72,8 +59,7 @@ export async function determineClosestBestTradeRoute(
 }
 
 export async function determineBestTradeRoute(
-  shipType: string,
-  maxCargo: number,
+  ship: ITradeShip,
   excludeResearch = true,
   excludeLoss = true
 ): Promise<TradeRoute[]> {
@@ -95,8 +81,7 @@ export async function determineBestTradeRoute(
                 graph,
                 depart.location,
                 dest.location,
-                shipType,
-                maxCargo,
+                ship,
                 warps
               );
               const distance = route
@@ -106,7 +91,7 @@ export async function determineBestTradeRoute(
               const fuelNeeded = Math.max(...route.map((a) => a.fuelNeeded));
 
               const quantityToBuy = Math.floor(
-                (maxCargo - fuelNeeded) / volume
+                (ship.maxCargo - fuelNeeded) / volume
               );
               const fuelCost =
                 ((fuelCache[depart.location]?.available ?? 0) > 500
@@ -117,6 +102,10 @@ export async function determineBestTradeRoute(
                 dest.sellPricePerUnit -
                 depart.purchasePricePerUnit -
                 fuelCost / quantityToBuy;
+
+              const flightTime = Math.round(distance * (2 / ship.speed)) + 60;
+
+              const costVolumeDistance = profitPerUnit / volume / flightTime;
               const totalProfit = quantityToBuy * profitPerUnit;
               const result: TradeRoute = {
                 buyLocation: depart.location,
@@ -128,7 +117,7 @@ export async function determineBestTradeRoute(
                 profitPerUnit,
                 volume,
                 fuelCost: fuelCost / quantityToBuy,
-                costVolumeDistance: profitPerUnit / volume / distance,
+                costVolumeDistance,
                 quantityAvailable: depart.quantityAvailable,
                 fuelNeeded,
                 quantityToBuy,

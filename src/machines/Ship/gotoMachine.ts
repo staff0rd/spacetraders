@@ -67,8 +67,7 @@ const config: MachineConfig<Context, any, any> = {
             throw new Error("No route");
           }
           const tradeRoutes = await determineBestTradeRouteByRoute(
-            c.ship.type,
-            c.ship.maxCargo,
+            c.ship,
             c.ship.location,
             c.strategy.data.location
           );

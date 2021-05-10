@@ -269,8 +269,7 @@ const config: MachineConfig<Context, any, any> = {
             graph,
             c.ship.location!,
             c.destination,
-            c.ship.type,
-            c.ship.maxCargo,
+            c.ship,
             warps
           );
           if (!route.length) throwError("Could not determine route!");

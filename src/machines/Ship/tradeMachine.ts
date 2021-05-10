@@ -152,8 +152,7 @@ const config: MachineConfig<Context, any, any> = {
       invoke: {
         src: async (c) => {
           const tradeRoutes = await determineBestTradeRouteByCurrentLocation(
-            c.ship.type,
-            c.ship.maxCargo,
+            c.ship,
             c.ship.location
           );
 
@@ -167,8 +166,7 @@ const config: MachineConfig<Context, any, any> = {
           }
 
           const closest = await determineClosestBestTradeRoute(
-            c.ship.type,
-            c.ship.maxCargo,
+            c.ship,
             c.ship.location
           );
 

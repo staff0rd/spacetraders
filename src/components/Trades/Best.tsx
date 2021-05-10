@@ -83,8 +83,8 @@ export const Best = ({ availableShips }: Props) => {
         grouped[label] += 1;
       });
 
-      const maxCargo = availableShips.find((p) => p.type === ship)!.maxCargo;
-      let result = await determineBestTradeRoute(ship, maxCargo, false, false);
+      const tradeShip = availableShips.find((p) => p.type === ship)!;
+      let result = await determineBestTradeRoute(tradeShip, false, false);
       if (from) result = result.filter((x) => x.buyLocation === from);
       if (to) result = result.filter((x) => x.sellLocation === to);
       if (good) result = result.filter((x) => x.good === good);

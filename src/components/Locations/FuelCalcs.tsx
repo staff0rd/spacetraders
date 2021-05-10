@@ -17,7 +17,13 @@ export const FuelCalcs = () => {
   );
   const [to, setTo] = useLocalStorage<string>(Keys.FuelCalc_To, locations[1]);
   const { graph, warps } = getGraph();
-  const route = getRoute(graph, from, to, "JW-MK-I", 50, warps);
+  const route = getRoute(
+    graph,
+    from,
+    to,
+    { type: "JW-MK-I", maxCargo: 50, speed: 1 },
+    warps
+  );
   const columns = [
     "From",
     "To",

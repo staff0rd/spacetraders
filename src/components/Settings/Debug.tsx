@@ -3,8 +3,6 @@ import { getDebug, setDebug } from "../../data/localStorage/getDebug";
 import { DebugCheckbox } from "./DebugCheckbox";
 import { Typography, makeStyles, Button } from "@material-ui/core";
 import { Link } from "react-router-dom";
-import { getGraph, getRoute } from "data/localStorage/graph";
-import { determineBestTradeRouteByCurrentLocation } from "machines/Ship/determineBestTradeRoute";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -24,24 +22,7 @@ const useStyles = makeStyles((theme) => ({
 export const Debug = () => {
   const classes = useStyles();
   const debug = getDebug();
-  const doit = async () => {
-    const { graph, warps } = getGraph();
-    const route = getRoute(graph, "XV-CB", "OE-PM", "GR-MK-III", 45, warps);
-    console.log(
-      route.map((r) => ({
-        ...r,
-        from: r.from.symbol,
-        to: r.to.symbol,
-      }))
-    );
-
-    const result = await determineBestTradeRouteByCurrentLocation(
-      "GR-MK-III",
-      1000,
-      "XV-CB"
-    );
-    console.log(result[0]);
-  };
+  const doit = async () => {};
 
   return (
     <div className={classes.root}>

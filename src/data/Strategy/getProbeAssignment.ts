@@ -26,14 +26,7 @@ const getAssignment = async (shipId: string) => {
     .filter((p) => p.shipId === undefined)
     .map((p) => ({
       ...p,
-      totalFuel: getRoute(
-        graph,
-        from.location,
-        p.location,
-        ship.type,
-        ship.maxCargo,
-        warps
-      )
+      totalFuel: getRoute(graph, from.location, p.location, ship, warps)
         .map((r) => r.fuelNeeded)
         .reduce((a, b) => a + b, 0),
     }))

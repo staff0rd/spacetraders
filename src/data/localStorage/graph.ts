@@ -1,10 +1,11 @@
 import createGraph, { Graph } from "ngraph.graph";
-import { getLocations, getWarp } from "./locationCache";
+import { fuelCache, getLocations, getWarp } from "./locationCache";
 import { Location } from "api/Location";
 import { aStar } from "ngraph.path";
 import { getFromToSystems, getLocationFuelNeeded } from "data/getFuelNeeded";
 import { distancePoint } from "components/Locations/Map/geometry";
 import { Route } from "./Route";
+import { ITradeShip } from "machines/Ship/ITradeShip";
 
 const getSystems = (locations: Location[]): string[] => {
   const set = new Set(
@@ -82,18 +83,17 @@ export const getRoute = (
   graph: Graph,
   from: string,
   to: string,
-  shipType: string,
-  maxCargo: number,
+  ship: ITradeShip,
   warps: Location[]
 ) => {
   const pathFinder = aStar<Location, Location>(graph, {
     distance(fromNode, toNode) {
       const distance = getDistance(fromNode.data, toNode.data, warps);
-      const fuel = getLocationFuelNeeded(fromNode.data, toNode.data, shipType);
+      const fuel = getLocationFuelNeeded(fromNode.data, toNode.data, ship.type);
       // console.warn(
       //   `${fromNode.id}>>${toNode.id} - distance: ${distance}, fuel: ${fuel}`
       // );
-      if (fuel > maxCargo) return Infinity;
+      if (fuel > ship.maxCargo) return Infinity;
       //if (hasGood(toNode.data, "FUEL") === 0) return distance + 100; // no fuel penalty
       return distance;
     },
@@ -112,10 +112,8 @@ export const getRoute = (
     if (ix) {
       const from = path[ix - 1].data;
       const to = p.data;
-      const fuelNeeded = getLocationFuelNeeded(from, to, shipType);
-      const fuelAvailable =
-        from.marketplace?.find((p) => p.symbol === "FUEL")?.quantityAvailable ||
-        0;
+      const fuelNeeded = getLocationFuelNeeded(from, to, ship.type);
+      const fuelAvailable = fuelCache[from.symbol]?.available ?? 0;
       route.push({
         from,
         to,
