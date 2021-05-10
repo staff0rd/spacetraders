@@ -4,7 +4,7 @@ import { Markets } from "./Markets";
 import { Current } from "./Current";
 import { Best } from "./Best";
 import { SystemContext } from "machines/MarketContext";
-import { Trades as TradesNew } from "./Trades";
+import { TradeRoutes } from "./TradeRoutes";
 import { AvailableShip } from "api/AvailableShip";
 
 type Props = { systems?: SystemContext; availableShips: AvailableShip[] };
@@ -19,7 +19,7 @@ export const Trades = ({ systems, availableShips }: Props) => {
     {
       label: "Trades (New)",
       path: "/trades/new",
-      component: <TradesNew />,
+      component: <TradeRoutes />,
     },
     {
       label: "Best",

@@ -129,6 +129,7 @@ export const Strategy = ({ state }: Props) => {
     : shipsFiltered;
 
   const rows = shipsLimited.map((ship) => [
+    ship.id,
     <div className={classes.strategy}>
       <StrategyChange ship={ship} />
       {ship.strategy}
@@ -162,8 +163,6 @@ export const Strategy = ({ state }: Props) => {
     ) : (
       ship.locationName
     ),
-
-    ship.id,
   ]);
 
   const shipWithUndefinedId = ships.find((s) => !s.id);
@@ -209,7 +208,7 @@ export const Strategy = ({ state }: Props) => {
 
       <DataTable
         title="Strategy"
-        lastColumnIsRowKey
+        firstColumnIsRowKey
         columns={columns}
         rows={rows}
       />

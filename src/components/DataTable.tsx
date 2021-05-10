@@ -5,7 +5,10 @@ import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import Paper from "@material-ui/core/Paper";
-import { makeStyles } from "@material-ui/core";
+import { IconButton, makeStyles } from "@material-ui/core";
+import { useState } from "react";
+import ExpandLessIcon from "@material-ui/icons/ExpandLess";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
 const useStyles = makeStyles((theme) => ({
   cell: {
@@ -30,7 +33,8 @@ export type Props = {
   columns?: React.ReactNode[];
   rows: React.ReactNode[][];
   rowClassName?: (index: number) => string;
-  lastColumnIsRowKey?: boolean;
+  firstColumnIsRowKey?: boolean;
+  details?: boolean;
 };
 
 const convertCell = (cell: React.ReactNode, index: number, classes: any) => {
@@ -54,9 +58,13 @@ export const DataTable = ({
   columns,
   rows,
   rowClassName,
-  lastColumnIsRowKey,
+  firstColumnIsRowKey,
+  details,
 }: Props) => {
   const classes = useStyles();
+  const [showDetails, setShowDetails] = useState<{ [index: string]: boolean }>(
+    {}
+  );
   return (
     <TableContainer component={Paper}>
       <Table size="small" aria-label={title}>
@@ -64,21 +72,48 @@ export const DataTable = ({
           <TableHead>
             <TableRow>
               {columns.map((col, ix) => convertCell(col, ix, classes))}
+              {details && <TableCell></TableCell>}
             </TableRow>
           </TableHead>
         )}
         <TableBody>
           {rows.map((row, ix) => (
-            <TableRow
-              className={rowClassName ? rowClassName(ix) : ""}
-              key={lastColumnIsRowKey ? String(row[row.length - 1]) : ix}
-            >
-              {row
-                .filter((cell, ix) =>
-                  lastColumnIsRowKey ? ix !== row.length - 1 : true
-                )
-                .map((cell, ix) => convertCell(cell, ix, classes))}
-            </TableRow>
+            <>
+              <TableRow
+                className={rowClassName ? rowClassName(ix) : ""}
+                key={firstColumnIsRowKey ? String(row[0]) : ix}
+              >
+                {row
+                  .filter((cell, ix) => (firstColumnIsRowKey ? ix !== 0 : true))
+                  .filter((cell, ix) => (details ? ix < row.length - 2 : true))
+                  .map((cell, ix) => convertCell(cell, ix, classes))}
+                {details && (
+                  <TableCell>
+                    <IconButton
+                      onClick={() =>
+                        setShowDetails({
+                          ...showDetails,
+                          [row[0] as string]: !showDetails[row[0] as string],
+                        })
+                      }
+                    >
+                      {showDetails[row[0] as string] ? (
+                        <ExpandLessIcon />
+                      ) : (
+                        <ExpandMoreIcon />
+                      )}
+                    </IconButton>
+                  </TableCell>
+                )}
+              </TableRow>
+              {details && showDetails[row[0] as string] && (
+                <TableRow>
+                  <TableCell colSpan={row.length - 1}>
+                    {row[row.length - 1]}
+                  </TableCell>
+                </TableRow>
+              )}
+            </>
           ))}
         </TableBody>
       </Table>

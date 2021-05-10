@@ -31,11 +31,11 @@ const useStyles = makeStyles((theme) => ({
   buy: {
     backgroundColor: fade(blue[500], 0.15),
   },
-  sellIcon: {
-    color: fade(green[500], 0.3),
-  },
   sell: {
     backgroundColor: fade(green[500], 0.15),
+  },
+  sellIcon: {
+    color: fade(green[500], 0.3),
   },
   link: {
     fontSize: 14,
