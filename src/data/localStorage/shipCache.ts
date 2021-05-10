@@ -14,7 +14,7 @@ const local: { ships: CachedShip[] } = {
 export const load = async () => {
   if (getResetting()) return;
   try {
-    console.info("Loading ships...");
+    console.info("Refreshing ship cache...");
     local.ships = [];
     const ships = await db.ships.toArray();
     const shipNames = await db.shipDetail.toArray();
@@ -23,7 +23,6 @@ export const load = async () => {
       if (!name) throw new Error(`Could not find name for ${s.id}`);
       addShip(s, name);
     }
-    console.info("Ships loaded!");
   } catch (e) {
     console.log("Error loading:", e);
   }
@@ -64,10 +63,7 @@ export const addShip = (ship: Ship, name: string) => {
   local.ships.push({ ...ship, name });
 };
 
-export const getShips = (): CachedShip[] => {
-  console.log("localShips:", local.ships.length);
-  return local.ships;
-};
+export const getShips = (): CachedShip[] => local.ships;
 
 export const getShip = (id: string): CachedShip => {
   const result = local.ships.find((p) => p.id === id);

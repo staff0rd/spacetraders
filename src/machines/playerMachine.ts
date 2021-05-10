@@ -343,7 +343,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
                 : strat.strategy;
             return { ship: ts, strategy };
           });
-        console.log("toSpawn", toSpawn);
         type GroupByStrat = { strategy: ShipStrategy; count: number };
         if (toSpawn.length) {
           toSpawn
@@ -359,7 +358,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
                 `Spawning ${s.count} x ${ShipStrategy[s.strategy]} machines`
               )
             );
-        } else console.log("Nothing to spawn");
+        }
 
         return [
           ...c.actors,
