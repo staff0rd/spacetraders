@@ -76,8 +76,20 @@ export async function newTradeRoute(tradeRoute: TradeRoute, shipId: string) {
 }
 
 export async function markLastComplete(shipId: string) {
-  await db.tradeData
+  const results = await db.tradeData
     .where("[shipId+created+complete]")
     .between([shipId, Dexie.minKey, 0], [shipId, Dexie.maxKey, 0])
-    .modify({ complete: 1 });
+    .toArray();
+
+  for (const result of results) {
+    if (result.complete === 0) {
+      if (!result.trades.length) await db.tradeData.delete(result.id!);
+      else {
+        await db.tradeData
+          .where("id")
+          .equals(result.id!)
+          .modify({ complete: 1 });
+      }
+    }
+  }
 }

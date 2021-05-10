@@ -88,7 +88,7 @@ export const Best = ({ availableShips }: Props) => {
       if (from) result = result.filter((x) => x.buyLocation === from);
       if (to) result = result.filter((x) => x.sellLocation === to);
       if (good) result = result.filter((x) => x.good === good);
-      console.log("Found:", result.length);
+
       setRoutes(
         result.slice(0, 50).map((r) => ({
           ...r,
