@@ -18,6 +18,9 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { getLocation, getLocations } from "data/localStorage/locationCache";
 import { getDebug, setDebug } from "data/localStorage/getDebug";
 import { DebugCheckbox } from "components/Settings/DebugCheckbox";
+import { useLocalStorage } from "components/useLocalStorage";
+import { Keys } from "data/localStorage/Keys";
+import { AvailableShip } from "api/AvailableShip";
 
 const useStyles = makeStyles((theme) => ({
   text: {
@@ -46,14 +49,20 @@ type TradeRouteWithCount = TradeRoute & {
   shipCount: number;
 };
 
-export const Best = () => {
+type Props = {
+  availableShips: AvailableShip[];
+};
+
+export const Best = ({ availableShips }: Props) => {
   const classes = useStyles();
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const [routes, setRoutes] = useState<TradeRouteWithCount[]>([]);
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [good, setGood] = useState("");
+  const [from, setFrom] = useLocalStorage(Keys.Best_From, "");
+  const [to, setTo] = useLocalStorage(Keys.Best_To, "");
+  const [good, setGood] = useLocalStorage(Keys.Best_Good, "");
+  const [ship, setShip] = useLocalStorage(Keys.Best_Ship, "GR-MK-III");
+
   const goods = useLiveQuery(() => db.markets.orderBy("good").uniqueKeys());
 
   const getGroupLabel = (value: TradeRoute) =>
@@ -73,15 +82,13 @@ export const Best = () => {
         }
         grouped[label] += 1;
       });
-      let result = await determineBestTradeRoute(
-        "GR-MK-III",
-        500,
-        false,
-        false
-      );
+
+      const maxCargo = availableShips.find((p) => p.type === ship)!.maxCargo;
+      let result = await determineBestTradeRoute(ship, maxCargo, false, false);
       if (from) result = result.filter((x) => x.buyLocation === from);
       if (to) result = result.filter((x) => x.sellLocation === to);
       if (good) result = result.filter((x) => x.good === good);
+      console.log("Found:", result.length);
       setRoutes(
         result.slice(0, 50).map((r) => ({
           ...r,
@@ -89,14 +96,14 @@ export const Best = () => {
         }))
       );
     };
-    getRoutes();
+    if (availableShips.length) getRoutes();
     const interval = setInterval(() => {
-      getRoutes();
+      if (availableShips.length) getRoutes();
     }, 10000);
     return () => clearInterval(interval);
-  }, [from, to, good]);
+  }, [from, to, good, ship, availableShips]);
 
-  if (!goods) return <CircularProgress size={24} />;
+  if (!goods || !availableShips.length) return <CircularProgress size={24} />;
 
   const columns = [
     ...(isMdDown ? ["Good"] : ["Good", "Qty"]),
@@ -119,7 +126,7 @@ export const Best = () => {
           <div className={classes.center}>
             <GoodIcon good={route.good} />
             <NumberFormat
-              value={route.quantityAvailable}
+              value={route.quantityToBuy}
               thousandSeparator=","
               displayType="text"
             />
@@ -128,7 +135,7 @@ export const Best = () => {
       : [
           <GoodIcon good={route.good} />,
           <NumberFormat
-            value={route.quantityAvailable}
+            value={route.quantityToBuy}
             thousandSeparator=","
             displayType="text"
           />,
@@ -257,6 +264,15 @@ export const Best = () => {
         setValue={setGood}
         value={good}
         values={goods}
+      />
+      <CustomSelect
+        name="Ship"
+        value={ship}
+        setValue={setShip}
+        values={availableShips
+          .map((av) => av.type)
+          .sort((a, b) => a.localeCompare(b))}
+        hideAll
       />
       <DataTable title="Trade Routes" columns={columns} rows={rows} />
     </>

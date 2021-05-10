@@ -5,10 +5,11 @@ import { Current } from "./Current";
 import { Best } from "./Best";
 import { SystemContext } from "machines/MarketContext";
 import { Trades as TradesNew } from "./Trades";
+import { AvailableShip } from "api/AvailableShip";
 
-type Props = { systems?: SystemContext };
+type Props = { systems?: SystemContext; availableShips: AvailableShip[] };
 
-export const Trades = ({ systems }: Props) => {
+export const Trades = ({ systems, availableShips }: Props) => {
   const tabs: TabProps[] = [
     {
       label: "Trades",
@@ -23,7 +24,7 @@ export const Trades = ({ systems }: Props) => {
     {
       label: "Best",
       path: "/trades/best",
-      component: <Best />,
+      component: <Best availableShips={availableShips} />,
     },
     {
       label: "Markets",

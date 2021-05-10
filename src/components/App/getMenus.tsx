@@ -51,7 +51,12 @@ export function getMenus(
       icon: <TradeIcon />,
       title: "Trades",
       to: "/trades",
-      component: <Trades systems={state?.context.systems} />,
+      component: (
+        <Trades
+          systems={state?.context.systems}
+          availableShips={state?.context.availableShips || []}
+        />
+      ),
     },
     {
       icon: <NetWorthIcon />,

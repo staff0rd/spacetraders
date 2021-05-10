@@ -14,4 +14,8 @@ export enum Keys {
   FuelCalc_From = "fuelcalc-from",
   FuelCalc_To = "fuelcalc-to",
   Resetting = "resetting",
+  Best_From = "best-from",
+  Best_To = "best-to",
+  Best_Good = "best-good",
+  Best_Ship = "best-ship",
 }
