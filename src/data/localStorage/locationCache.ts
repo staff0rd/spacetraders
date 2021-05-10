@@ -5,6 +5,10 @@ import { Keys } from "./Keys";
 const locations: MarketContext =
   JSON.parse(localStorage.getItem(Keys.Locations)!) || {};
 
+type FuelCache = { [key: string]: { cost: number; available: number } };
+
+export const fuelCache: FuelCache = {};
+
 export const getLocation = (symbol: string): Location | undefined => {
   return locations[symbol];
 };
@@ -40,6 +44,18 @@ export const cacheLocation = (cacheThis: Location) => {
 
   if (existing && existing.structures && !cacheThis.structures) {
     cacheThis.structures = existing.structures;
+  }
+
+  if (cacheThis.marketplace) {
+    const fuel = cacheThis.marketplace.find((p) => p.symbol === "FUEL");
+    if (!fuel) {
+      fuelCache[cacheThis.symbol] = { available: 0, cost: 9999 };
+    } else {
+      fuelCache[cacheThis.symbol] = {
+        available: fuel.quantityAvailable,
+        cost: fuel.purchasePricePerUnit,
+      };
+    }
   }
 
   locations[cacheThis.symbol] = cacheThis;

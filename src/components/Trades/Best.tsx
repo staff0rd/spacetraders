@@ -109,7 +109,8 @@ export const Best = ({ availableShips }: Props) => {
     ...(isMdDown ? ["Good"] : ["Good", "Qty"]),
     ...(isMdDown ? ["From/To"] : ["From", "To"]),
     ...(isMdDown ? [right("Buy/Sell")] : [right("Buy"), right("Sell")]),
-    right("Profit per Unit"),
+    right("Fuel"),
+    right("Profit"),
     right("Total"),
     right(
       <Tooltip title="Cost x Distance x Volume">
@@ -196,10 +197,20 @@ export const Best = ({ availableShips }: Props) => {
         ]),
     right(
       <NumberFormat
+        value={route.fuelCost}
+        thousandSeparator=","
+        displayType="text"
+        prefix="$"
+        decimalScale={0}
+      />
+    ),
+    right(
+      <NumberFormat
         value={route.profitPerUnit}
         thousandSeparator=","
         displayType="text"
         prefix="$"
+        decimalScale={0}
       />
     ),
     right(
@@ -208,6 +219,7 @@ export const Best = ({ availableShips }: Props) => {
         thousandSeparator=","
         displayType="text"
         prefix="$"
+        decimalScale={0}
       />
     ),
     right(

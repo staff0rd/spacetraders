@@ -1,5 +1,6 @@
 export type TradeRoute = {
   good: string;
+  fuelCost: number;
   buyLocation: string;
   purchasePricePerUnit: number;
   sellLocation: string;

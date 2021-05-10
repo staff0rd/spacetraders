@@ -1,7 +1,7 @@
 import { distancePoint } from "components/Locations/Map/geometry";
 import { getDebug } from "data/localStorage/getDebug";
 import { getGraph, getRoute } from "data/localStorage/graph";
-import { getLocation } from "data/localStorage/locationCache";
+import { fuelCache, getLocation } from "data/localStorage/locationCache";
 import db from "../../data";
 import { getDistance } from "../getDistance";
 import { groupByGood } from "./groupByGood";
@@ -90,8 +90,6 @@ export async function determineBestTradeRoute(
             .filter((dest) => dest.location !== depart.location)
             .filter((x) => !excludeResearch || x.good !== "RESEARCH")
             .map((dest) => {
-              const profitPerUnit =
-                dest.sellPricePerUnit - depart.purchasePricePerUnit;
               const volume = depart.volumePerUnit;
               const route = getRoute(
                 graph,
@@ -104,11 +102,21 @@ export async function determineBestTradeRoute(
               const distance = route
                 .map((p) => (p.isWarp ? 10 : distancePoint(p.from, p.to)))
                 .reduce((a, b) => a + b);
+
               const fuelNeeded = Math.max(...route.map((a) => a.fuelNeeded));
 
               const quantityToBuy = Math.floor(
                 (maxCargo - fuelNeeded) / volume
               );
+              const fuelCost =
+                ((fuelCache[depart.location]?.available ?? 0) > 500
+                  ? fuelCache[depart.location]?.cost ?? 9999
+                  : 9999) * fuelNeeded;
+
+              const profitPerUnit =
+                dest.sellPricePerUnit -
+                depart.purchasePricePerUnit -
+                fuelCost / quantityToBuy;
               const totalProfit = quantityToBuy * profitPerUnit;
               const result: TradeRoute = {
                 buyLocation: depart.location,
@@ -119,6 +127,7 @@ export async function determineBestTradeRoute(
                 good: g.good,
                 profitPerUnit,
                 volume,
+                fuelCost: fuelCost / quantityToBuy,
                 costVolumeDistance: profitPerUnit / volume / distance,
                 quantityAvailable: depart.quantityAvailable,
                 fuelNeeded,
