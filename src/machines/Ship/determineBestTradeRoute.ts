@@ -41,21 +41,20 @@ export async function determineClosestBestTradeRoute(
     throw new Error("Couldn't find location from " + locationSymbol);
 
   const routes = await determineBestTradeRoute(ship);
-  return routes
-    .slice(0, 5)
-    .map((route) => {
-      const departure = getLocation(route.buyLocation);
-      return {
-        route,
-        distance: getDistance(
-          location.x,
-          location.y,
-          departure?.x || Infinity,
-          departure?.y || Infinity
-        ),
-      };
-    })
-    .sort((a, b) => b.distance - a.distance);
+  const mapped = routes.slice(0, 5).map((route) => {
+    const departure = getLocation(route.buyLocation);
+    return {
+      route,
+      distance: getDistance(
+        location.x,
+        location.y,
+        departure?.x || Infinity,
+        departure?.y || Infinity
+      ),
+    };
+  });
+  const sorted = [...mapped].sort((a, b) => a.distance - b.distance);
+  return sorted;
 }
 
 export async function determineBestTradeRoute(
