@@ -42,6 +42,7 @@ export const buyShipMachine = createMachine<Context, any, any>({
         },
         onError: {
           target: "doneWithError",
+          actions: (c, e) => console.error(e.data),
         },
         onDone: {
           target: "done",
