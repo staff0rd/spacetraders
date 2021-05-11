@@ -5,16 +5,14 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import { getShip } from "data/localStorage/shipCache";
 import { formatCurrency } from "machines/Ship/formatNumber";
 import { GoodIcon } from "./GoodIcon";
-import { makeStyles, Typography } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import { fade } from "@material-ui/core/styles/colorManipulator";
-import green from "@material-ui/core/colors/green";
-import red from "@material-ui/core/colors/red";
 import clsx from "clsx";
 import { getLocation } from "data/localStorage/locationCache";
-import { ITradeRouteData } from "data/ITradeRouteData";
-import { DateTime } from "luxon";
-import NumberFormat from "react-number-format";
+import { Trades } from "./Trades";
+import { makeStyles, Typography } from "@material-ui/core";
+import green from "@material-ui/core/colors/green";
+import red from "@material-ui/core/colors/red";
 
 const useStyles = makeStyles((theme) => ({
   text: {
@@ -29,31 +27,10 @@ const useStyles = makeStyles((theme) => ({
   loss: {
     backgroundColor: fade(red[500], 0.15),
   },
+  detailsRow: {
+    backgroundColor: "#303030",
+  },
 }));
-
-const Trades = ({ detail }: { detail: ITradeRouteData }) => {
-  const rows = [...detail.trades]
-    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-    .map((row) => [
-      getLocation(row.location)?.name,
-      row.type,
-      <GoodIcon good={row.good} />,
-      row.quantity,
-      right(
-        <NumberFormat
-          value={row.cost}
-          thousandSeparator=","
-          displayType="text"
-          prefix="$"
-        />
-      ),
-      DateTime.fromISO(row.timestamp).toRelative(),
-    ]);
-
-  const columns = ["Location", "Type", "Good", "Qty", "Cost", "When"];
-
-  return <DataTable title="Trades" columns={columns} rows={rows} />;
-};
 
 export const TradeRoutes = () => {
   const classes = useStyles();
@@ -74,9 +51,17 @@ export const TradeRoutes = () => {
     row.tradeRoute.quantityToBuy,
     <GoodIcon good={row.tradeRoute.good} />,
     right(formatCurrency(row.profit)),
+    right(formatCurrency(Math.round(row.tradeRoute.totalProfit))),
     <Trades detail={row} />,
   ]);
-  const columns = ["Ship", "Route", "Qty", "Good", right("Profit")];
+  const columns = [
+    "Ship",
+    "Route",
+    "Qty",
+    "Good",
+    right("Profit"),
+    right("Expected"),
+  ];
   const rowClassName = (index: number): string =>
     clsx({
       [classes.loss]:
@@ -93,6 +78,7 @@ export const TradeRoutes = () => {
       rowClassName={rowClassName}
       firstColumnIsRowKey
       details
+      detailRowClassName={classes.detailsRow}
     />
   );
 };

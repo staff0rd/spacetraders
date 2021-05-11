@@ -33,6 +33,7 @@ export type Props = {
   columns?: React.ReactNode[];
   rows: React.ReactNode[][];
   rowClassName?: (index: number) => string;
+  detailRowClassName?: string;
   firstColumnIsRowKey?: boolean;
   details?: boolean;
 };
@@ -60,6 +61,7 @@ export const DataTable = ({
   rowClassName,
   firstColumnIsRowKey,
   details,
+  detailRowClassName,
 }: Props) => {
   const classes = useStyles();
   const [showDetails, setShowDetails] = useState<{ [index: string]: boolean }>(
@@ -107,7 +109,7 @@ export const DataTable = ({
                 )}
               </TableRow>
               {details && showDetails[row[0] as string] && (
-                <TableRow>
+                <TableRow className={detailRowClassName}>
                   <TableCell colSpan={row.length - 1}>
                     {row[row.length - 1]}
                   </TableCell>
