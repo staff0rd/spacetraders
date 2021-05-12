@@ -1,7 +1,7 @@
 import { LoanType } from "./LoanType";
 
 export interface Loan {
-  due: Date;
+  due: string;
   id: string;
   repaymentAmount: number;
   status: string;
