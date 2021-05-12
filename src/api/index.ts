@@ -31,8 +31,6 @@ const limiter = new Bottleneck({
   minTime: 500,
 });
 
-(window as any).limiter = limiter;
-
 export type GetStatusResponse = {
   status: string;
 };
