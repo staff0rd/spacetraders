@@ -2,6 +2,7 @@ import db from "data";
 import { Ship } from "api/Ship";
 import { IShipDetail } from "data/IShipDetail";
 import { getResetting } from "./getResetting";
+import * as self from "./shipCache";
 
 export type CachedShip = Ship & {
   name: string;
@@ -66,7 +67,7 @@ export const addShip = (ship: Ship, name: string) => {
 export const getShips = (): CachedShip[] => local.ships;
 
 export const getShip = (id: string): CachedShip => {
-  const result = local.ships.find((p) => p.id === id);
+  const result = self.getShips().find((p) => p.id === id);
   if (!result) {
     throw new Error(`Could not find ship ${id}`);
   }
