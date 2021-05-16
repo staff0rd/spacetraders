@@ -43,7 +43,6 @@ export const makeRequest = async (
   const result = await response.json();
 
   if (!response.ok) {
-    console.warn(result);
     await db.apiErrors
       .put({
         code: result.error.code,
