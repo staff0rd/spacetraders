@@ -41,6 +41,9 @@ beforeEach(() => {
     .spyOn(strategies, "getStrategies")
     .mockResolvedValue([{ shipId: mockShip.id, strategy: ShipStrategy.Halt }]);
   jest
+    .spyOn(strategies, "getStrategy")
+    .mockResolvedValue({ shipId: mockShip.id, strategy: ShipStrategy.Halt });
+  jest
     .spyOn(Bottleneck.prototype, "schedule")
     .mockImplementation((func: any) => func());
   jest.spyOn(req, "makeRequest").mockImplementation((path) => {
@@ -58,7 +61,7 @@ beforeEach(() => {
     autoBuy: {
       credits: 10000,
       maxShips: 2,
-      on: true,
+      on: false,
       shipType: "JW-MK-I",
     },
     autoUpgrades: [],
@@ -104,7 +107,6 @@ describe("playerMachine", () => {
         done();
       }
     });
-
     playerService.start();
   });
 });

@@ -1,4 +1,10 @@
-import { assign, createMachine, MachineConfig, MachineOptions } from "xstate";
+import {
+  assign,
+  createMachine,
+  MachineConfig,
+  MachineOptions,
+  spawn,
+} from "xstate";
 import { User } from "../api/User";
 import { getUser, getToken } from "../api";
 import { newPlayerName } from "../data/names";
@@ -21,6 +27,10 @@ import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { ChangeStrategyPayload } from "data/Strategy/StrategyPayloads";
 import { CachedShip, getShips } from "data/localStorage/shipCache";
 import { getStrategies } from "data/strategies";
+import {
+  BuyAndUpgradeActor,
+  buyAndUpgradeShipMachine,
+} from "./buyAndUpgradeShipMachine";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -37,6 +47,7 @@ export enum States {
   Ready = "ready",
   GetLoan = "getLoan",
   GetAvailableShips = "getAvailableShips",
+  SpawnBuyAndUpgradeActor = "spawnBuyAndUpgradeActor",
 }
 
 export type Schema = {
@@ -61,7 +72,7 @@ export type Context = {
   resetDetected?: boolean;
   automation: IAutomation;
   ships?: CachedShip[];
-  tick: number;
+  buyAndUpgradeActor?: BuyAndUpgradeActor;
 };
 
 export const initialContext = {
@@ -70,7 +81,6 @@ export const initialContext = {
   netWorth: [],
   flightPlans: [],
   actors: [],
-  tick: 0,
   automation: {} as IAutomation,
 } as Context;
 
@@ -80,7 +90,7 @@ const config: MachineConfig<Context, any, Event> = {
   context: initialContext,
   on: {
     SHIP_UPDATE: {
-      actions: ["netWorth"],
+      actions: ["netWorth", assign({ ships: () => getShips() }) as any],
     },
     STOP_ACTOR: {
       actions: (c, e: any) => {
@@ -178,7 +188,6 @@ const config: MachineConfig<Context, any, Event> = {
       entry: [
         (c) => {
           const doneActors = c.actors.filter((a) => a?.state.value === "done");
-
           doneActors.forEach((a) => {
             a.stop && a.stop(); // TODO: Is this required?
           });
@@ -195,7 +204,7 @@ const config: MachineConfig<Context, any, Event> = {
         }) as any,
       ],
       after: {
-        1: States.GetStrategies,
+        1: [{ target: States.GetStrategies }],
       },
     },
     [States.GetFlightPlans]: {
@@ -235,9 +244,33 @@ const config: MachineConfig<Context, any, Event> = {
         },
       },
     },
+    [States.SpawnBuyAndUpgradeActor]: {
+      entry: [
+        assign<Context>({
+          buyAndUpgradeActor: (c) =>
+            spawn(
+              buyAndUpgradeShipMachine.withContext({
+                token: c.token!,
+                username: c.username!,
+                availableShips: c.availableShips,
+              })
+            ),
+        }),
+      ],
+      after: {
+        1: States.Ready,
+      },
+    },
     [States.Ready]: {
       entry: "netWorth",
       after: {
+        1: [
+          {
+            target: States.SpawnBuyAndUpgradeActor,
+            cond: (c) =>
+              !c.buyAndUpgradeActor || !!c.buyAndUpgradeActor.state.done,
+          },
+        ],
         1000: {
           target: States.Tick,
         },

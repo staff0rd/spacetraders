@@ -1,10 +1,9 @@
-import db from "../../data";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { updateStrategy } from "./updateStrategy";
 import { ShipStrategyContext } from "./ShipBaseContext";
-import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
 import { assign } from "xstate";
 import { getDebug } from "data/localStorage/getDebug";
+import { getStrategy } from "data/strategies";
 
 export function confirmStrategy(
   desired: ShipStrategy,
@@ -14,9 +13,7 @@ export function confirmStrategy(
   return {
     invoke: {
       src: async (c: ShipStrategyContext) => {
-        const currentStrategy: IShipStrategy = (await db.strategies
-          .where({ shipId: c.id })
-          .first())!;
+        const currentStrategy = (await getStrategy(c.id))!;
         if (getDebug().focusShip === c.id)
           console.warn(
             `${ShipStrategy[currentStrategy.strategy]} === ${

@@ -1,7 +1,13 @@
 import { AvailableShip } from "api/AvailableShip";
 import { getAutomation } from "data/localStorage/getAutomation";
 import { getDebug } from "data/localStorage/getDebug";
-import { createMachine, MachineConfig, sendParent } from "xstate";
+import {
+  ActorRefFrom,
+  createMachine,
+  MachineConfig,
+  sendParent,
+  StateMachine,
+} from "xstate";
 import { buyShipMachine } from "./buyShipMachine";
 import { debugMachineStates } from "./debugStates";
 import { upgradeShipMachine } from "./Ship/upgradeShipMachine";
@@ -9,8 +15,11 @@ import { getShips } from "data/localStorage/shipCache";
 import { getUpgradingShip } from "data/localStorage/getUpgradingShip";
 import { getCredits } from "data/localStorage/getCredits";
 
+export type BuyAndUpgradeActor = ActorRefFrom<StateMachine<Context, any, any>>;
+
 enum States {
-  Idle = "idle",
+  Init = "init",
+  Wait = "wait",
   BuyShip = "buyShip",
   UpgradeShip = "upgradeShip",
 }
@@ -22,9 +31,14 @@ type Context = {
 };
 
 const config: MachineConfig<Context, any, any> = {
-  initial: States.Idle,
+  initial: States.Init,
   states: {
-    [States.Idle]: {
+    [States.Init]: {
+      after: {
+        1: States.Wait,
+      },
+    },
+    [States.Wait]: {
       after: {
         5000: [
           {
@@ -55,11 +69,11 @@ const config: MachineConfig<Context, any, any> = {
           shipType: () => getAutomation().autoBuy.shipType,
         },
         onError: {
-          target: States.Idle,
+          target: States.Wait,
           actions: (c, e) => console.error(e),
         },
         onDone: {
-          target: States.Idle,
+          target: States.Wait,
           actions: sendParent("SHIP_UPDATE"),
         },
       },
@@ -67,7 +81,7 @@ const config: MachineConfig<Context, any, any> = {
   },
 };
 
-export const buyAndUpgradeShipmachine = createMachine(
+export const buyAndUpgradeShipMachine = createMachine(
   debugMachineStates(config, () => getDebug().debugBuyAndUpgradeShipMachine)
 );
 
