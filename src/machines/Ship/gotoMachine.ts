@@ -48,7 +48,12 @@ const config: MachineConfig<Context, any, any> = {
             cond: (c) => c.ship.location === c.strategy.data.location,
             target: States.SwitchToTrade,
           },
-          { cond: (c) => !!c.flightPlan, target: States.TravelToLocation },
+          {
+            cond: (c) =>
+              !!c.flightPlan &&
+              DateTime.fromISO(c.flightPlan.arrivesAt) > DateTime.local(),
+            target: States.TravelToLocation,
+          },
           { target: States.DetermineTradeRoute },
         ],
       },

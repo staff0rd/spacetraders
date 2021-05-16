@@ -70,7 +70,10 @@ export function spawnShipMachine(c: Context): any {
           gotoMachine.withContext({
             id: ship.id,
             token: c.token!,
-            strategy: { strategy: ShipStrategy.GoTo },
+            strategy: {
+              strategy: ShipStrategy.GoTo,
+              data: getStrategy(c, ship).data,
+            },
             username: c.user!.username,
             ship,
             flightPlan,

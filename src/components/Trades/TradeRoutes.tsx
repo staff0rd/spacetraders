@@ -38,10 +38,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export const TradeRoutes = () => {
+type Props = {
+  shipId?: string;
+};
+
+export const TradeRoutes = ({ shipId }: Props) => {
   const classes = useStyles();
   const tradeRoutes = useLiveQuery(() => {
-    return db.tradeData.reverse().limit(50).toArray();
+    return shipId
+      ? db.tradeData
+          .where("shipId")
+          .equals(shipId)
+          .reverse()
+          .limit(50)
+          .toArray()
+      : db.tradeData.reverse().limit(50).toArray();
   });
 
   if (!tradeRoutes) return <CircularProgress color="primary" size={48} />;
@@ -56,8 +67,8 @@ export const TradeRoutes = () => {
     }`,
     row.tradeRoute.quantityToBuy,
     <GoodIcon good={row.tradeRoute.good} />,
-    right(formatCurrency(row.profit)),
     right(formatCurrency(Math.round(row.tradeRoute.totalProfit))),
+    right(formatCurrency(row.profit)),
     <Trades detail={row} />,
   ]);
   const columns = [
@@ -65,8 +76,8 @@ export const TradeRoutes = () => {
     "Route",
     "Qty",
     "Good",
-    right("Profit"),
     right("Expected"),
+    right("Profit"),
   ];
   const rowClassName = (index: number): string =>
     clsx({
