@@ -269,7 +269,7 @@ const config: MachineConfig<Context, any, Event> = {
               !c.buyAndUpgradeActor || !!c.buyAndUpgradeActor.state.done,
           },
         ],
-        1000: {
+        5000: {
           target: States.Tick,
         },
       },

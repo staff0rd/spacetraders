@@ -48,6 +48,11 @@ export const Debug = () => {
         persist={(value) => setDebug({ debugUpgradeMachine: value })}
         initialValue={debug.debugUpgradeMachine}
       />
+      <DebugCheckbox
+        title="Debug Buy &amp; Upgrade Machine"
+        persist={(value) => setDebug({ debugBuyAndUpgradeShipMachine: value })}
+        initialValue={debug.debugBuyAndUpgradeShipMachine}
+      />
       <Button
         className={classes.button}
         variant="contained"

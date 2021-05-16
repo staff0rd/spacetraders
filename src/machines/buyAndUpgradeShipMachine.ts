@@ -32,6 +32,7 @@ type Context = {
 
 const config: MachineConfig<Context, any, any> = {
   initial: States.Init,
+  id: "buyAndUpgrade",
   states: {
     [States.Init]: {
       after: {
@@ -57,6 +58,8 @@ const config: MachineConfig<Context, any, any> = {
             token: c.token,
             available: c.availableShips,
           }),
+        onDone: States.Wait,
+        onError: States.Wait,
       },
     },
     [States.BuyShip]: {
