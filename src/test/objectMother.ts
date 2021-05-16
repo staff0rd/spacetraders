@@ -1,5 +1,8 @@
+import { Location } from "api/Location";
 import { Ship } from "api/Ship";
 import { User } from "api/User";
+import { System } from "api/System";
+import { range } from "lodash";
 
 export const createShip = (): Ship => ({
   id: "my-ship-id",
@@ -31,4 +34,27 @@ export const createUser = (user: Partial<User> = {}): User => ({
       type: "STARTUP",
     },
   ],
+});
+
+export const createSystem = (system: Partial<System> = {}): System => ({
+  name: "System 1",
+  symbol: "S1",
+  locations: range(1, 3).map((ix) =>
+    createLocation({
+      name: `Location ${ix}`,
+      x: ix * 10,
+      y: ix * 10,
+      symbol: `S1-L${ix}`,
+    })
+  ),
+});
+
+export const createLocation = (location: Partial<Location> = {}): Location => ({
+  ...location,
+  name: "Location 1",
+  ships: [],
+  symbol: "S1-L1",
+  type: "MOON",
+  x: 10,
+  y: 10,
 });

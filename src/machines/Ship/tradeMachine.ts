@@ -27,7 +27,7 @@ import { ShipBaseContext } from "./ShipBaseContext";
 import { printErrorAction, print } from "./printError";
 import { debugShipMachineStates } from "../debugStates";
 import { getCargoQuantity } from "./getCargoQuantity";
-import { persistStrategy } from "../../components/Strategy/persistStrategy";
+import { persistStrategy } from "../../data/persistStrategy";
 import { IShipDetail } from "../../data/IShipDetail";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";

@@ -3,7 +3,6 @@ import { User } from "../api/User";
 import { getUser, getToken } from "../api";
 import { newPlayerName } from "../data/names";
 import { getLoanMachine } from "./getLoanMachine";
-import { buyShipMachine } from "./buyShipMachine";
 import * as api from "../api";
 import { ShipActor } from "./Ship/tradeMachine";
 import { MarketContext, SystemContext } from "./MarketContext";
@@ -13,20 +12,15 @@ import { NetWorthLineItem } from "./NetWorthLineItem";
 import { Ship } from "../api/Ship";
 import { FlightPlan } from "../api/FlightPlan";
 import { getStrategy, spawnShipMachine } from "./Ship/spawnShipMachine";
-import db from "../data";
 import { IShipStrategy } from "../data/Strategy/IShipStrategy";
 import { debugMachineStates } from "./debugStates";
 import { getLocalUser } from "../data/localStorage/getLocalUser";
 import { IAutomation } from "../data/localStorage/IAutomation";
-import { getAutomation } from "../data/localStorage/getAutomation";
-import { log } from "xstate/lib/actions";
-import { upgradeShipMachine } from "./Ship/upgradeShipMachine";
-import { getUpgradingShip } from "../data/localStorage/getUpgradingShip";
 import { getDebug } from "../data/localStorage/getDebug";
-import { getCredits } from "data/localStorage/getCredits";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { ChangeStrategyPayload } from "data/Strategy/StrategyPayloads";
 import { CachedShip, getShips } from "data/localStorage/shipCache";
+import { getStrategies } from "data/strategies";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -43,7 +37,6 @@ export enum States {
   Ready = "ready",
   GetLoan = "getLoan",
   GetAvailableShips = "getAvailableShips",
-  BuyShip = "buyShip",
 }
 
 export type Schema = {
@@ -68,6 +61,7 @@ export type Context = {
   resetDetected?: boolean;
   automation: IAutomation;
   ships?: CachedShip[];
+  tick: number;
 };
 
 export const initialContext = {
@@ -76,12 +70,13 @@ export const initialContext = {
   netWorth: [],
   flightPlans: [],
   actors: [],
+  tick: 0,
   automation: {} as IAutomation,
 } as Context;
 
 const config: MachineConfig<Context, any, Event> = {
   id: "player",
-  initial: States.CheckStorage,
+  initial: "get-ships-test",
   context: initialContext,
   on: {
     SHIP_UPDATE: {
@@ -95,6 +90,15 @@ const config: MachineConfig<Context, any, Event> = {
     },
   },
   states: {
+    "get-ships-test": {
+      invoke: {
+        src: () => Promise.resolve(getShips()),
+        onDone: {
+          target: "idle",
+          actions: assign({ ships: (c, e) => e.data }),
+        },
+      },
+    },
     [States.CheckStorage]: {
       entry: assign<Context>({
         token: getLocalUser()?.token,
@@ -116,7 +120,6 @@ const config: MachineConfig<Context, any, Event> = {
           { target: States.GetSystems, cond: "noLocations" },
           { target: States.GetAvailableShips, cond: "noAvailableShips" },
           { target: States.GetLoan, cond: "noLoans" },
-          { target: States.BuyShip, cond: "noPurchasedShips" },
           { target: States.GetFlightPlans, cond: "noShipActors" },
           { target: States.Ready },
         ],
@@ -142,6 +145,7 @@ const config: MachineConfig<Context, any, Event> = {
             cond: (c, e: any) => e.data.code === 40101,
             actions: assign<Context>({ resetDetected: true }) as any,
           },
+          { actions: (c, e) => console.error(e.data) },
         ],
         onDone: {
           target: States.Initialising,
@@ -172,16 +176,6 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.Tick]: {
       entry: [
-        async (c) => {
-          const ships = getShips();
-          [
-            ...new Set(
-              ships
-                .filter((p) => p.location)
-                .map((p) => p.location!.substring(0, 2))
-            ),
-          ].map((system) => api.getFlightPlans(c.token!, c.username!, system));
-        },
         (c) => {
           const doneActors = c.actors.filter((a) => a?.state.value === "done");
 
@@ -190,26 +184,18 @@ const config: MachineConfig<Context, any, Event> = {
           });
         },
       ],
-      exit: assign<Context>({
-        actors: (c, e) => {
-          const actorsNotDone = c.actors.filter(
-            (a) => a?.state.value !== "done"
-          );
-          return actorsNotDone;
-        },
-      }) as any,
-      invoke: {
-        src: (c: Context) =>
-          upgradeShipMachine.withContext({
-            username: c.username!,
-            token: c.token!,
-            available: c.availableShips,
-          }),
-        onDone: States.GetStrategies,
-        onError: {
-          actions: log(undefined, "error"),
-          target: States.GetStrategies,
-        },
+      exit: [
+        assign<Context>({
+          actors: (c, e) => {
+            const actorsNotDone = c.actors.filter(
+              (a) => a?.state.value !== "done"
+            );
+            return actorsNotDone;
+          },
+        }) as any,
+      ],
+      after: {
+        1: States.GetStrategies,
       },
     },
     [States.GetFlightPlans]: {
@@ -232,7 +218,7 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.GetStrategies]: {
       invoke: {
-        src: () => db.strategies.toArray(),
+        src: () => getStrategies(),
         onDone: {
           actions: assign<Context>({
             strategies: (c, e: any) => e.data,
@@ -252,11 +238,7 @@ const config: MachineConfig<Context, any, Event> = {
     [States.Ready]: {
       entry: "netWorth",
       after: {
-        5000: {
-          target: States.BuyShip,
-          cond: "shouldBuyShip",
-        },
-        10000: {
+        1000: {
           target: States.Tick,
         },
       },
@@ -295,30 +277,22 @@ const config: MachineConfig<Context, any, Event> = {
         },
       },
     },
-    [States.BuyShip]: {
-      invoke: {
-        src: buyShipMachine,
-        data: {
-          token: (context: Context) => context.token,
-          username: (context: Context) => context.username,
-          availableShips: (context: Context) => context.availableShips,
-          shipType: () => getAutomation().autoBuy.shipType,
-        },
-        onError: {
-          target: States.Ready,
-          actions: (c, e) => console.error(e),
-        },
-        onDone: {
-          target: States.GetStrategies,
-          actions: assign<Context>({ ships: () => getShips() }),
-        },
-      },
-    },
   },
 };
 
 const options: Partial<MachineOptions<Context, Event>> = {
   actions: {
+    getSystemFlightPlans: (c) => {
+      console.warn("Getting system flight plans");
+      const ships = getShips();
+      [
+        ...new Set(
+          ships
+            .filter((p) => p.location)
+            .map((p) => p.location!.substring(0, 2))
+        ),
+      ].map((system) => api.getFlightPlans(c.token!, c.username!, system));
+    },
     spawnShips: assign<Context>({
       actors: (c, e: any) => {
         const alreadySpawnedShipIds = c.actors.map(
@@ -396,15 +370,6 @@ const options: Partial<MachineOptions<Context, Event>> = {
     },
     noAvailableShips: (c) => !c.availableShips.length,
     noShipActors: (c) => !c.actors.length,
-    shouldBuyShip: (c) => {
-      const { autoBuy } = getAutomation();
-      return (
-        !getUpgradingShip() &&
-        autoBuy.on &&
-        getCredits() > autoBuy.credits &&
-        getShips().length < autoBuy.maxShips
-      );
-    },
   },
 };
 

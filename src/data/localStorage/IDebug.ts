@@ -5,5 +5,6 @@ export interface IDebug {
   debugProbeMachine: boolean;
   debugPlayerMachine: boolean;
   debugHaltMachine: boolean;
+  debugBuyAndUpgradeShipMachine: boolean;
   focusTradeRoute?: { from: string; to: string; good: string };
 }

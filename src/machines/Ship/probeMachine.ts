@@ -19,7 +19,7 @@ import { initShipMachine } from "./initShipMachine";
 import { travelToLocation } from "./travelToLocation";
 import { debugShipMachineStates } from "../debugStates";
 import { getDebug } from "../../data/localStorage/getDebug";
-import { persistStrategy } from "components/Strategy/persistStrategy";
+import { persistStrategy } from "data/persistStrategy";
 import { printErrorAction } from "./printError";
 
 enum States {

@@ -25,6 +25,7 @@ import * as shipCache from "data/localStorage/shipCache";
 import { saveTradeData } from "./saveTradeData";
 import { GetLeaderboardResponse } from "./GetLeaderboardResponse";
 import { makeRequest } from "./makeRequest";
+import { init } from "data/probes";
 
 const limiter = new Bottleneck({
   maxConcurrent: 1,
@@ -182,7 +183,7 @@ export const requestNewLoan = async (
   return result;
 };
 
-interface GetAvailableShipsResponse {
+export interface GetAvailableShipsResponse {
   ships: AvailableShip[];
 }
 
@@ -202,19 +203,7 @@ export const getSystems = async (
     result.systems.map((s) =>
       s.locations.map(async (location) => {
         cacheLocation(location);
-        if (
-          (await db.probes
-            .where("location")
-            .equals(location.symbol)
-            .count()) === 0
-        ) {
-          db.probes.put({
-            location: location.symbol,
-            x: location.x,
-            y: location.y,
-            type: location.type,
-          });
-        }
+        await init(location);
       })
     )
   );
@@ -540,12 +529,8 @@ export const getAvailableStructures = async (token: string) => {
 export const getUser = async (
   token: string,
   username: string
-): Promise<GetUserResponse> =>
-  persistUserResponse(getSecure<GetUserResponse>(token, `users/${username}`));
-
-const persistUserResponse = async (promise: Promise<GetUserResponse>) => {
-  const result = await promise;
-  await result.user.ships.map((ship) => shipCache.getShip(ship.id).name);
+): Promise<GetUserResponse> => {
+  const result = await getSecure<GetUserResponse>(token, `users/${username}`);
   await shipCache.saveShips(result.user.ships);
   setCredits(result.user.credits);
   return result;

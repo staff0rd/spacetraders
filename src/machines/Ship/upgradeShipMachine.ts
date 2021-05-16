@@ -19,7 +19,7 @@ import {
   setUpgradingShip,
 } from "../../data/localStorage/getUpgradingShip";
 import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
-import { persistStrategy } from "../../components/Strategy/persistStrategy";
+import { persistStrategy } from "../../data/persistStrategy";
 import { log } from "xstate/lib/actions";
 import { AvailableShip } from "../../api/AvailableShip";
 import { buyShipMachine } from "../buyShipMachine";

@@ -16,7 +16,7 @@ import { ShipContext } from "./ShipBaseContext";
 import { printError, printErrorAction, print } from "./printError";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { debugShipMachineStates } from "../debugStates";
-import { persistStrategy } from "components/Strategy/persistStrategy";
+import { persistStrategy } from "data/persistStrategy";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { getRoute, getGraph } from "data/localStorage/graph";
 import { getShip } from "data/localStorage/shipCache";

@@ -3,6 +3,7 @@ import { Ship } from "api/Ship";
 import { IShipDetail } from "data/IShipDetail";
 import { getResetting } from "./getResetting";
 import * as self from "./shipCache";
+import * as shipData from "data/ships";
 
 export type CachedShip = Ship & {
   name: string;
@@ -17,8 +18,8 @@ export const load = async () => {
   try {
     console.info("Refreshing ship cache...");
     local.ships = [];
-    const ships = await db.ships.toArray();
-    const shipNames = await db.shipDetail.toArray();
+    const ships = await shipData.getShips();
+    const shipNames = await shipData.getShipNames();
     for (const s of ships) {
       const name = shipNames.find((p) => p.shipId === s.id)?.name;
       if (!name) throw new Error(`Could not find name for ${s.id}`);
@@ -30,10 +31,8 @@ export const load = async () => {
 };
 
 export const saveShips = async (ships: Ship[]) => {
-  await db.ships.clear();
-  await db.ships.bulkPut(ships);
-
-  await load();
+  await shipData.refreshShips(ships);
+  await self.load();
 };
 
 export const saveShip = async (ship: Ship) => {

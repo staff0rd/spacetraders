@@ -1,6 +1,6 @@
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
-import db from "../../data";
-import { ChangeStrategyPayload } from "../../data/Strategy/StrategyPayloads";
+import { ShipStrategy } from "./Strategy/ShipStrategy";
+import db from ".";
+import { ChangeStrategyPayload } from "./Strategy/StrategyPayloads";
 
 export const persistStrategy = async (
   shipId: string,

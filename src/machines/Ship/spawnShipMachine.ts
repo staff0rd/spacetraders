@@ -1,5 +1,4 @@
 import { spawn } from "xstate";
-import db from "../../data";
 import { tradeMachine } from "./tradeMachine";
 import { Ship } from "../../api/Ship";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
@@ -7,6 +6,7 @@ import { Context } from "../playerMachine";
 import { haltMachine } from "./haltMachine";
 import { probeMachine } from "./probeMachine";
 import { gotoMachine } from "./gotoMachine";
+import { persistStrategy } from "data/persistStrategy";
 
 export const getStrategy = (
   c: Context,
@@ -14,10 +14,7 @@ export const getStrategy = (
 ): { strategy: ShipStrategy; data?: any } => {
   const strategy = c.strategies!.find((s) => s.shipId === ship.id);
   if (!strategy) {
-    db.strategies.put({
-      shipId: ship.id,
-      strategy: ShipStrategy.Trade,
-    });
+    persistStrategy(ship.id, ShipStrategy.Trade, ShipStrategy.Trade, false);
     return { strategy: ShipStrategy.Trade };
   }
   return strategy;

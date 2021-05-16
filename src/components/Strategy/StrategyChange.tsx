@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { persistStrategy } from "./persistStrategy";
+import { persistStrategy } from "../../data/persistStrategy";
 import MenuIcon from "@material-ui/icons/MoreVert";
 import { makeStyles, IconButton, Menu, MenuItem } from "@material-ui/core";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
