@@ -52,6 +52,7 @@ import { getAutomation } from "../../data/localStorage/getAutomation";
 import { Keys } from "data/localStorage/Keys";
 import * as shipCache from "data/localStorage/shipCache";
 import { getResetting } from "data/localStorage/getResetting";
+import { limiter } from "api";
 
 const drawerWidth = 180;
 
@@ -261,7 +262,7 @@ export function App() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setQueued((window as any).limiter.queued());
+      setQueued(limiter.queued());
     }, 500);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
