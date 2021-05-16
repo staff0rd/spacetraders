@@ -22,7 +22,6 @@ export function confirmStrategy(
           );
         if (currentStrategy.strategy === desired)
           return { state: nextState, data: currentStrategy.data };
-        console.log("updating strategy");
         await updateStrategy(c.id, desired, currentStrategy);
         return { state: doneState };
       },

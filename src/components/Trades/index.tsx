@@ -1,5 +1,4 @@
 import { TabPanel, TabProps } from "../TabPanel";
-import { TradeList } from "./TradeList";
 import { Markets } from "./Markets";
 import { Current } from "./Current";
 import { Best } from "./Best";
@@ -14,11 +13,6 @@ export const Trades = ({ systems, availableShips }: Props) => {
     {
       label: "Trades",
       path: "/trades",
-      component: <TradeList />,
-    },
-    {
-      label: "Trades (New)",
-      path: "/trades/new",
       component: <TradeRoutes />,
     },
     {
