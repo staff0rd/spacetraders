@@ -20,7 +20,6 @@ import {
   determineBestTradeRouteByCurrentLocation,
   determineClosestBestTradeRoute,
 } from "./determineBestTradeRoute";
-import { TradeRoute } from "./TradeRoute";
 import { debugShipMachine } from "./debugMachine";
 import { travelToLocation } from "./travelToLocation";
 import { ShipBaseContext } from "./ShipBaseContext";
@@ -32,8 +31,9 @@ import { IShipDetail } from "../../data/IShipDetail";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
-import { newTradeRoute } from "api/saveTradeData";
+import { getLastTradeData, newTradeRoute } from "api/saveTradeData";
 import { getShip } from "data/localStorage/shipCache";
+import { ITradeRouteData } from "data/ITradeRouteData";
 
 const MAX_CARGO_MOVE = 500;
 
@@ -59,7 +59,7 @@ enum States {
 }
 
 export type Context = ShipBaseContext & {
-  tradeRoute?: TradeRoute;
+  tradeData?: ITradeRouteData;
   gotMarket?: boolean;
 };
 
@@ -81,15 +81,12 @@ const config: MachineConfig<Context, any, any> = {
     [States.GetTradeRoute]: {
       invoke: {
         src: async (c) => {
-          const route = await db.tradeRoutes
-            .where("shipId")
-            .equals(c.id)
-            .reverse();
-          return route.first();
+          const data = await getLastTradeData(c.id);
+          return data;
         },
         onDone: {
           actions: assign<Context>({
-            tradeRoute: (c, e: any) => e.data,
+            tradeData: (c, e: any) => e.data,
           }) as any,
           target: States.Idle,
         },
@@ -115,8 +112,8 @@ const config: MachineConfig<Context, any, any> = {
             target: States.Idle,
             cond: (c) =>
               !!c.ship.location &&
-              c.tradeRoute?.sellLocation === c.ship.location,
-            actions: assign<Context>({ tradeRoute: undefined }),
+              c.tradeData?.tradeRoute.sellLocation === c.ship.location,
+            actions: assign<Context>({ tradeData: undefined }),
           },
           {
             target: States.DetermineTradeRoute,
@@ -128,7 +125,7 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             target: States.TravelToLocation,
-            cond: (c) => !c.flightPlan && !!c.tradeRoute,
+            cond: (c) => !c.flightPlan && !!c.tradeData,
           },
           {
             target: States.Done,
@@ -143,7 +140,8 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.TravelToLocation]: {
       ...travelToLocation<Context>(
-        (c) => c.tradeRoute?.sellLocation || c.flightPlan!.destination,
+        (c) =>
+          c.tradeData?.tradeRoute.sellLocation || c.flightPlan!.destination,
         States.Idle,
         getDebug().debugTradeMachine
       ),
@@ -198,16 +196,13 @@ const config: MachineConfig<Context, any, any> = {
         onDone: [
           {
             actions: assign<Context>({
-              tradeRoute: undefined,
+              tradeData: undefined,
             }) as any,
             cond: (c, e: any) => typeof e.data === "string",
             target: States.TravelToLocation,
           },
           {
-            target: States.Idle,
-            actions: assign<Context>({
-              tradeRoute: (c, e: any) => e.data,
-            }) as any,
+            target: States.GetTradeRoute,
           },
         ],
       },
@@ -225,12 +220,16 @@ const config: MachineConfig<Context, any, any> = {
           };
 
           const toSell = ship.cargo.filter(
-            (p) => p.good !== "FUEL" || c.tradeRoute?.good === "FUEL"
+            (p) => p.good !== "FUEL" || c.tradeData?.tradeRoute.good === "FUEL"
           );
 
-          if (c.tradeRoute && c.tradeRoute.buyLocation === ship.location) {
+          if (
+            c.tradeData &&
+            c.tradeData.tradeRoute.buyLocation === ship.location
+          ) {
             const fuelOverage =
-              getCargoQuantity(ship.cargo, "FUEL") - c.tradeRoute!.fuelNeeded;
+              getCargoQuantity(ship.cargo, "FUEL") -
+              c.tradeData!.tradeRoute.fuelNeeded;
             if (fuelOverage > 0)
               toSell.push({
                 good: "FUEL",
@@ -333,7 +332,7 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.ConfirmStrategy]: confirmStrategy(
       ShipStrategy.Trade,
-      States.Idle,
+      States.GetTradeRoute,
       States.Done
     ),
     [States.Wait]: {
@@ -355,10 +354,11 @@ const config: MachineConfig<Context, any, any> = {
           do {
             const quantity = Math.min(
               MAX_CARGO_MOVE,
-              c.tradeRoute!.quantityToBuy -
-                getCargoQuantity(ship.cargo, c.tradeRoute!.good)
+              c.tradeData!.tradeRoute.quantityToBuy -
+                getCargoQuantity(ship.cargo, c.tradeData!.tradeRoute.good)
             );
-            const cost = quantity * c.tradeRoute!.purchasePricePerUnit;
+            const cost =
+              quantity * c.tradeData!.tradeRoute.purchasePricePerUnit;
             if (cost > getCredits()) {
               console.warn(
                 `[${getShip(c.id).name}] Will wait, need ${formatCurrency(
@@ -371,15 +371,16 @@ const config: MachineConfig<Context, any, any> = {
               c.token,
               c.username,
               c.id,
-              c.tradeRoute!.good,
+              c.tradeData!.tradeRoute.good,
               quantity,
-              c.tradeRoute!.buyLocation,
-              c.tradeRoute!.profitPerUnit * quantity
+              c.tradeData!.tradeRoute.buyLocation,
+              c.tradeData!.tradeRoute.profitPerUnit * quantity
             );
             ship = result.ship!;
           } while (
-            result.ship!.cargo.find((g) => g.good === c.tradeRoute!.good)!
-              .quantity < c.tradeRoute!.quantityToBuy
+            result.ship!.cargo.find(
+              (g) => g.good === c.tradeData!.tradeRoute.good
+            )!.quantity < c.tradeData!.tradeRoute.quantityToBuy
           );
 
           return { bought: true, ship: result.ship };
@@ -418,7 +419,7 @@ const config: MachineConfig<Context, any, any> = {
             target: States.Wait,
             cond: (c, e: any) =>
               (e.data.ship as Ship).cargo.filter(
-                (p) => p.good === c.tradeRoute!.good
+                (p) => p.good === c.tradeData!.tradeRoute.good
               ).length > 1,
             actions: [
               assign({
@@ -462,55 +463,57 @@ export const tradeMachine = createMachine(
 
 function atSellLocationWithSellableGoods(c: Context): boolean {
   const hasLocation = !!c.ship.location;
-  const atSellLocation = c.tradeRoute?.sellLocation === c.ship.location;
+  const atSellLocation =
+    c.tradeData?.tradeRoute.sellLocation === c.ship.location;
   return (
     hasLocation &&
     atSellLocation &&
-    getCargoQuantity(c.ship.cargo, c.tradeRoute!.good) > 0
+    getCargoQuantity(c.ship.cargo, c.tradeData!.tradeRoute.good) > 0
   );
 }
 
 function atBuyLocationWithTooMuchFuel(c: Context): boolean {
   const hasLocation = !!c.ship.location;
-  const hasTradeRoute = !!c.tradeRoute;
-  const isBuyLocation = c.ship.location === c.tradeRoute?.buyLocation;
+  const hasTradeRoute = !!c.tradeData;
+  const isBuyLocation = c.ship.location === c.tradeData?.tradeRoute.buyLocation;
   return (
     hasLocation &&
     hasTradeRoute &&
     isBuyLocation &&
-    c.tradeRoute?.good !== "FUEL" &&
-    getCargoQuantity(c.ship.cargo, "FUEL") > c.tradeRoute!.fuelNeeded
+    c.tradeData?.tradeRoute.good !== "FUEL" &&
+    getCargoQuantity(c.ship.cargo, "FUEL") > c.tradeData!.tradeRoute.fuelNeeded
   );
 }
 
 function atBuyLocationWaitingToBuy(c: Context): boolean {
-  const hasTradeRoute = !!c.tradeRoute;
+  const hasTradeRoute = !!c.tradeData;
   const hasLocation = !!c.ship.location;
-  const atBuyLocation = c.tradeRoute?.buyLocation === c.ship.location;
+  const atBuyLocation = c.tradeData?.tradeRoute.buyLocation === c.ship.location;
   return (
     hasTradeRoute &&
     hasLocation &&
     atBuyLocation &&
-    getCargoQuantity(c.ship.cargo, c.tradeRoute!.good) <
-      c.tradeRoute!.quantityToBuy
+    getCargoQuantity(c.ship.cargo, c.tradeData!.tradeRoute.good) <
+      c.tradeData!.tradeRoute.quantityToBuy
   );
 }
 
 function shouldDetermineTradeRoute(c: Context): boolean {
   const hasLocation = !!c.ship.location;
-  const hasTradeRoute = !!c.tradeRoute;
-  const atSellLocation = c.tradeRoute?.sellLocation === c.ship.location;
+  const hasTradeRoute = !!c.tradeData && c.tradeData.complete !== 1;
+  const atSellLocation =
+    c.tradeData?.tradeRoute.sellLocation === c.ship.location;
   return hasLocation && (!hasTradeRoute || atSellLocation);
 }
 
 function haveExcessCargo(c: Context): boolean {
-  const hasTradeRoute = !!c.tradeRoute;
+  const hasTradeRoute = !!c.tradeData;
   const hasLocation = !!c.ship.location;
   const result =
     hasTradeRoute &&
     hasLocation &&
     c.ship.cargo.filter(
-      (p) => p.good !== "FUEL" && p.good !== c.tradeRoute!.good
+      (p) => p.good !== "FUEL" && p.good !== c.tradeData!.tradeRoute.good
     ).length > 0;
   return result;
 }

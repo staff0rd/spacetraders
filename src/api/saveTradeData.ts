@@ -53,6 +53,14 @@ async function getLastIncomplete(shipId: string) {
     .first();
 }
 
+export async function getLastTradeData(shipId: string) {
+  return db.tradeData
+    .where("[shipId+created]")
+    .between([shipId, Dexie.minKey], [shipId, Dexie.maxKey])
+    .reverse()
+    .first();
+}
+
 export async function newTradeRoute(tradeRoute: TradeRoute, shipId: string) {
   const now = DateTime.now().toISO();
   await db.tradeRoutes.put({

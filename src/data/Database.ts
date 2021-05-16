@@ -29,7 +29,7 @@ export class Database extends Dexie {
 
   constructor(options?: DexieOptions) {
     super("Database", options);
-    this.version(64).stores({
+    this.version(65).stores({
       apiErrors: "++id, code, created",
       trades: "++id, good, shipId, location, type, timestamp",
       market:
@@ -42,7 +42,8 @@ export class Database extends Dexie {
       tradeRoutes2: "&shipId",
       flightPlans: "&shipId, &id, arrivesAt",
       ships2: "&id",
-      tradeData: "++id, [shipId+created+complete], [updated+complete]",
+      tradeData:
+        "++id, [shipId+created+complete], [updated+complete], [shipId+created]",
       requests: "++id, [shipId+id]",
     });
     // The following line is needed if your typescript
