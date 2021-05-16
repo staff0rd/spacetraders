@@ -42,8 +42,6 @@ export async function saveTradeData(
       .map((t) => t.cost)
       .reduce((a, b) => a + b);
     await db.tradeData.put(tradeData);
-  } else {
-    console.warn(`No trade data for ${shipId}`);
   }
 }
 

@@ -86,7 +86,7 @@ export const initialContext = {
 
 const config: MachineConfig<Context, any, Event> = {
   id: "player",
-  initial: "get-ships-test",
+  initial: States.CheckStorage,
   context: initialContext,
   on: {
     SHIP_UPDATE: {
@@ -100,15 +100,6 @@ const config: MachineConfig<Context, any, Event> = {
     },
   },
   states: {
-    "get-ships-test": {
-      invoke: {
-        src: () => Promise.resolve(getShips()),
-        onDone: {
-          target: "idle",
-          actions: assign({ ships: (c, e) => e.data }),
-        },
-      },
-    },
     [States.CheckStorage]: {
       entry: assign<Context>({
         token: getLocalUser()?.token,
@@ -223,6 +214,13 @@ const config: MachineConfig<Context, any, Event> = {
             },
           }) as any,
         },
+        onError: [
+          {
+            cond: (c, e) => e.data.code === 42201,
+            actions: (c, e) => console.warn(e.data.message),
+            target: States.GetStrategies,
+          },
+        ],
       },
     },
     [States.GetStrategies]: {

@@ -27,7 +27,7 @@ import { GetLeaderboardResponse } from "./GetLeaderboardResponse";
 import { makeRequest } from "./makeRequest";
 import { init } from "data/probes";
 
-const limiter = new Bottleneck({
+export const limiter = new Bottleneck({
   maxConcurrent: 1,
   minTime: 500,
 });
