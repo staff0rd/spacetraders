@@ -6,7 +6,9 @@ import { Context } from "../playerMachine";
 import { haltMachine } from "./haltMachine";
 import { probeMachine } from "./probeMachine";
 import { gotoMachine } from "./gotoMachine";
+import { DateTime } from "luxon";
 import { persistStrategy } from "data/persistStrategy";
+import { getShip } from "data/localStorage/shipCache";
 
 export const getStrategy = (
   c: Context,
@@ -25,9 +27,13 @@ export function spawnShipMachine(c: Context): any {
     const flightPlan = c.flightPlans.find((fp) => fp.shipId === ship.id);
     if (!flightPlan && !ship.location) {
       // api bug
-      console.warn("No flightPlan or ship.location for shipId " + ship.id);
+      console.warn(
+        "No flightPlan or ship.location for " + getShip(ship.id).name
+      );
       return;
     }
+    const flightPlanExpired =
+      flightPlan && DateTime.fromISO(flightPlan.arrivesAt) < DateTime.local();
 
     switch (strategy) {
       case ShipStrategy.Probe:
@@ -48,7 +54,7 @@ export function spawnShipMachine(c: Context): any {
             token: c.token!,
             username: c.user!.username,
             ship,
-            flightPlan,
+            flightPlan: flightPlanExpired ? undefined : flightPlan,
             strategy: { strategy: ShipStrategy.Trade },
           }),
           { name: `ship-${ship.id}`, sync: true }
@@ -76,7 +82,7 @@ export function spawnShipMachine(c: Context): any {
             },
             username: c.user!.username,
             ship,
-            flightPlan,
+            flightPlan: flightPlanExpired ? undefined : flightPlan,
           })
         );
 
