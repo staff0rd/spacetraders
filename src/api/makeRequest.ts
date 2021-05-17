@@ -16,7 +16,7 @@ const getUrl = (path: string) => `https://api.spacetraders.io/${path}`;
 
 async function trimShipRequests(shipId: string) {
   await db.requests
-    .where("[shipId+id]")
+    .where("[shipId+timestamp]")
     .between([shipId, Dexie.minKey], [shipId, Dexie.maxKey])
     .reverse()
     .offset(MAX_SHIP_REQUESTS)
