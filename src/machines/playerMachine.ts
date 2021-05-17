@@ -28,6 +28,10 @@ import { ChangeStrategyPayload } from "data/Strategy/StrategyPayloads";
 import { CachedShip, getShips } from "data/localStorage/shipCache";
 import { getStrategies } from "data/strategies";
 import {
+  SystemMonitorActor,
+  systemMonitorMachine,
+} from "./systemMonitorMachine";
+import {
   BuyAndUpgradeActor,
   buyAndUpgradeShipMachine,
 } from "./buyAndUpgradeShipMachine";
@@ -46,8 +50,9 @@ export enum States {
   SpawnShips = "spawnShips",
   Ready = "ready",
   GetLoan = "getLoan",
-  GetAvailableShips = "getAvailableShips",
+  GetStartupData = "getStartupData",
   SpawnBuyAndUpgradeActor = "spawnBuyAndUpgradeActor",
+  SpawnSystemMonitorActor = "spawnSystemMonitorActor",
 }
 
 export type Schema = {
@@ -73,6 +78,7 @@ export type Context = {
   automation: IAutomation;
   ships?: CachedShip[];
   buyAndUpgradeActor?: BuyAndUpgradeActor;
+  systemMonitorActor?: SystemMonitorActor;
 };
 
 export const initialContext = {
@@ -119,7 +125,7 @@ const config: MachineConfig<Context, any, Event> = {
       after: {
         1: [
           { target: States.GetSystems, cond: "noLocations" },
-          { target: States.GetAvailableShips, cond: "noAvailableShips" },
+          { target: States.GetStartupData, cond: "noAvailableShips" },
           { target: States.GetLoan, cond: "noLoans" },
           { target: States.GetFlightPlans, cond: "noShipActors" },
           { target: States.Ready },
@@ -268,6 +274,11 @@ const config: MachineConfig<Context, any, Event> = {
             cond: (c) =>
               !c.buyAndUpgradeActor || !!c.buyAndUpgradeActor.state.done,
           },
+          {
+            target: States.SpawnSystemMonitorActor,
+            cond: (c) =>
+              !c.systemMonitorActor || !!c.systemMonitorActor.state.done,
+          },
         ],
         5000: {
           target: States.Tick,
@@ -292,7 +303,7 @@ const config: MachineConfig<Context, any, Event> = {
         },
       },
     },
-    [States.GetAvailableShips]: {
+    [States.GetStartupData]: {
       invoke: {
         src: async (context) => {
           await api.getShips(context.token!, context.username!);
@@ -304,6 +315,13 @@ const config: MachineConfig<Context, any, Event> = {
           actions: assign<Context>({
             availableShips: (c: Context, e: any) => e.data.ships,
             ships: () => getShips(),
+            systemMonitorActor: (c) =>
+              spawn(
+                systemMonitorMachine.withContext({
+                  token: c.token!,
+                  username: c.username!,
+                })
+              ),
           }) as any,
         },
       },
