@@ -146,17 +146,10 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
       </Grid>
       <Tabs value={tab} onChange={handleTabChange}>
         <Tab label="Recent trades" />
-        <Tab label="Last trade route" />
         <Tab label="Recent Requests" />
       </Tabs>
       {tab === 0 && <Trades shipId={shipId} />}
-      {tab === 1 && (
-        <>
-          <pre>{JSON.stringify(ship.tradeRoute, null, 2)}</pre>
-          <pre>{JSON.stringify(ship.tradeData, null, 2)}</pre>
-        </>
-      )}
-      {tab === 2 && <Requests shipId={shipId} />}
+      {tab === 1 && <Requests shipId={shipId} />}
     </>
   );
 };
