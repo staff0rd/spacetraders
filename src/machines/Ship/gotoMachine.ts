@@ -16,6 +16,7 @@ import { DateTime } from "luxon";
 import { persistStrategy } from "data/persistStrategy";
 import { printErrorAction } from "./printError";
 import { travelToLocation } from "./travelToLocation";
+import * as api from "api";
 
 enum States {
   Idle = "idle",
@@ -69,6 +70,9 @@ const config: MachineConfig<Context, any, any> = {
       invoke: {
         src: async (c) => {
           if (!c.ship.location || !c.strategy.data.location) {
+            const result = await api.getShip(c.token, c.username, c.id);
+            if (result.ship.location)
+              throw new Error("Had no location, but now do");
             throw new Error("No route");
           }
           const tradeRoutes = await determineBestTradeRouteByRoute(
