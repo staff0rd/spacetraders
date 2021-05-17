@@ -9,3 +9,7 @@ export const refreshShips = async (ships: Ship[]) => {
 export const getShips = () => db.ships.toArray();
 
 export const getShipNames = () => db.shipDetail.toArray();
+
+export const saveLastProfit = async (shipId: string, lastProfit: number) => {
+  await db.shipDetail.where("shipId").equals(shipId).modify({ lastProfit });
+};

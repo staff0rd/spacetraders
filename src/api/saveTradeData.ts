@@ -4,6 +4,7 @@ import { TradeType } from "../data/ITrade";
 import Dexie from "dexie";
 import { MarketOrder } from "./index";
 import { TradeRoute } from "machines/Ship/TradeRoute";
+import { saveLastProfit } from "data/ships";
 
 export async function saveTradeData(
   shipId: string,
@@ -69,6 +70,10 @@ export async function newTradeRoute(tradeRoute: TradeRoute, shipId: string) {
     shipId,
   });
   await markLastComplete(shipId);
+  const last = await getLastTradeData(shipId);
+  if (last) {
+    await saveLastProfit(shipId, last.profit);
+  }
   await db.tradeData.put({
     created: now,
     profit: 0,
