@@ -74,7 +74,7 @@ const config: MachineConfig<Context, any, any> = {
           if (!c.strategy.data.location) {
             throw new Error("No destination");
           }
-          if (c.ship.location) {
+          if (!c.ship.location) {
             console.warn(`[${ship.name}] Has no location, will query`);
           }
           const location =
