@@ -203,8 +203,7 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.GetFlightPlan]: {
       invoke: {
-        src: (c) =>
-          api.getFlightPlan(c.token, c.username, c.ship.flightPlanId!),
+        src: (c) => api.getFlightPlan(c.token, c.ship.flightPlanId!),
         onDone: {
           actions: [
             assign<Context>({

@@ -13,7 +13,6 @@ export function initShipMachine<TContext extends ShipBaseContext>(
         if (ship.flightPlanId) {
           const flightPlan = await api.getFlightPlan(
             c.token,
-            c.username,
             ship.flightPlanId
           );
           return { ship, flightPlan: flightPlan.flightPlan };

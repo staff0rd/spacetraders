@@ -17,6 +17,7 @@ import { persistStrategy } from "data/persistStrategy";
 import { printErrorAction } from "./printError";
 import { travelToLocation } from "./travelToLocation";
 import * as api from "api";
+import * as shipCache from "data/localStorage/shipCache";
 
 enum States {
   Idle = "idle",
@@ -69,15 +70,22 @@ const config: MachineConfig<Context, any, any> = {
     [States.DetermineTradeRoute]: {
       invoke: {
         src: async (c) => {
-          if (!c.ship.location || !c.strategy.data.location) {
-            const result = await api.getShip(c.token, c.username, c.id);
-            if (result.ship.location)
-              throw new Error("Had no location, but now do");
-            throw new Error("No route");
+          const ship = shipCache.getShip(c.id);
+          if (!c.strategy.data.location) {
+            throw new Error("No destination");
           }
+          if (c.ship.location) {
+            console.warn(`[${ship.name}] Has no location, will query`);
+          }
+          const location =
+            c.ship.location ??
+            (await api.getShip(c.token, c.username, c.id)).ship.location;
+
+          if (!location) throw new Error("No departure location");
+
           const tradeRoutes = await determineBestTradeRouteByRoute(
             c.ship,
-            c.ship.location,
+            location!,
             c.strategy.data.location
           );
           const tradeRoute = tradeRoutes[0];
