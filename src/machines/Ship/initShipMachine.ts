@@ -1,6 +1,7 @@
 import { assign } from "xstate";
 import { ShipBaseContext } from "./ShipBaseContext";
 import * as api from "../../api";
+import { getShip } from "data/localStorage/shipCache";
 
 export function initShipMachine<TContext extends ShipBaseContext>(
   nextState: any
@@ -8,16 +9,16 @@ export function initShipMachine<TContext extends ShipBaseContext>(
   return {
     invoke: {
       src: async (c: TContext) => {
-        const ship = await api.getShip(c.token, c.username, c.id);
-        if (ship.ship.flightPlanId) {
+        const ship = getShip(c.id);
+        if (ship.flightPlanId) {
           const flightPlan = await api.getFlightPlan(
             c.token,
             c.username,
-            ship.ship.flightPlanId
+            ship.flightPlanId
           );
-          return { ship: ship.ship, flightPlan: flightPlan.flightPlan };
+          return { ship, flightPlan: flightPlan.flightPlan };
         }
-        return { ship: ship.ship };
+        return { ship };
       },
       onDone: {
         target: nextState,
