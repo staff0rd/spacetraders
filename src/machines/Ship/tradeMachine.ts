@@ -180,7 +180,6 @@ const config: MachineConfig<Context, any, any> = {
               false,
               { location: closest[0].route.buyLocation }
             );
-            throw new Error(message);
           } else {
             console.warn("No trade routes, switching to probe");
             persistStrategy(
@@ -189,17 +188,13 @@ const config: MachineConfig<Context, any, any> = {
               ShipStrategy.Probe,
               false
             );
-            throw new Error("No trade routes, switching to probe");
           }
         },
-        onError: States.Done,
+        onError: { target: States.Done, actions: printErrorAction() },
         onDone: [
           {
-            actions: assign<Context>({
-              tradeData: undefined,
-            }) as any,
-            cond: (c, e: any) => typeof e.data === "string",
-            target: States.TravelToLocation,
+            cond: (c, e: any) => !e.data,
+            target: States.Done,
           },
           {
             target: States.GetTradeRoute,
