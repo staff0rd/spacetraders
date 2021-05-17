@@ -30,6 +30,7 @@ import { getStrategies } from "data/strategies";
 import {
   SystemMonitorActor,
   systemMonitorMachine,
+  getFlightPlans,
 } from "./systemMonitorMachine";
 import {
   BuyAndUpgradeActor,
@@ -303,11 +304,24 @@ const config: MachineConfig<Context, any, Event> = {
         },
       },
     },
+    [States.SpawnSystemMonitorActor]: {
+      entry: assign({
+        systemMonitorActor: (c) =>
+          spawn(
+            systemMonitorMachine.withContext({
+              token: c.token!,
+              username: c.username!,
+            })
+          ),
+      }),
+      after: { 1: States.Ready },
+    },
     [States.GetStartupData]: {
       invoke: {
         src: async (context) => {
           await api.getShips(context.token!, context.username!);
           await api.getAvailableStructures(context.token!);
+          await getFlightPlans(context.token!, context.username!);
           return api.getAvailableShips(context.token!);
         },
         onDone: {
@@ -315,13 +329,6 @@ const config: MachineConfig<Context, any, Event> = {
           actions: assign<Context>({
             availableShips: (c: Context, e: any) => e.data.ships,
             ships: () => getShips(),
-            systemMonitorActor: (c) =>
-              spawn(
-                systemMonitorMachine.withContext({
-                  token: c.token!,
-                  username: c.username!,
-                })
-              ),
           }) as any,
         },
       },

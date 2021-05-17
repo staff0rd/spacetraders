@@ -38,21 +38,25 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.GetFlightPlans]: {
       invoke: {
-        src: async (c) => {
-          const ships = getShips();
-          [
-            ...new Set(
-              ships
-                .filter((p) => p.location)
-                .map((p) => p.location!.substring(0, 2))
-            ),
-          ].map((system) => api.getFlightPlans(c.token!, c.username!, system));
-        },
+        src: (c) => getFlightPlans(c.token, c.username),
         onDone: States.Wait,
-        onError: States.Wait,
+        onError: {
+          target: States.Wait,
+          actions: (c: Context, e: any) =>
+            console.error("Failed to get flightplans", e.data),
+        },
       },
     },
   },
+};
+
+export const getFlightPlans = async (token: string, username: string) => {
+  const ships = getShips();
+  [
+    ...new Set(
+      ships.filter((p) => p.location).map((p) => p.location!.substring(0, 2))
+    ),
+  ].map((system) => api.getFlightPlans(token, username, system));
 };
 
 export const systemMonitorMachine = createMachine(
