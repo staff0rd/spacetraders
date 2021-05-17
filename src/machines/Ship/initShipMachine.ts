@@ -2,6 +2,7 @@ import { assign } from "xstate";
 import { ShipBaseContext } from "./ShipBaseContext";
 import * as api from "../../api";
 import { getShip } from "data/localStorage/shipCache";
+import { printErrorAction } from "./printError";
 
 export function initShipMachine<TContext extends ShipBaseContext>(
   nextState: any
@@ -18,6 +19,10 @@ export function initShipMachine<TContext extends ShipBaseContext>(
           return { ship, flightPlan: flightPlan.flightPlan };
         }
         return { ship };
+      },
+      onError: {
+        actions: printErrorAction(),
+        target: nextState,
       },
       onDone: {
         target: nextState,
