@@ -58,7 +58,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type Props = {
-  state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null;
+  state?: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null;
 };
 
 export const Strategy = ({ state }: Props) => {
