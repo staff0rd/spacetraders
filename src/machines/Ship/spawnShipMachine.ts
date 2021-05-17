@@ -9,6 +9,7 @@ import { gotoMachine } from "./gotoMachine";
 import { DateTime } from "luxon";
 import { persistStrategy } from "data/persistStrategy";
 import { getShip } from "data/localStorage/shipCache";
+import * as api from "api";
 
 export const getStrategy = (
   c: Context,
@@ -30,6 +31,7 @@ export function spawnShipMachine(c: Context): any {
       console.warn(
         "No flightPlan or ship.location for " + getShip(ship.id).name
       );
+      api.getShip(c.token!, c.username!, ship.id);
       return;
     }
     const flightPlanExpired =
