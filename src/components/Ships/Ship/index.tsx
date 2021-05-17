@@ -52,7 +52,6 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
       detail: await db.shipDetail.get(shipId),
       ship: await db.ships.get(shipId),
       probe: await db.probes.where("shipId").equals(shipId).first(),
-      tradeRoute: await db.tradeRoutes.where("shipId").equals(shipId).first(),
       tradeData: await db.tradeData
         .where("[shipId+created+complete]")
         .between(
