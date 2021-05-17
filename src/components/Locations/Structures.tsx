@@ -50,5 +50,5 @@ export const Structures = () => {
     </>,
   ]);
 
-  return <DataTable title={"Structures"} rows={rows} columns={columns} />;
+  return <DataTable title="Structures" rows={rows} columns={columns} />;
 };
