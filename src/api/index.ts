@@ -128,7 +128,6 @@ export const getDockedShips = async (token: string, location: string) => {
 
 export const getFlightPlan = async (
   token: string,
-  username: string,
   flightPlanId?: string
 ): Promise<GetFlightPlanResponse> => {
   if (flightPlanId) {
@@ -141,7 +140,7 @@ export const getFlightPlan = async (
 
   const result = await getSecure<GetFlightPlanResponse>(
     token,
-    `users/${username}/flight-plans/${flightPlanId}`
+    `my/flight-plans/${flightPlanId}`
   );
   await db.flightPlans.put(result.flightPlan);
   flightPlanToIntel(result.flightPlan);
