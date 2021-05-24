@@ -15,7 +15,7 @@ import { GetFlightPlansResponse } from "api/GetFlightPlansResponse";
 import * as trade from "machines/Ship/tradeMachine";
 import { mockMachine } from "test/mockMachine";
 import { mockRequest, setupMockRequests } from "test/mockRequests";
-import { mockGetters } from "test/helpers";
+import { mockGetters, waitForMachine } from "test/helpers";
 
 const mockShip = createShip();
 const mockUser = createUser({ ships: [mockShip] });
@@ -68,12 +68,7 @@ beforeEach(() => {
 });
 
 describe("playerMachine", () => {
-  it("should tick after startup", (done) => {
-    const playerService = interpret(playerMachine).onTransition((state) => {
-      if (state.matches(States.Tick)) {
-        done();
-      }
-    });
-    playerService.start();
+  it("should tick after startup", async () => {
+    await waitForMachine(playerMachine, States.Tick);
   });
 });
