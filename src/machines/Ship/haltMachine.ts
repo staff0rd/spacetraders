@@ -1,6 +1,5 @@
 import {
   ActorRefFrom,
-  assign,
   createMachine,
   EventObject,
   MachineOptions,
@@ -34,7 +33,6 @@ const config: MachineConfig<Context, any, any> = {
     token: "",
     username: "",
     ship: {} as Ship,
-    strategy: { strategy: ShipStrategy.Halt },
   },
   states: {
     [States.Waiting]: {
@@ -58,14 +56,6 @@ const options: Partial<MachineOptions<Context, any>> = {
       const strategy = await db.strategies.where({ shipId: c.id }).first();
       return strategy;
     },
-  },
-  actions: {
-    checkStrategy: assign<Context>({
-      strategy: (c, e: any) => e.data,
-    }),
-  },
-  guards: {
-    shouldDone: (c) => c.strategy.strategy !== ShipStrategy.Halt,
   },
 };
 

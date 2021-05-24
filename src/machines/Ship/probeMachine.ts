@@ -7,7 +7,6 @@ import {
   StateMachine,
   MachineOptions,
 } from "xstate";
-import { Ship } from "../../api/Ship";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 import * as api from "../../api";
@@ -46,14 +45,6 @@ export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 const config: MachineConfig<Context, any, any> = {
   id: "probe",
   initial: States.Init,
-  context: {
-    id: "",
-    token: "",
-    username: "",
-    ship: {} as Ship,
-    strategy: { strategy: ShipStrategy.Probe },
-    probe: undefined,
-  },
   states: {
     [States.Init]: initShipMachine<Context>(States.ConfirmStrategy),
     [States.Idle]: {

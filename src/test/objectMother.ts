@@ -1,10 +1,12 @@
 import { Location } from "api/Location";
-import { Ship } from "api/Ship";
 import { User } from "api/User";
 import { System } from "api/System";
 import { range } from "lodash";
+import { CachedShip } from "data/localStorage/shipCache";
+import { DateTime } from "luxon";
+import { ShipOrders, ShipOrderStatus } from "data/IShipOrder";
 
-export const createShip = (): Ship => ({
+export const createShip = (): CachedShip => ({
   id: "my-ship-id",
   location: "OE-PM-TR",
   x: 21,
@@ -18,6 +20,16 @@ export const createShip = (): Ship => ({
   manufacturer: "Jackshaw",
   plating: 5,
   weapons: 5,
+  name: "My ship name",
+  orders: [
+    {
+      createdAt: DateTime.local().toISO(),
+      createdReason: "test reason",
+      status: ShipOrderStatus.Pending,
+      shipId: "my-ship-id",
+      order: ShipOrders.Trade,
+    },
+  ],
 });
 
 export const createUser = (user: Partial<User> = {}): User => ({

@@ -1,7 +1,6 @@
 import { FlightPlan } from "../../api/FlightPlan";
 import { Location } from "../../api/Location";
 import { Ship } from "../../api/Ship";
-import { IStrategy } from "../../data/Strategy/IStrategy";
 
 export type ShipResponseContext = {
   ship: Ship;
@@ -12,15 +11,14 @@ export type UserContext = {
   username: string;
 };
 
-export type ShipStrategyContext = {
+export type ShipOrdersContext = {
   id: string;
-  strategy: IStrategy;
-  shouldCheckStrategy?: boolean;
+  shouldCheckOrders?: boolean;
 };
 
 export type ShipBaseContext = UserContext &
   ShipContext &
-  ShipStrategyContext & {
+  ShipOrdersContext & {
     flightPlan?: FlightPlan;
     location?: Location;
   } & ShipResponseContext;

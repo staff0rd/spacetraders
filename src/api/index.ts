@@ -295,6 +295,7 @@ export const getShips = async (
 const clearShipFromDatabase = async (shipId: string) => {
   console.warn("Deleting ship");
   await db.strategies.delete(shipId);
+  await db.shipOrders.where("shipId").equals(shipId).delete();
   await db.ships.delete(shipId);
   await db.flightPlans.delete(shipId);
   await db.shipDetail.where("shipId").equals(shipId).modify({ deleted: true });
@@ -342,10 +343,7 @@ export const buyShip = async (
   );
 
   setCredits(result.credits);
-  await shipCache.saveShip(result.ship);
-  const newName = newShipName();
-  await shipCache.saveDetail({ shipId: result.ship.id, name: newName });
-  shipCache.addShip(result.ship, newName);
+  await shipCache.newShip(result.ship);
 
   return result;
 };

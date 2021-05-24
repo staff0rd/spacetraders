@@ -68,14 +68,6 @@ export type ShipActor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 const config: MachineConfig<Context, any, any> = {
   id: "trade",
   initial: States.Init,
-  context: {
-    id: "",
-    token: "",
-    username: "",
-    ship: {} as Ship,
-    gotMarket: false,
-    strategy: { strategy: ShipStrategy.Trade },
-  },
   states: {
     [States.Init]: initShipMachine<Context>(States.GetTradeRoute),
     [States.GetTradeRoute]: {
@@ -106,7 +98,7 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             target: States.ConfirmStrategy,
-            cond: (c) => !!c.shouldCheckStrategy,
+            cond: (c) => !!c.shouldCheckOrders,
           },
           {
             target: States.Idle,
@@ -446,15 +438,10 @@ const options: Partial<MachineOptions<Context, any>> = {
       data: c.ship,
     })),
   },
-  guards: {
-    shouldDone: (c) => c.strategy.strategy !== ShipStrategy.Trade,
-  },
 };
 
-export const tradeMachine = createMachine(
-  debugShipMachineStates(config),
-  options
-);
+export const tradeMachine = () =>
+  createMachine(debugShipMachineStates(config), options);
 
 function atSellLocationWithSellableGoods(c: Context): boolean {
   const hasLocation = !!c.ship.location;

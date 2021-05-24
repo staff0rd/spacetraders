@@ -5,7 +5,6 @@ import {
   StateMachine,
   MachineConfig,
 } from "xstate";
-import { Ship } from "../../api/Ship";
 import db from "../../data";
 import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
@@ -28,28 +27,19 @@ enum States {
   SwitchToTrade = "switchToTrade",
 }
 
-export type Context = ShipBaseContext;
+export type Context = ShipBaseContext & {
+  destination: string;
+};
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
 const config: MachineConfig<Context, any, any> = {
   id: "goto",
   initial: States.ConfirmStrategy,
-  context: {
-    id: "",
-    token: "",
-    username: "",
-    ship: {} as Ship,
-    strategy: { strategy: ShipStrategy.GoTo },
-  },
   states: {
     [States.Idle]: {
       after: {
         1: [
-          {
-            cond: (c) => c.ship.location === c.strategy.data.location,
-            target: States.SwitchToTrade,
-          },
           {
             cond: (c) =>
               !!c.flightPlan &&
@@ -60,49 +50,43 @@ const config: MachineConfig<Context, any, any> = {
         ],
       },
     },
-    [States.SwitchToTrade]: {
-      invoke: {
-        src: (c) =>
-          persistStrategy(c.id, ShipStrategy.GoTo, ShipStrategy.Trade, false),
-        onDone: States.Done,
-      },
-    },
     [States.DetermineTradeRoute]: {
       invoke: {
         src: async (c) => {
-          const ship = shipCache.getShip(c.id);
-          if (!c.strategy.data.location) {
-            throw new Error("No destination");
-          }
-          if (!c.ship.location) {
-            console.warn(`[${ship.name}] Has no location, will query`);
-          }
-          const location =
-            c.ship.location ??
-            (await api.getShip(c.token, c.username, c.id)).ship.location;
+          throw new Error("Not implemented");
+          // const ship = shipCache.getShip(c.id);
+          // if (!c.strategy.data.location) {
+          //   throw new Error("No destination");
+          // }
+          // if (!c.ship.location) {
+          //   console.warn(`[${ship.name}] Has no location, will query`);
+          // }
+          // const location =
+          //   c.ship.location ??
+          //   (await api.getShip(c.token, c.username, c.id)).ship.location;
 
-          if (!location) throw new Error("No departure location");
+          // if (!location) throw new Error("No departure location");
 
-          const tradeRoutes = await determineBestTradeRouteByRoute(
-            c.ship,
-            location!,
-            c.strategy.data.location
-          );
-          const tradeRoute = tradeRoutes[0];
-          if (!tradeRoute) {
-            return;
-          }
-          if (tradeRoute.totalProfit < 0) {
-            tradeRoute.quantityToBuy = 0;
-            tradeRoute.totalProfit = 0;
-          }
-          await db.tradeRoutes.put({
-            ...tradeRoute,
-            created: DateTime.local().toISO(),
-            shipId: c.id,
-          });
-          persistStrategy(c.id, ShipStrategy.GoTo, ShipStrategy.Trade);
-          return true;
+          // const tradeRoutes = await determineBestTradeRouteByRoute(
+          //   c.ship,
+          //   location!,
+          //   c.strategy.data.location
+          // );
+          // const tradeRoute = tradeRoutes[0];
+          // if (!tradeRoute) {
+          //   return;
+          // }
+          // if (tradeRoute.totalProfit < 0) {
+          //   tradeRoute.quantityToBuy = 0;
+          //   tradeRoute.totalProfit = 0;
+          // }
+          // await db.tradeRoutes.put({
+          //   ...tradeRoute,
+          //   created: DateTime.local().toISO(),
+          //   shipId: c.id,
+          // });
+          // persistStrategy(c.id, ShipStrategy.GoTo, ShipStrategy.Trade);
+          // return true;
         },
         onDone: [
           { cond: (c, e) => e.data, target: States.ConfirmStrategy },
@@ -124,7 +108,7 @@ const config: MachineConfig<Context, any, any> = {
     ),
     [States.TravelToLocation]: {
       ...travelToLocation<Context>(
-        (c) => c.flightPlan?.destination || c.strategy.data.location,
+        (c) => c.flightPlan?.destination || c.destination,
         States.SwitchToTrade,
         false
       ),

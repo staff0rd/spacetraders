@@ -18,6 +18,9 @@ import * as strategies from "data/strategies";
 import * as credits from "data/localStorage/getCredits";
 import * as automation from "data/localStorage/getAutomation";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
+import * as config from "machines/config";
+import * as trade from "machines/Ship/tradeMachine";
+import { mockMachine } from "test/mockMachine";
 
 const mockRequests: { [path: string]: any } = {};
 
@@ -37,6 +40,8 @@ beforeEach(() => {
   jest.spyOn(shipCache, "load").mockImplementation();
   jest.spyOn(credits, "getCredits").mockReturnValue(10000000);
   jest.spyOn(credits, "setCredits").mockImplementation();
+  jest.spyOn(trade, "tradeMachine").mockReturnValue(mockMachine("trade"));
+  jest.spyOn(config, "getTickDelay").mockReturnValue(5);
   jest
     .spyOn(strategies, "getStrategies")
     .mockResolvedValue([{ shipId: mockShip.id, strategy: ShipStrategy.Halt }]);

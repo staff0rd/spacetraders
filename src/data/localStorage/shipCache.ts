@@ -4,13 +4,22 @@ import { IShipDetail } from "data/IShipDetail";
 import { getResetting } from "./getResetting";
 import * as self from "./shipCache";
 import * as shipData from "data/ships";
+import { IShipOrder, ShipOrders, ShipOrderStatus } from "data/IShipOrder";
+import Dexie from "dexie";
+import { newShipName } from "data/names";
+import { saveNewOrder } from "data/ships";
 
 export type CachedShip = Ship & {
   name: string;
+  orders: IShipOrder[];
 };
 
 const local: { ships: CachedShip[] } = {
   ships: [],
+};
+
+const addShip = (ship: Ship, name: string, orders: IShipOrder[]) => {
+  local.ships.push({ ...ship, name, orders });
 };
 
 export const load = async () => {
@@ -19,11 +28,21 @@ export const load = async () => {
     console.info("Refreshing ship cache...");
     local.ships = [];
     const ships = await shipData.getShips();
-    const shipNames = await shipData.getShipNames();
+
     for (const s of ships) {
-      const name = shipNames.find((p) => p.shipId === s.id)?.name;
-      if (!name) throw new Error(`Could not find name for ${s.id}`);
-      addShip(s, name);
+      const detail = await db.shipDetail.get(s.id);
+      const orders = await db.shipOrders
+        .where("[shipId,status,created]")
+        .between(
+          [s.id, ShipOrderStatus.Pending, Dexie.minKey],
+          [s.id, ShipOrderStatus.Pending, Dexie.maxKey]
+        )
+        .reverse()
+        .toArray();
+      if (!detail) throw new Error(`Could not find name for ${s.id}`);
+      if (!local.ships.find((p) => p.id === s.id)) {
+        addShip(s, detail.name, orders);
+      }
     }
   } catch (e) {
     console.log("Error loading:", e);
@@ -47,6 +66,23 @@ export const saveShip = async (ship: Ship) => {
   );
 };
 
+export const newOrder = async (
+  ship: Ship,
+  order: ShipOrders,
+  reason: string
+) => {
+  const saved = await saveNewOrder(ship.id, order, reason);
+  self.getShip(ship.id).orders.push(saved);
+};
+
+export const newShip = async (ship: Ship) => {
+  await self.saveShip(ship);
+  const newName = newShipName();
+  await self.saveDetail({ shipId: ship.id, name: newName });
+  const orders = await saveNewOrder(ship.id, ShipOrders.Trade, "New ship");
+  addShip(ship, newName, [orders]);
+};
+
 export const saveDetail = async (shipDetail: IShipDetail) => {
   await db.shipDetail.put(shipDetail);
   local.ships = local.ships.map((s) =>
@@ -57,10 +93,6 @@ export const saveDetail = async (shipDetail: IShipDetail) => {
         }
       : s
   );
-};
-
-export const addShip = (ship: Ship, name: string) => {
-  local.ships.push({ ...ship, name });
 };
 
 export const getShips = (): CachedShip[] => local.ships;

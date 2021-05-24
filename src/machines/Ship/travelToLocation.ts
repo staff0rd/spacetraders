@@ -27,7 +27,7 @@ export function travelToLocation<TContext extends ShipBaseContext>(
           ship: (c, e: any) => e.data.ship,
           flightPlan: undefined,
           location: undefined,
-          shouldCheckStrategy: true,
+          shouldCheckOrders: true,
         }) as any,
       },
     },

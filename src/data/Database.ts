@@ -11,6 +11,7 @@ import { ITradeRouteData } from "./ITradeRouteData";
 import { FlightPlan } from "../api/FlightPlan";
 import { Ship } from "../api/Ship";
 import { IRequestResponse } from "./IRequestResponse";
+import { IShipOrder } from "./IShipOrder";
 
 export class Database extends Dexie {
   apiErrors: Dexie.Table<IApiError, number>; // number = type of the primkey
@@ -24,12 +25,13 @@ export class Database extends Dexie {
   tradeRoutes: Dexie.Table<ITradeRoute, number>;
   flightPlans: Dexie.Table<FlightPlan, string>;
   ships: Dexie.Table<Ship, string>;
+  shipOrders: Dexie.Table<IShipOrder, number>;
   tradeData: Dexie.Table<ITradeRouteData, number>;
   requests: Dexie.Table<IRequestResponse, number>;
 
   constructor(options?: DexieOptions) {
     super("Database", options);
-    this.version(66).stores({
+    this.version(70).stores({
       apiErrors: "++id, code, created",
       trades: "++id, good, shipId, location, type, timestamp",
       market:
@@ -40,11 +42,12 @@ export class Database extends Dexie {
       probes: "&location,shipId",
       shipDetail: "&shipId, name",
       tradeRoutes2: "&shipId",
-      flightPlans: "&shipId, &id, arrivesAt",
+      flightPlans: "&shipId,&id,arrivesAt",
       ships2: "&id",
       tradeData:
-        "++id, [shipId+created+complete], [updated+complete], [shipId+created]",
-      requests: "++id, [shipId+timestamp]",
+        "++id, [shipId+created+complete],[updated+complete],[shipId+created]",
+      requests: "++id,[shipId+timestamp]",
+      shipOrders: "++id,shipId,[shipId,status,created],[status,created]",
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -61,5 +64,6 @@ export class Database extends Dexie {
     this.ships = this.table("ships2");
     this.tradeData = this.table("tradeData");
     this.requests = this.table("requests");
+    this.shipOrders = this.table("shipOrders");
   }
 }

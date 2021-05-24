@@ -17,16 +17,11 @@ import { calculateNetWorth } from "./calculateNetWorth";
 import { NetWorthLineItem } from "./NetWorthLineItem";
 import { Ship } from "../api/Ship";
 import { FlightPlan } from "../api/FlightPlan";
-import { getStrategy, spawnShipMachine } from "./Ship/spawnShipMachine";
-import { IShipStrategy } from "../data/Strategy/IShipStrategy";
-import { debugMachineStates } from "./debugStates";
+import { spawnShipMachine } from "./Ship/spawnShipMachine";
 import { getLocalUser } from "../data/localStorage/getLocalUser";
 import { IAutomation } from "../data/localStorage/IAutomation";
 import { getDebug } from "../data/localStorage/getDebug";
-import { ShipStrategy } from "data/Strategy/ShipStrategy";
-import { ChangeStrategyPayload } from "data/Strategy/StrategyPayloads";
 import { CachedShip, getShips } from "data/localStorage/shipCache";
-import { getStrategies } from "data/strategies";
 import {
   SystemMonitorActor,
   systemMonitorMachine,
@@ -36,6 +31,9 @@ import {
   BuyAndUpgradeActor,
   buyAndUpgradeShipMachine,
 } from "./buyAndUpgradeShipMachine";
+import { IShipOrder, ShipOrders } from "data/IShipOrder";
+import { debugMachineStates } from "./debugStates";
+import { getTickDelay } from "./config";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -47,7 +45,6 @@ export enum States {
   GetFlightPlans = "getFlightPlans",
   Tick = "tick",
   GetShips = "getShips",
-  GetStrategies = "getStrategies",
   SpawnShips = "spawnShips",
   Ready = "ready",
   GetLoan = "getLoan",
@@ -74,7 +71,7 @@ export type Context = {
   netWorth: NetWorthLineItem[];
   actors: ShipActor[];
   flightPlans: FlightPlan[];
-  strategies?: IShipStrategy[];
+  shipOrders?: IShipOrder[];
   resetDetected?: boolean;
   automation: IAutomation;
   ships?: CachedShip[];
@@ -202,14 +199,14 @@ const config: MachineConfig<Context, any, Event> = {
         }) as any,
       ],
       after: {
-        1: [{ target: States.GetStrategies }],
+        1: [{ target: States.SpawnShips }],
       },
     },
     [States.GetFlightPlans]: {
       invoke: {
         src: (c) => api.getFlightPlans(c.token!, c.username!, "OE"),
         onDone: {
-          target: States.GetStrategies,
+          target: States.SpawnShips,
           actions: assign<Context>({
             flightPlans: (c: Context, e: any) => {
               const ships = getShips();
@@ -225,20 +222,9 @@ const config: MachineConfig<Context, any, Event> = {
           {
             cond: (c, e) => e.data.code === 42201,
             actions: (c, e) => console.warn(e.data.message),
-            target: States.GetStrategies,
+            target: States.SpawnShips,
           },
         ],
-      },
-    },
-    [States.GetStrategies]: {
-      invoke: {
-        src: () => getStrategies(),
-        onDone: {
-          actions: assign<Context>({
-            strategies: (c, e: any) => e.data,
-          }) as any,
-          target: States.SpawnShips,
-        },
       },
     },
     [States.SpawnShips]: {
@@ -268,23 +254,24 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.Ready]: {
       entry: "netWorth",
-      after: {
-        1: [
-          {
-            target: States.SpawnBuyAndUpgradeActor,
-            cond: (c) =>
-              !c.buyAndUpgradeActor || !!c.buyAndUpgradeActor.state.done,
-          },
-          {
-            target: States.SpawnSystemMonitorActor,
-            cond: (c) =>
-              !c.systemMonitorActor || !!c.systemMonitorActor.state.done,
-          },
-        ],
-        5000: {
+      after: [
+        {
+          delay: 1,
+          target: States.SpawnBuyAndUpgradeActor,
+          cond: (c) =>
+            !c.buyAndUpgradeActor || !!c.buyAndUpgradeActor.state.done,
+        },
+        {
+          delay: 1,
+          target: States.SpawnSystemMonitorActor,
+          cond: (c) =>
+            !c.systemMonitorActor || !!c.systemMonitorActor.state.done,
+        },
+        {
+          delay: () => getTickDelay(),
           target: States.Tick,
         },
-      },
+      ],
     },
     [States.GetLoan]: {
       invoke: {
@@ -355,44 +342,35 @@ const options: Partial<MachineOptions<Context, Event>> = {
           (actor) => actor?.state.context.id
         );
 
-        const toSpawn: { ship: Ship; strategy: ShipStrategy }[] = getShips()
-          .filter((s: Ship) => {
-            const alreadySpawned = alreadySpawnedShipIds.find(
-              (id) => id === s.id
-            );
-            if (alreadySpawned) {
-              return false;
-            }
-            return true;
-          })
-          .map((ts) => {
-            const strat = getStrategy(c, ts);
-            const strategy =
-              strat.strategy === ShipStrategy.Change
-                ? (strat.data as ChangeStrategyPayload).from.strategy
-                : strat.strategy;
-            return { ship: ts, strategy };
-          });
-        type GroupByStrat = { strategy: ShipStrategy; count: number };
+        const toSpawn: CachedShip[] = getShips().filter((s: Ship) => {
+          const alreadySpawned = alreadySpawnedShipIds.find(
+            (id) => id === s.id
+          );
+          if (alreadySpawned) {
+            return false;
+          }
+          return true;
+        });
+        type GroupByStrat = { order: ShipOrders; count: number };
         if (toSpawn.length) {
           toSpawn
             .reduce((prev: GroupByStrat[], cur) => {
-              if (!prev.find((p) => p.strategy === cur.strategy)) {
-                prev.push({ strategy: cur.strategy, count: 0 });
+              if (!prev.find((p) => p.order === cur.orders[0].order)) {
+                prev.push({ order: cur.orders[0].order, count: 0 });
               }
-              prev.find((p) => p.strategy === cur.strategy)!.count += 1;
+              prev.find((p) => p.order === cur.orders[0].order)!.count += 1;
               return prev;
             }, [])
             .forEach((s) =>
               console.warn(
-                `Spawning ${s.count} x ${ShipStrategy[s.strategy]} machines`
+                `Spawning ${s.count} x ${ShipOrders[s.order]} machines`
               )
             );
         }
 
         return [
           ...c.actors,
-          ...toSpawn.map((s) => spawnShipMachine(c)(s.ship, s.strategy)),
+          ...toSpawn.map((s) => spawnShipMachine(c)(s)),
         ] as any;
       },
     }) as any,
