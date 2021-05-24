@@ -4,7 +4,18 @@ import { System } from "api/System";
 import { range } from "lodash";
 import { CachedShip } from "data/localStorage/shipCache";
 import { DateTime } from "luxon";
-import { ShipOrders, ShipOrderStatus } from "data/IShipOrder";
+import { IShipOrder, ShipOrders, ShipOrderStatus } from "data/IShipOrder";
+
+export const createOrder = (
+  shipOrder: Partial<IShipOrder> = {}
+): IShipOrder => ({
+  createdAt: DateTime.local().toISO(),
+  createdReason: "test reason",
+  status: ShipOrderStatus.Pending,
+  shipId: "my-ship-id",
+  order: ShipOrders.Trade,
+  ...shipOrder,
+});
 
 export const createShip = (): CachedShip => ({
   id: "my-ship-id",
@@ -21,15 +32,7 @@ export const createShip = (): CachedShip => ({
   plating: 5,
   weapons: 5,
   name: "My ship name",
-  orders: [
-    {
-      createdAt: DateTime.local().toISO(),
-      createdReason: "test reason",
-      status: ShipOrderStatus.Pending,
-      shipId: "my-ship-id",
-      order: ShipOrders.Trade,
-    },
-  ],
+  orders: [createOrder()],
 });
 
 export const createUser = (user: Partial<User> = {}): User => ({

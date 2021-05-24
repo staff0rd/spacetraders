@@ -355,10 +355,14 @@ const options: Partial<MachineOptions<Context, Event>> = {
         if (toSpawn.length) {
           toSpawn
             .reduce((prev: GroupByStrat[], cur) => {
-              if (!prev.find((p) => p.order === cur.orders[0].order)) {
-                prev.push({ order: cur.orders[0].order, count: 0 });
+              if (cur.orders.length) {
+                if (!prev.find((p) => p.order === cur.orders[0].order)) {
+                  prev.push({ order: cur.orders[0].order, count: 0 });
+                }
+                prev.find((p) => p.order === cur.orders[0].order)!.count += 1;
+              } else {
+                throw new Error(`${cur.name} has no orders`);
               }
-              prev.find((p) => p.order === cur.orders[0].order)!.count += 1;
               return prev;
             }, [])
             .forEach((s) =>

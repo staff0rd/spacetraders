@@ -6,7 +6,8 @@ import * as automation from "data/localStorage/getAutomation";
 
 export const waitForMachine = (
   machine: any,
-  desiredState: string
+  desiredState: string,
+  debug = false
 ): Promise<
   xstate.Interpreter<
     Record<string, any> | undefined,
@@ -24,7 +25,7 @@ export const waitForMachine = (
     const service = interpreter.onTransition((state) => {
       if (state.matches(desiredState)) {
         res(service);
-      }
+      } else if (debug) console.log(state.value);
     });
     service.start();
   });

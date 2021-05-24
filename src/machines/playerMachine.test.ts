@@ -1,4 +1,3 @@
-import { interpret } from "xstate";
 import { playerMachine, States } from "./playerMachine";
 import * as names from "data/names";
 import {
@@ -9,7 +8,12 @@ import {
   GetTokenResponse,
   GetUserResponse,
 } from "api";
-import { createUser, createShip, createSystem } from "test/objectMother";
+import {
+  createUser,
+  createShip,
+  createSystem,
+  createOrder,
+} from "test/objectMother";
 import { GetFlightPlansResponse } from "api/GetFlightPlansResponse";
 
 import * as trade from "machines/Ship/tradeMachine";
@@ -24,15 +28,21 @@ jest.mock("data/Database");
 jest.mock("data/ships");
 jest.mock("data/probes");
 
+let createMachineSpy: jest.SpyInstance;
+let mockTradeMachine: any;
+
 beforeEach(() => {
   setupMockRequests();
   mockGetters({
-    ships: [{ ...mockShip, name: "my ship!" }],
+    ships: [mockShip],
   });
 
-  jest.spyOn(trade, "tradeMachine").mockReturnValue(mockMachine("trade"));
+  mockTradeMachine = mockMachine("trade");
+  jest.spyOn(trade, "tradeMachine").mockReturnValue(mockTradeMachine);
 
   jest.spyOn(names, "newPlayerName").mockReturnValue("user");
+
+  createMachineSpy = jest.spyOn(mockTradeMachine, "withContext");
 
   mockRequest<GetTokenResponse>("users/user/token", {
     token: "1234",
@@ -67,8 +77,19 @@ beforeEach(() => {
   });
 });
 
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
 describe("playerMachine", () => {
   it("should tick after startup", async () => {
     await waitForMachine(playerMachine, States.Tick);
+  });
+
+  it("spawns ship machine", async () => {
+    await waitForMachine(playerMachine, States.Tick, false);
+    expect(createMachineSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ id: mockShip.id })
+    );
   });
 });
