@@ -31,7 +31,7 @@ import { IShipDetail } from "../../data/IShipDetail";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
-import { getLastTradeData, newTradeRoute } from "api/saveTradeData";
+import { getLastTradeData, newTradeRoute } from "data/tradeData";
 import { getShip } from "data/localStorage/shipCache";
 import { ITradeRouteData } from "data/ITradeRouteData";
 
@@ -44,7 +44,7 @@ export type ShouldBuy = {
   sellTo?: string;
 };
 
-enum States {
+export enum States {
   Idle = "idle",
   Init = "init",
   BuyCargo = "buyCargo",

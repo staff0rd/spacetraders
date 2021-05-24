@@ -1,7 +1,7 @@
 import { createMachine } from "xstate";
 
-export const mockMachine = (id: string) =>
-  createMachine({
+export const mockMachine = <T>(id: string) =>
+  createMachine<T>({
     id,
     initial: "init",
     states: {

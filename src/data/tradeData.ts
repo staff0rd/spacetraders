@@ -1,8 +1,8 @@
-import db from "../data/";
+import db from ".";
 import { DateTime } from "luxon";
-import { TradeType } from "../data/ITrade";
+import { TradeType } from "./ITrade";
 import Dexie from "dexie";
-import { MarketOrder } from "./index";
+import { MarketOrder } from "../api/index";
 import { TradeRoute } from "machines/Ship/TradeRoute";
 import { saveLastProfit } from "data/ships";
 

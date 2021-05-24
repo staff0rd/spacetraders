@@ -1,6 +1,5 @@
 import { interpret } from "xstate";
 import { playerMachine, States } from "./playerMachine";
-import * as req from "api/makeRequest";
 import * as names from "data/names";
 import {
   GetAvailableShipsResponse,
@@ -11,66 +10,29 @@ import {
   GetUserResponse,
 } from "api";
 import { createUser, createShip, createSystem } from "test/objectMother";
-import Bottleneck from "bottleneck";
-import * as shipCache from "data/localStorage/shipCache";
 import { GetFlightPlansResponse } from "api/GetFlightPlansResponse";
-import * as strategies from "data/strategies";
-import * as credits from "data/localStorage/getCredits";
-import * as automation from "data/localStorage/getAutomation";
-import { ShipStrategy } from "data/Strategy/ShipStrategy";
-import * as config from "machines/config";
+
 import * as trade from "machines/Ship/tradeMachine";
 import { mockMachine } from "test/mockMachine";
-
-const mockRequests: { [path: string]: any } = {};
-
-const mockRequest = <T>(path: string, response: T = {} as T) => {
-  mockRequests[path] = response;
-};
+import { mockRequest, setupMockRequests } from "test/mockRequests";
+import { mockGetters } from "test/helpers";
 
 const mockShip = createShip();
+const mockUser = createUser({ ships: [mockShip] });
 
 jest.mock("data/Database");
 jest.mock("data/ships");
 jest.mock("data/probes");
 
-const mockUser = createUser({ ships: [mockShip] });
-
 beforeEach(() => {
-  jest.spyOn(shipCache, "load").mockImplementation();
-  jest.spyOn(credits, "getCredits").mockReturnValue(10000000);
-  jest.spyOn(credits, "setCredits").mockImplementation();
+  setupMockRequests();
+  mockGetters({
+    ships: [{ ...mockShip, name: "my ship!" }],
+  });
+
   jest.spyOn(trade, "tradeMachine").mockReturnValue(mockMachine("trade"));
-  jest.spyOn(config, "getTickDelay").mockReturnValue(5);
-  jest
-    .spyOn(strategies, "getStrategies")
-    .mockResolvedValue([{ shipId: mockShip.id, strategy: ShipStrategy.Halt }]);
-  jest
-    .spyOn(strategies, "getStrategy")
-    .mockResolvedValue({ shipId: mockShip.id, strategy: ShipStrategy.Halt });
-  jest
-    .spyOn(Bottleneck.prototype, "schedule")
-    .mockImplementation((func: any) => func());
-  jest.spyOn(req, "makeRequest").mockImplementation((path) => {
-    const result = mockRequests[path];
-    if (result) return result;
-    throw new Error(`Should mock this: ${path}`);
-  });
+
   jest.spyOn(names, "newPlayerName").mockReturnValue("user");
-  jest
-    .spyOn(shipCache, "getShips")
-    .mockReturnValue([{ ...mockShip, name: "my ship!" }]);
-  jest.spyOn(shipCache, "saveShip").mockImplementation();
-  jest.spyOn(shipCache, "saveDetail").mockImplementation();
-  jest.spyOn(automation, "getAutomation").mockReturnValue({
-    autoBuy: {
-      credits: 10000,
-      maxShips: 2,
-      on: false,
-      shipType: "JW-MK-I",
-    },
-    autoUpgrades: [],
-  });
 
   mockRequest<GetTokenResponse>("users/user/token", {
     token: "1234",
