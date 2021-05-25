@@ -13,7 +13,6 @@ import { Ship } from "../../api/Ship";
 import { DateTime } from "luxon";
 import db from "../../data";
 import { TradeType } from "../../data/ITrade";
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { confirmStrategy } from "./confirmStrategy";
 import { initShipMachine } from "./initShipMachine";
 import {
@@ -26,14 +25,14 @@ import { ShipBaseContext } from "./ShipBaseContext";
 import { printErrorAction, print } from "./printError";
 import { debugShipMachineStates } from "../debugStates";
 import { getCargoQuantity } from "./getCargoQuantity";
-import { persistStrategy } from "../../data/persistStrategy";
 import { IShipDetail } from "../../data/IShipDetail";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
 import { getLastTradeData, newTradeRoute } from "data/tradeData";
-import { getShip } from "data/localStorage/shipCache";
+import { getShip, newOrder } from "data/localStorage/shipCache";
 import { ITradeRouteData } from "data/ITradeRouteData";
+import { ShipOrders } from "data/IShipOrder";
 
 const MAX_CARGO_MOVE = 500;
 
@@ -62,6 +61,7 @@ export type Context = ShipBaseContext & {
   tradeData?: ITradeRouteData;
   gotMarket?: boolean;
   testId?: string;
+  goto?: string;
 };
 
 export type ShipActor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -134,7 +134,9 @@ const config: MachineConfig<Context, any, any> = {
     [States.TravelToLocation]: {
       ...travelToLocation<Context>(
         (c) =>
-          c.tradeData?.tradeRoute.sellLocation || c.flightPlan!.destination,
+          c.goto ||
+          c.tradeData?.tradeRoute.sellLocation ||
+          c.flightPlan!.destination,
         States.Idle,
         getDebug().debugTradeMachine
       ),
@@ -166,21 +168,11 @@ const config: MachineConfig<Context, any, any> = {
               closest[0].route.buyLocation
             }`;
             console.warn(message);
-            persistStrategy(
-              c.id,
-              ShipStrategy.Trade,
-              ShipStrategy.GoTo,
-              false,
-              { location: closest[0].route.buyLocation }
-            );
+            return { goto: closest[0].route.buyLocation };
           } else {
-            console.warn("No trade routes, switching to probe");
-            persistStrategy(
-              c.id,
-              ShipStrategy.Trade,
-              ShipStrategy.Probe,
-              false
-            );
+            const message = "No trade routes, switching to probe";
+            console.warn(message);
+            newOrder(c.id, ShipOrders.Probe, message);
           }
         },
         onError: { target: States.Done, actions: printErrorAction() },
@@ -188,6 +180,10 @@ const config: MachineConfig<Context, any, any> = {
           {
             cond: (c, e: any) => !e.data,
             target: States.Done,
+          },
+          {
+            cond: (c, e: any) => e.data.goto,
+            target: States.TravelToLocation,
           },
           {
             target: States.GetTradeRoute,

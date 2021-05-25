@@ -8,7 +8,6 @@ import {
 } from "xstate";
 import { Ship } from "../../api/Ship";
 import db from "../../data";
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { confirmStrategy } from "./confirmStrategy";
 import { debugShipMachineStates } from "machines/debugStates";
@@ -43,11 +42,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.Done]: {
       type: "final",
     },
-    [States.ConfirmStrategy]: confirmStrategy(
-      ShipStrategy.Halt,
-      States.Waiting,
-      States.Done
-    ),
+    [States.ConfirmStrategy]: confirmStrategy(States.Waiting, States.Done),
   },
 };
 const options: Partial<MachineOptions<Context, any>> = {

@@ -3,11 +3,9 @@ import { printError } from "./printError";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { travelToLocationMachine } from "./travelToLocationMachine";
 
-export function travelToLocation<TContext extends ShipBaseContext>(
-  destination: (c: TContext) => string,
-  nextState: any,
-  debug: boolean
-) {
+export function travelToLocation<
+  TContext extends ShipBaseContext & { goto?: string }
+>(destination: (c: TContext) => string, nextState: any, debug: boolean) {
   return {
     invoke: {
       src: (c: TContext) =>
@@ -28,6 +26,7 @@ export function travelToLocation<TContext extends ShipBaseContext>(
           flightPlan: undefined,
           location: undefined,
           shouldCheckOrders: true,
+          goto: undefined,
         }) as any,
       },
     },

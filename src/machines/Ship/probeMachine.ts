@@ -7,8 +7,7 @@ import {
   StateMachine,
   MachineOptions,
 } from "xstate";
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
-import { ShipBaseContext } from "./ShipBaseContext";
+import { ShipBaseContext, ShipContext } from "./ShipBaseContext";
 import * as api from "../../api";
 import { getProbeAssignment } from "../../data/Strategy/getProbeAssignment";
 import { DateTime } from "luxon";
@@ -18,8 +17,10 @@ import { initShipMachine } from "./initShipMachine";
 import { travelToLocation } from "./travelToLocation";
 import { debugShipMachineStates } from "../debugStates";
 import { getDebug } from "../../data/localStorage/getDebug";
-import { persistStrategy } from "data/persistStrategy";
 import { printErrorAction } from "./printError";
+import * as ships from "data/ships";
+import { newOrder } from "data/localStorage/shipCache";
+import { ShipOrders } from "data/IShipOrder";
 
 enum States {
   Init = "init",
@@ -129,9 +130,9 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.ConfirmStrategy]: confirmStrategy(
-      ShipStrategy.Probe,
       States.GetAssignment,
-      States.Done
+      States.Done,
+      (c: ShipContext) => ships.clearProbes(c.id)
     ),
   },
 };
@@ -139,8 +140,9 @@ const config: MachineConfig<Context, any, any> = {
 const options: Partial<MachineOptions<Context, any>> = {
   actions: {
     revertToTrade: (c: Context) => {
-      console.warn("Nothing to probe, reverting to trade");
-      persistStrategy(c.id, ShipStrategy.Trade, ShipStrategy.Trade, false);
+      const message = "Nothing to probe, reverting to trade";
+      console.warn(message);
+      newOrder(c.id, ShipOrders.Trade, message);
     },
   },
 };

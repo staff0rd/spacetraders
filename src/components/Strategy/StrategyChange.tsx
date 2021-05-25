@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { persistStrategy } from "../../data/persistStrategy";
 import MenuIcon from "@material-ui/icons/MoreVert";
 import { makeStyles, IconButton, Menu, MenuItem } from "@material-ui/core";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { SelectLocationDialog } from "./SelectLocationDialog";
+import { newOrder } from "data/localStorage/shipCache";
+import { ShipOrders } from "data/IShipOrder";
 
 const useStyles = makeStyles(() => ({
   menuButton: {
@@ -34,20 +35,18 @@ export const StrategyChange = ({ ship }: Props) => {
     if (newStrategy && selectedShip) {
       if (Array.isArray(selectedShip)) {
         selectedShip.forEach((ship) =>
-          persistStrategy(
+          newOrder(
             ship.id,
-            ShipStrategy[ship.strategy as keyof typeof ShipStrategy],
-            ShipStrategy[newStrategy as keyof typeof ShipStrategy],
-            true,
+            ShipOrders[newStrategy as keyof typeof ShipOrders],
+            "Player updated",
             data
           )
         );
       } else {
-        persistStrategy(
+        newOrder(
           selectedShip.id,
-          ShipStrategy[selectedShip.strategy as keyof typeof ShipStrategy],
-          ShipStrategy[newStrategy as keyof typeof ShipStrategy],
-          true,
+          ShipOrders[newStrategy as keyof typeof ShipOrders],
+          "Player updated",
           data
         );
       }

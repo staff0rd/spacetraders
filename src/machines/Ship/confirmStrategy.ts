@@ -2,7 +2,11 @@ import { ShipOrdersContext } from "./ShipBaseContext";
 import { assign } from "xstate";
 import { getShip, completeOrder } from "data/localStorage/shipCache";
 
-export function confirmStrategy(nextState: any, doneState: any) {
+export function confirmStrategy(
+  nextState: any,
+  doneState: any,
+  onDone?: (c: ShipOrdersContext) => Promise<any>
+) {
   return {
     invoke: {
       src: async (c: ShipOrdersContext) => {
@@ -12,6 +16,8 @@ export function confirmStrategy(nextState: any, doneState: any) {
         if (orderCount === 1) return { state: nextState };
 
         await completeOrder(c.id);
+
+        onDone && (await onDone(c));
 
         return { state: doneState };
       },

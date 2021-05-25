@@ -16,12 +16,11 @@ import { ShipContext } from "./ShipBaseContext";
 import { printError, printErrorAction, print } from "./printError";
 import { getCargoQuantity } from "./getCargoQuantity";
 import { debugShipMachineStates } from "../debugStates";
-import { persistStrategy } from "data/persistStrategy";
-import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { getRoute, getGraph } from "data/localStorage/graph";
-import { getShip } from "data/localStorage/shipCache";
+import { getShip, newOrder } from "data/localStorage/shipCache";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
+import { ShipOrders } from "data/IShipOrder";
 
 const throwError = (message: string) => {
   console.warn(message);
@@ -170,8 +169,7 @@ const config: MachineConfig<Context, any, any> = {
             actions: [
               print("No fuel at this location"),
               assign<Context>({ success: false }) as any,
-              (c) =>
-                persistStrategy(c.id, ShipStrategy.Halt, ShipStrategy.Halt),
+              (c) => newOrder(c.id, ShipOrders.Halt, "No fuel at location"),
             ],
             target: States.Done,
           },

@@ -101,11 +101,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.Done]: {
       type: "final",
     },
-    [States.ConfirmStrategy]: confirmStrategy(
-      ShipStrategy.GoTo,
-      States.Idle,
-      States.Done
-    ),
+    [States.ConfirmStrategy]: confirmStrategy(States.Idle, States.Done),
     [States.TravelToLocation]: {
       ...travelToLocation<Context>(
         (c) => c.flightPlan?.destination || c.destination,

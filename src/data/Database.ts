@@ -47,7 +47,7 @@ export class Database extends Dexie {
       tradeData:
         "++id, [shipId+created+complete],[updated+complete],[shipId+created]",
       requests: "++id,[shipId+timestamp]",
-      shipOrders: "++id,shipId,[shipId,status,created],[status,created]",
+      shipOrders: "++id,shipId,[shipId+status+created],[status+created]",
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:

@@ -32,7 +32,7 @@ export const load = async () => {
     for (const s of ships) {
       const detail = await db.shipDetail.get(s.id);
       const orders = await db.shipOrders
-        .where("[shipId,status,created]")
+        .where("[shipId+status+created]")
         .between(
           [s.id, ShipOrderStatus.Pending, Dexie.minKey],
           [s.id, ShipOrderStatus.Pending, Dexie.maxKey]
@@ -67,12 +67,13 @@ export const saveShip = async (ship: Ship) => {
 };
 
 export const newOrder = async (
-  ship: Ship,
+  shipId: string,
   order: ShipOrders,
-  reason: string
+  reason: string,
+  payload?: any
 ) => {
-  const saved = await saveNewOrder(ship.id, order, reason);
-  self.getShip(ship.id).orders.push(saved);
+  const saved = await saveNewOrder(shipId, order, reason, payload);
+  self.getShip(shipId).orders.push(saved);
 };
 
 export const completeOrder = async (shipId: string) => {

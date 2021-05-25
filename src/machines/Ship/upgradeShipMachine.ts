@@ -19,7 +19,6 @@ import {
   setUpgradingShip,
 } from "../../data/localStorage/getUpgradingShip";
 import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
-import { persistStrategy } from "../../data/persistStrategy";
 import { log } from "xstate/lib/actions";
 import { AvailableShip } from "../../api/AvailableShip";
 import { buyShipMachine } from "../buyShipMachine";
@@ -29,7 +28,8 @@ import { travelToLocationMachine } from "./travelToLocationMachine";
 import { getDebug } from "data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { printErrorAction } from "./printError";
-import { getShip } from "data/localStorage/shipCache";
+import { getShip, newOrder } from "data/localStorage/shipCache";
+import { ShipOrders } from "data/IShipOrder";
 
 enum States {
   Started = "started",
@@ -101,15 +101,9 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.HaltShip]: {
-      invoke: {
-        src: async (c) => {
-          const strat = await db.strategies
-            .where("shipId")
-            .equals(shipId())
-            .first();
-          await persistStrategy(shipId(), strat!.strategy, ShipStrategy.Halt);
-        },
-        onDone: States.Done,
+      entry: () => newOrder(shipId(), ShipOrders.Halt, "Upgrading ship"),
+      after: {
+        1: States.Done,
       },
     },
     [States.SellShip]: {
