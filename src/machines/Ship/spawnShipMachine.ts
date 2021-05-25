@@ -42,6 +42,7 @@ export function spawnShipMachine(c: Context): any {
             username: c.user!.username,
             ship,
             flightPlan: flightPlanExpired ? undefined : flightPlan,
+            shouldCheckOrders: true,
           }),
           { name: `ship-${ship.id}`, sync: true }
         ) as any;

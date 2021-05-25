@@ -5,6 +5,7 @@ import { range } from "lodash";
 import { CachedShip } from "data/localStorage/shipCache";
 import { DateTime } from "luxon";
 import { IShipOrder, ShipOrders, ShipOrderStatus } from "data/IShipOrder";
+import { TradeRoute } from "machines/Ship/TradeRoute";
 
 export const createOrder = (
   shipOrder: Partial<IShipOrder> = {}
@@ -17,7 +18,28 @@ export const createOrder = (
   ...shipOrder,
 });
 
-export const createShip = (): CachedShip => ({
+export const createTradeRoute = (
+  tradeRoute: Partial<TradeRoute> = {}
+): TradeRoute => ({
+  buyLocation: "A",
+  sellLocation: "B",
+  costVolumeDistance: 1,
+  distance: 10,
+  fuelCost: 10,
+  fuelNeeded: 10,
+  good: "GOOD",
+  profitPerUnit: 10,
+  purchasePricePerUnit: 1,
+  sellPricePerUnit: 11,
+  quantityAvailable: 1000,
+  quantityToBuy: 40,
+  totalProfit: 400,
+  volume: 40,
+  rank: 1,
+  ...tradeRoute,
+});
+
+export const createShip = (ship: Partial<CachedShip> = {}): CachedShip => ({
   id: "my-ship-id",
   location: "OE-PM-TR",
   x: 21,
@@ -33,6 +55,7 @@ export const createShip = (): CachedShip => ({
   weapons: 5,
   name: "My ship name",
   orders: [createOrder()],
+  ...ship,
 });
 
 export const createUser = (user: Partial<User> = {}): User => ({
@@ -72,4 +95,13 @@ export const createLocation = (location: Partial<Location> = {}): Location => ({
   type: "MOON",
   x: 10,
   y: 10,
+  marketplace: [
+    {
+      symbol: "A",
+      quantityAvailable: 100,
+      sellPricePerUnit: 20,
+      purchasePricePerUnit: 25,
+      volumePerUnit: 1,
+    },
+  ],
 });

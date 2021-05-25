@@ -3,6 +3,10 @@ import * as shipCache from "data/localStorage/shipCache";
 import * as getCredits from "data/localStorage/getCredits";
 import * as config from "machines/config";
 import * as automation from "data/localStorage/getAutomation";
+import * as determineTradeRoutes from "machines/Ship/determineBestTradeRoute";
+import { TradeRoute } from "machines/Ship/TradeRoute";
+import { createTradeRoute } from "./objectMother";
+import { DateTime } from "luxon";
 
 export const waitForMachine = (
   machine: any,
@@ -23,9 +27,16 @@ export const waitForMachine = (
     const interpreter = xstate.interpret(machine);
     interpreter["sendTo"] = jest.fn();
     const service = interpreter.onTransition((state) => {
+      if (debug)
+        console.log(
+          `[${DateTime.local().toISOTime()}]  (${
+            shipCache.getShip(state.context?.id)?.name
+          })/(${state.context?.testId}) ${state.value}`
+        );
       if (state.matches(desiredState)) {
+        service.stop();
         res(service);
-      } else if (debug) console.log(state.value);
+      }
     });
     service.start();
   });
@@ -34,10 +45,12 @@ export const mockGetters = ({
   credits = 10000000,
   tickDelay = 5,
   ships = [],
+  bestTradeRoutes = [createTradeRoute()],
 }: {
   credits?: number;
   tickDelay?: number;
   ships?: shipCache.CachedShip[];
+  bestTradeRoutes?: TradeRoute[];
 } = {}) => {
   jest.spyOn(getCredits, "getCredits").mockReturnValue(credits);
   jest.spyOn(getCredits, "setCredits").mockImplementation();
@@ -55,4 +68,7 @@ export const mockGetters = ({
     },
     autoUpgrades: [],
   });
+  jest
+    .spyOn(determineTradeRoutes, "determineBestTradeRouteByCurrentLocation")
+    .mockResolvedValue(bestTradeRoutes);
 };

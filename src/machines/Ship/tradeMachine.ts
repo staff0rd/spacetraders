@@ -61,6 +61,7 @@ export enum States {
 export type Context = ShipBaseContext & {
   tradeData?: ITradeRouteData;
   gotMarket?: boolean;
+  testId?: string;
 };
 
 export type ShipActor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -318,7 +319,6 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.ConfirmStrategy]: confirmStrategy(
-      ShipStrategy.Trade,
       States.GetTradeRoute,
       States.Done
     ),

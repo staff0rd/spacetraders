@@ -1,27 +1,18 @@
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
-import { updateStrategy } from "./updateStrategy";
 import { ShipOrdersContext } from "./ShipBaseContext";
 import { assign } from "xstate";
-import { getDebug } from "data/localStorage/getDebug";
-import { getStrategy } from "data/strategies";
+import { getShip, completeOrder } from "data/localStorage/shipCache";
 
-export function confirmStrategy(
-  desired: ShipStrategy,
-  nextState: any,
-  doneState: any
-) {
+export function confirmStrategy(nextState: any, doneState: any) {
   return {
     invoke: {
       src: async (c: ShipOrdersContext) => {
-        const currentStrategy = (await getStrategy(c.id))!;
-        if (getDebug().focusShip === c.id)
-          console.warn(
-            `${ShipStrategy[currentStrategy.strategy]} === ${
-              ShipStrategy[desired]
-            }`
-          );
-        if (currentStrategy.strategy === desired) return { state: nextState };
-        await updateStrategy(c.id, desired, currentStrategy);
+        const ship = getShip(c.id);
+        const orderCount = ship.orders.length;
+
+        if (orderCount === 1) return { state: nextState };
+
+        await completeOrder(c.id);
+
         return { state: doneState };
       },
       onDone: [
@@ -37,6 +28,9 @@ export function confirmStrategy(
           cond: (c: ShipOrdersContext, e: any) => e.data.state === doneState,
         },
       ],
+      onError: {
+        actions: (c: any, e: any) => console.log(e.data),
+      },
     },
   };
 }

@@ -25,6 +25,7 @@ import { saveTradeData } from "../data/tradeData";
 import { GetLeaderboardResponse } from "./GetLeaderboardResponse";
 import { makeRequest } from "./makeRequest";
 import { init } from "data/probes";
+import * as markets from "data/markets";
 
 export const limiter = new Bottleneck({
   maxConcurrent: 1,
@@ -228,24 +229,8 @@ export const getMarket = (
       ),
     async (result) => {
       cacheLocation(result.location);
-      return Promise.all(
-        result.location.marketplace!.map((m) => {
-          const market = {
-            created: DateTime.now().toISO(),
-            location,
-            purchasePricePerUnit: m.purchasePricePerUnit,
-            sellPricePerUnit: m.sellPricePerUnit,
-            quantityAvailable: m.quantityAvailable,
-            volumePerUnit: m.volumePerUnit,
-            good: m.symbol,
-            x: result.location.x,
-            y: result.location.y,
-            type: result.location.type,
-          };
-          db.goodLocation.put(market);
-          return db.markets.put(market);
-        })
-      );
+      const { symbol, x, y, type, marketplace } = result.location;
+      return markets.save(symbol, x, y, type, marketplace!);
     }
   );
 

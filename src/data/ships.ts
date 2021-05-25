@@ -34,6 +34,15 @@ export const saveNewOrder = async (
   return newOrder;
 };
 
+export const completeOrder = (orderId: number) =>
+  db.shipOrders
+    .where("id")
+    .equals(orderId)
+    .modify({
+      completedAt: DateTime.local().toISO(),
+      status: ShipOrderStatus.Completed,
+    });
+
 export const getAllCurrentShipOrders = () =>
   db.shipOrders
     .where("[shipId,status,created]")

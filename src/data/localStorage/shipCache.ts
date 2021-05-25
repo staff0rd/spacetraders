@@ -7,7 +7,7 @@ import * as shipData from "data/ships";
 import { IShipOrder, ShipOrders, ShipOrderStatus } from "data/IShipOrder";
 import Dexie from "dexie";
 import { newShipName } from "data/names";
-import { saveNewOrder } from "data/ships";
+import { saveNewOrder, completeOrder as saveCompleteOrder } from "data/ships";
 
 export type CachedShip = Ship & {
   name: string;
@@ -73,6 +73,13 @@ export const newOrder = async (
 ) => {
   const saved = await saveNewOrder(ship.id, order, reason);
   self.getShip(ship.id).orders.push(saved);
+};
+
+export const completeOrder = async (shipId: string) => {
+  const ship = self.getShip(shipId);
+  const lastOrder = ship.orders.shift();
+  if (!lastOrder) throw new Error("There are no orders to complete");
+  await saveCompleteOrder(lastOrder.id!);
 };
 
 export const newShip = async (ship: Ship) => {
