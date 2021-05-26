@@ -1,0 +1,412 @@
+[
+  {
+    "symbol": "ZY1-GH",
+    "type": "PLANET",
+    "name": "Gehiri",
+    "x": -24,
+    "y": 1,
+    "allowsConstruction": true,
+    "structures": [
+      {
+        "id": "ckp1qc2vs17427815s602dsj5u7",
+        "type": "FABRICATION_PLANT",
+        "location": "ZY1-GH",
+        "ownedBy": {
+          "username": "ZERG"
+        }
+      },
+      {
+        "id": "ckp1qc7it17604115s6772e10te",
+        "type": "DRONE_FACTORY",
+        "location": "ZY1-GH",
+        "ownedBy": {
+          "username": "ZERG"
+        }
+      },
+      {
+        "id": "ckp1qc9b617695815s6p66u70pz",
+        "type": "FARM",
+        "location": "ZY1-GH",
+        "ownedBy": {
+          "username": "ZERG"
+        }
+      },
+      {
+        "id": "ckp1qcang17777015s6xyntnf68",
+        "type": "ELECTRONICS_FACTORY",
+        "location": "ZY1-GH",
+        "ownedBy": {
+          "username": "ZERG"
+        }
+      },
+      {
+        "id": "ckp1qcc5017839915s6ap4oqllp",
+        "type": "CHEMICAL_PLANT",
+        "location": "ZY1-GH",
+        "ownedBy": {
+          "username": "ZERG"
+        }
+      }
+    ]
+  },
+  {
+    "symbol": "ZY1-VZ",
+    "type": "GAS_GIANT",
+    "name": "Veazuno",
+    "x": 44,
+    "y": 4,
+    "allowsConstruction": true,
+    "structures": [
+      {
+        "id": "ckp1qc46u17476815s6savwjwfk",
+        "type": "FUEL_REFINERY",
+        "location": "ZY1-VZ",
+        "ownedBy": {
+          "username": "ZERG"
+        }
+      }
+    ]
+  },
+  {
+    "symbol": "ZY1-T85",
+    "type": "ASTEROID",
+    "name": "Thiea 85M",
+    "x": -43,
+    "y": -47,
+    "allowsConstruction": true,
+    "structures": [
+      {
+        "id": "ckp1qc6br17550915s655zadb4i",
+        "type": "MINE",
+        "location": "ZY1-T85",
+        "ownedBy": {
+          "username": "ZERG"
+        }
+      }
+    ]
+  },
+  {
+    "symbol": "ZY1-W-XV",
+    "type": "WORMHOLE",
+    "name": "Wormhole",
+    "x": 70,
+    "y": 79,
+    "allowsConstruction": false,
+    "structures": [
+      {
+        "id": "ckp0rpbuy2001hwwwcub6iyre",
+        "type": "WARP_GATE",
+        "location": "ZY1-W-XV"
+      }
+    ]
+  },
+  {
+    "symbol": "ZY1-W-NA7",
+    "type": "WORMHOLE",
+    "name": "Wormhole",
+    "x": -50,
+    "y": -78,
+    "allowsConstruction": false,
+    "structures": [
+      {
+        "id": "ckp0rpbww2016hwwwtp2mgbqe",
+        "type": "WARP_GATE",
+        "location": "ZY1-W-NA7"
+      }
+    ]
+  },
+  {
+    "symbol": "OE-PM",
+    "type": "PLANET",
+    "name": "Prime",
+    "x": 20,
+    "y": -25,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "OE-PM-TR",
+    "type": "MOON",
+    "name": "Tritus",
+    "x": 22,
+    "y": -25,
+    "allowsConstruction": false,
+    "structures": [],
+    "marketplace": [
+      {
+        "symbol": "CONSTRUCTION_MATERIALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 109,
+        "spread": 1,
+        "purchasePricePerUnit": 110,
+        "sellPricePerUnit": 108,
+        "quantityAvailable": 15283
+      },
+      {
+        "symbol": "FUEL",
+        "volumePerUnit": 1,
+        "pricePerUnit": 49,
+        "spread": 1,
+        "purchasePricePerUnit": 50,
+        "sellPricePerUnit": 48,
+        "quantityAvailable": 66014
+      },
+      {
+        "symbol": "FUSION_REACTORS",
+        "volumePerUnit": 6,
+        "pricePerUnit": 19700,
+        "spread": 54,
+        "purchasePricePerUnit": 19754,
+        "sellPricePerUnit": 19646,
+        "quantityAvailable": 6488
+      },
+      {
+        "symbol": "METALS",
+        "volumePerUnit": 1,
+        "pricePerUnit": 15,
+        "spread": 1,
+        "purchasePricePerUnit": 16,
+        "sellPricePerUnit": 14,
+        "quantityAvailable": 59653
+      }
+    ]
+  },
+  {
+    "symbol": "OE-CR",
+    "type": "PLANET",
+    "name": "Carth",
+    "x": 16,
+    "y": 17,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "OE-KO",
+    "type": "PLANET",
+    "name": "Koria",
+    "x": -48,
+    "y": -7,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "OE-UC",
+    "type": "PLANET",
+    "name": "Ucarro",
+    "x": -65,
+    "y": 82,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "OE-UC-AD",
+    "type": "MOON",
+    "name": "Ado",
+    "x": -66,
+    "y": 81,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "OE-UC-OB",
+    "type": "MOON",
+    "name": "Obo",
+    "x": -62,
+    "y": 83,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "OE-NY",
+    "type": "ASTEROID",
+    "name": "Nyon",
+    "x": 74,
+    "y": 50,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "OE-BO",
+    "type": "GAS_GIANT",
+    "name": "Bo",
+    "x": -64,
+    "y": -96,
+    "allowsConstruction": false,
+    "structures": [
+      {
+        "id": "ckp2irhls23834515s6hyyv8nqy",
+        "type": "FUEL_REFINERY",
+        "location": "OE-BO",
+        "ownedBy": {
+          "username": "shadeness"
+        }
+      }
+    ]
+  },
+  {
+    "symbol": "OE-W-XV",
+    "type": "WORMHOLE",
+    "name": "Wormhole",
+    "x": -2,
+    "y": 105,
+    "allowsConstruction": false,
+    "messages": [
+      "Extensive research has revealed a partially functioning warp gate harnessing the power of an unstable but traversable wormhole.",
+      "The scientific community has determined a means of stabilizing the ancient structure.",
+      "Enter at your own risk.",
+      "POST https://api.spacetraders.io/game/structures/:structureId/deposit shipId=:shipId good=:goodSymbol quantity=:quantity",
+      "POST https://api.spacetraders.io/my/warp-jump shipId=:shipId"
+    ],
+    "structures": [
+      {
+        "id": "ckp0rpc0i2048hwwwrxxrz5bz",
+        "type": "WARP_GATE",
+        "location": "OE-W-XV"
+      }
+    ]
+  },
+  {
+    "symbol": "NA7-GH",
+    "type": "PLANET",
+    "name": "Vuclite",
+    "x": -38,
+    "y": -11,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "NA7-TH",
+    "type": "PLANET",
+    "name": "Thegaturn",
+    "x": -27,
+    "y": 59,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "NA7-W-ZY1",
+    "type": "WORMHOLE",
+    "name": "Wormhole",
+    "x": -65,
+    "y": 96,
+    "allowsConstruction": false,
+    "structures": [
+      {
+        "id": "ckp0rpbyr2032hwwwhtymhhr9",
+        "type": "WARP_GATE",
+        "location": "NA7-W-ZY1"
+      }
+    ]
+  },
+  {
+    "symbol": "XV-BN",
+    "type": "NEBULA",
+    "name": "Bear Nebula",
+    "x": 102,
+    "y": 92,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "XV-ST",
+    "type": "PLANET",
+    "name": "Straxabos",
+    "x": -16,
+    "y": 26,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "XV-ST-BG",
+    "type": "MOON",
+    "name": "Bragi",
+    "x": -15,
+    "y": 25,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "XV-XA",
+    "type": "PLANET",
+    "name": "Xamarin",
+    "x": 9,
+    "y": 12,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "XV-OS",
+    "type": "PLANET",
+    "name": "Osuhines",
+    "x": -64,
+    "y": -35,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "XV-SN",
+    "type": "PLANET",
+    "name": "Sinope",
+    "x": 43,
+    "y": -37,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "XV-CB",
+    "type": "PLANET",
+    "name": "Ciubus",
+    "x": 105,
+    "y": -22,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "XV-CB-NM",
+    "type": "MOON",
+    "name": "Nami",
+    "x": 107,
+    "y": -21,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "XV-CB-IT",
+    "type": "MOON",
+    "name": "Ito",
+    "x": 107,
+    "y": -19,
+    "allowsConstruction": false,
+    "structures": []
+  },
+  {
+    "symbol": "XV-W-OE",
+    "type": "WORMHOLE",
+    "name": "Wormhole",
+    "x": 145,
+    "y": -2,
+    "allowsConstruction": false,
+    "structures": [
+      {
+        "id": "ckp0rpc2a2063hwwwigj6kua6",
+        "type": "WARP_GATE",
+        "location": "XV-W-OE"
+      }
+    ]
+  },
+  {
+    "symbol": "XV-W-ZY1",
+    "type": "WORMHOLE",
+    "name": "Wormhole",
+    "x": -108,
+    "y": 51,
+    "allowsConstruction": false,
+    "structures": [
+      {
+        "id": "ckp0rpc482079hwww6vxo35rz",
+        "type": "WARP_GATE",
+        "location": "XV-W-ZY1"
+      }
+    ]
+  }
+]
