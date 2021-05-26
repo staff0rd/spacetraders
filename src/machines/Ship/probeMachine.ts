@@ -9,11 +9,10 @@ import {
 } from "xstate";
 import { ShipBaseContext, ShipContext } from "./ShipBaseContext";
 import * as api from "../../api";
-import { getProbeAssignment } from "../../data/Strategy/getProbeAssignment";
+import { getProbeAssignment } from "../../data/getProbeAssignment";
 import { DateTime } from "luxon";
 import { IProbe } from "../../data/IProbe";
 import { confirmStrategy } from "./confirmStrategy";
-import { initShipMachine } from "./initShipMachine";
 import { travelToLocation } from "./travelToLocation";
 import { debugShipMachineStates } from "../debugStates";
 import { getDebug } from "../../data/localStorage/getDebug";
@@ -23,7 +22,6 @@ import { newOrder } from "data/localStorage/shipCache";
 import { ShipOrders } from "data/IShipOrder";
 
 enum States {
-  Init = "init",
   Idle = "idle",
   GetAssignment = "getAssignment",
   Probe = "probe",
@@ -45,9 +43,8 @@ export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
 const config: MachineConfig<Context, any, any> = {
   id: "probe",
-  initial: States.Init,
+  initial: States.ConfirmStrategy,
   states: {
-    [States.Init]: initShipMachine<Context>(States.ConfirmStrategy),
     [States.Idle]: {
       after: {
         1: [
@@ -59,7 +56,8 @@ const config: MachineConfig<Context, any, any> = {
           {
             target: States.TravelToLocation,
             cond: (c) =>
-              !c.ship?.location || c.probe!.location !== c.ship.location,
+              !c.ship?.location ||
+              c.probe!.location !== c.ship.location?.symbol,
           },
           {
             target: States.Probe,
@@ -72,7 +70,7 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.TravelToLocation]: travelToLocation<Context>(
-      (c) => c.probe?.location || c.flightPlan?.destination || "", // should never hit empty string
+      (c) => c.probe?.location || c.ship.flightPlan?.destination || "", // should never hit empty string
       States.Idle,
       getDebug().debugProbeMachine
     ),
@@ -99,9 +97,9 @@ const config: MachineConfig<Context, any, any> = {
       invoke: {
         src: async (c) => {
           try {
-            await api.getMarket(c.token, c.ship!.location!);
-            await api.getDockedShips(c.token, c.ship!.location!);
-            await api.getStructures(c.token, c.ship!.location!);
+            await api.getMarket(c.token, c.ship.location!.symbol);
+            await api.getDockedShips(c.token, c.ship.location!.symbol);
+            await api.getStructures(c.token, c.ship.location!.symbol);
           } catch (e) {
             console.error("Couldn't probe", e);
           }
@@ -119,7 +117,7 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.WaitAfterErorr]: {
       after: {
-        5000: States.Init,
+        5000: States.ConfirmStrategy,
       },
     },
     [States.Waiting]: {

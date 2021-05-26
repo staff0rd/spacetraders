@@ -8,17 +8,15 @@ import {
   sendParent,
 } from "xstate";
 import { getAutomation } from "../../data/localStorage/getAutomation";
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { debugMachineStates } from "../debugStates";
 import { UserContext } from "./ShipBaseContext";
-import db from "../../data";
+
 import * as api from "../../api";
 import {
   clearUpgradingShip,
   getUpgradingShip,
   setUpgradingShip,
 } from "../../data/localStorage/getUpgradingShip";
-import { IShipStrategy } from "../../data/Strategy/IShipStrategy";
 import { log } from "xstate/lib/actions";
 import { AvailableShip } from "../../api/AvailableShip";
 import { buyShipMachine } from "../buyShipMachine";
@@ -28,7 +26,12 @@ import { travelToLocationMachine } from "./travelToLocationMachine";
 import { getDebug } from "data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { printErrorAction } from "./printError";
-import { getShip, newOrder } from "data/localStorage/shipCache";
+import {
+  getOrderLabel,
+  getShip,
+  getShips,
+  newOrder,
+} from "data/localStorage/shipCache";
 import { ShipOrders } from "data/IShipOrder";
 
 enum States {
@@ -47,23 +50,16 @@ enum States {
 
 export type Context = UserContext & {
   available: AvailableShip[];
-  strategy?: IShipStrategy;
   errorCode?: number;
   flyTo?: string;
+  shipId: string;
 };
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
-const shipId = () => getUpgradingShip()!.fromShipId;
-
 const config: MachineConfig<Context, any, any> = {
   id: "upgradeShip",
   initial: States.Started,
-  context: {
-    token: "",
-    username: "",
-    available: [],
-  },
   states: {
     [States.Started]: {
       after: {
@@ -73,35 +69,21 @@ const config: MachineConfig<Context, any, any> = {
         ],
       },
     },
-    [States.GetStrategy]: {
-      invoke: {
-        src: (c) => db.strategies.where("shipId").equals(shipId()).first(),
-        onDone: {
-          target: States.BranchOffStrategy,
-          actions: assign<Context>({
-            strategy: (c, e: any) => e.data,
-          }) as any,
-        },
-      },
-    },
     [States.BranchOffStrategy]: {
       after: {
         1: [
-          { cond: (c) => !c.strategy, target: States.BuyShip },
+          { cond: (c) => !getShip(c.shipId), target: States.BuyShip },
           {
-            cond: (c) => c.strategy?.strategy === ShipStrategy.Halt,
+            cond: (c) =>
+              getOrderLabel(getShip(c.shipId).orders) === ShipOrders.Halt,
             target: States.SellShip,
-          },
-          {
-            cond: (c) => c.strategy?.strategy === ShipStrategy.Change,
-            target: States.Done,
           },
           { target: States.HaltShip },
         ],
       },
     },
     [States.HaltShip]: {
-      entry: () => newOrder(shipId(), ShipOrders.Halt, "Upgrading ship"),
+      entry: (c) => newOrder(c.shipId, ShipOrders.Halt, "Upgrading ship"),
       after: {
         1: States.Done,
       },
@@ -109,12 +91,12 @@ const config: MachineConfig<Context, any, any> = {
     [States.SellShip]: {
       entry: sendParent((c: Context, e) => ({
         type: "STOP_ACTOR",
-        data: shipId(),
+        data: c.shipId,
       })),
       invoke: {
         src: async (c) => {
-          console.warn(`Selling ${shipId()}`);
-          await api.scrapShip(c.token, c.username, shipId());
+          console.warn(`Selling ${c.shipId}`);
+          await api.scrapShip(c.token, c.username, c.shipId);
         },
         onDone: States.BuyShip,
         onError: {
@@ -146,7 +128,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.FlyToShipyard]: {
       entry: assign<Context>({
         flyTo: (c) => {
-          const ship = getShip(shipId());
+          const ship = getShip(c.shipId);
           const shipYards = c.available
             .map((av) =>
               av.purchaseLocations.map((lo) => getLocation(lo.location)!)
@@ -166,10 +148,10 @@ const config: MachineConfig<Context, any, any> = {
       invoke: {
         src: travelToLocationMachine(getDebug().debugUpgradeMachine),
         data: {
-          id: (c: Context) => shipId(),
+          id: (c: Context) => c.shipId,
           token: (c: Context) => c.token,
           username: (c: Context) => c.username,
-          ship: (c: Context) => getShip(shipId()),
+          ship: (c: Context) => getShip(c.shipId),
           destination: (c: Context) => c.flyTo!,
         },
         onDone: States.SellShip,
@@ -207,29 +189,25 @@ const config: MachineConfig<Context, any, any> = {
         src: async (c) => {
           const { autoUpgrades } = getAutomation();
           for (const upgrade of autoUpgrades.filter((p) => p.on)) {
-            const strats = await db.strategies.toArray();
-            const ships = await db.ships.toArray();
+            const ships = getShips();
 
-            const role: ShipStrategy =
-              ShipStrategy[upgrade.role as keyof typeof ShipStrategy];
-            const haveFrom = ships
-              .map((a) => ({
-                shipType: a.type,
-                shipId: a.id,
-                strategy: strats.find((p) => p.shipId === a.id)!,
-              }))
-              .filter(
-                (s) =>
-                  s.shipType === upgrade.fromShipType &&
-                  s.strategy.strategy === role
-              );
-            const haveTo = ships.filter((p) => p.type === upgrade.toShipType);
+            const role: ShipOrders =
+              ShipOrders[upgrade.role as keyof typeof ShipOrders];
+            const currentSourceShips = ships.filter(
+              (ship) =>
+                ship.type === upgrade.fromShipType &&
+                ship.orders.length === 1 &&
+                ship.orders[0].order === role
+            );
+            const currentTargetShips = ships.filter(
+              (p) => p.type === upgrade.toShipType
+            );
             const shouldUpgrade =
               getCredits() >= upgrade.credits &&
-              haveTo.length < upgrade.maxShips &&
-              haveFrom.length > 0;
+              currentTargetShips.length < upgrade.maxShips &&
+              currentSourceShips.length > 0;
             if (shouldUpgrade) {
-              setUpgradingShip(haveFrom[0].shipId, upgrade.toShipType);
+              setUpgradingShip(currentSourceShips[0].id, upgrade.toShipType);
             }
           }
         },

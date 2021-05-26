@@ -1,7 +1,7 @@
 import Bottleneck from "bottleneck";
 import { getGraph, getRoute } from "data/localStorage/graph";
-import db from "../";
-import { IProbe } from "../IProbe";
+import db from ".";
+import { IProbe } from "./IProbe";
 
 const limiter = new Bottleneck({ maxConcurrent: 1 });
 export const getProbeAssignment = async (shipId: string) => {

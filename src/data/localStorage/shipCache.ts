@@ -10,7 +10,10 @@ import { newShipName } from "data/names";
 import { saveNewOrder, completeOrder as saveCompleteOrder } from "data/ships";
 import { getLocation } from "./locationCache";
 import { CachedShip } from "./CachedShip";
+import { FlightPlan } from "api/FlightPlan";
+import { DateTime } from "luxon";
 
+// TODO: switch to dictionary
 const local: { ships: CachedShip[] } = {
   ships: [],
 };
@@ -24,6 +27,26 @@ const addShip = (ship: Ship, name: string, orders: IShipOrder[]) => {
   });
 };
 
+export const newFlightPlan = (flightPlan: FlightPlan | undefined) => {
+  if (flightPlan) {
+    const arrivesAt = DateTime.fromISO(flightPlan.arrivesAt);
+    if (arrivesAt > DateTime.local()) {
+      const ship = self.getShip(flightPlan.shipId);
+      if (ship && ship.flightPlan?.id !== flightPlan.id) {
+        ship.flightPlan = flightPlan;
+        const timeout = DateTime.local().diffNow("milliseconds").milliseconds;
+        console.log(
+          `Will remove flightplan in ${timeout}ms at ${arrivesAt.toISO()}`
+        );
+        setTimeout(() => {
+          ship.location = getLocation(ship.flightPlan!.destination);
+          ship.flightPlan = undefined;
+        }, timeout);
+      }
+    }
+  }
+};
+
 export const load = async () => {
   if (getResetting()) return;
   try {
@@ -31,20 +54,22 @@ export const load = async () => {
     local.ships = [];
     const ships = await shipData.getShips();
 
-    for (const s of ships) {
-      const detail = await db.shipDetail.get(s.id);
+    for (const ship of ships) {
+      const detail = await db.shipDetail.get(ship.id);
       const orders = await db.shipOrders
         .where("[shipId+status+createdAt]")
         .between(
-          [s.id, ShipOrderStatus.Pending, Dexie.minKey],
-          [s.id, ShipOrderStatus.Pending, Dexie.maxKey]
+          [ship.id, ShipOrderStatus.Pending, Dexie.minKey],
+          [ship.id, ShipOrderStatus.Pending, Dexie.maxKey]
         )
         .reverse()
         .toArray();
-      if (!detail) throw new Error(`Could not find name for ${s.id}`);
-      if (!local.ships.find((p) => p.id === s.id)) {
-        addShip(s, detail.name, orders);
+      if (!detail) throw new Error(`Could not find name for ${ship.id}`);
+      if (!local.ships.find((p) => p.id === ship.id)) {
+        addShip(ship, detail.name, orders);
       }
+      const flightPlan = await db.flightPlans.get(ship.id);
+      newFlightPlan(flightPlan);
     }
   } catch (e) {
     console.log("Error loading:", e);
@@ -77,6 +102,11 @@ export const newOrder = async (
 ) => {
   const saved = await saveNewOrder(shipId, order, reason, payload);
   self.getShip(shipId).orders.push(saved);
+};
+
+export const getOrderLabel = (orders: IShipOrder[]) => {
+  if (orders.length > 1) return `${orders[0].order} > ${orders[1].order}`;
+  return orders[0].order;
 };
 
 export const completeOrder = async (shipId: string) => {

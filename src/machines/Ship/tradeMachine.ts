@@ -14,7 +14,6 @@ import { DateTime } from "luxon";
 import db from "../../data";
 import { TradeType } from "../../data/ITrade";
 import { confirmStrategy } from "./confirmStrategy";
-import { initShipMachine } from "./initShipMachine";
 import {
   determineBestTradeRouteByCurrentLocation,
   determineClosestBestTradeRoute,
@@ -25,7 +24,6 @@ import { ShipBaseContext } from "./ShipBaseContext";
 import { printErrorAction, print } from "./printError";
 import { debugShipMachineStates } from "../debugStates";
 import { getCargoQuantity } from "./getCargoQuantity";
-import { IShipDetail } from "../../data/IShipDetail";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
@@ -33,6 +31,7 @@ import { getLastTradeData, newTradeRoute } from "data/tradeData";
 import { getShip, newOrder } from "data/localStorage/shipCache";
 import { ITradeRouteData } from "data/ITradeRouteData";
 import { ShipOrders } from "data/IShipOrder";
+import { reportLastProfit } from "data/ships";
 
 const MAX_CARGO_MOVE = 500;
 
@@ -45,7 +44,6 @@ export type ShouldBuy = {
 
 export enum States {
   Idle = "idle",
-  Init = "init",
   BuyCargo = "buyCargo",
   SellCargo = "sellCargo",
   Done = "done",
@@ -68,9 +66,8 @@ export type ShipActor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
 const config: MachineConfig<Context, any, any> = {
   id: "trade",
-  initial: States.Init,
+  initial: States.GetTradeRoute,
   states: {
-    [States.Init]: initShipMachine<Context>(States.GetTradeRoute),
     [States.GetTradeRoute]: {
       invoke: {
         src: async (c) => {
@@ -88,7 +85,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.Idle]: {
       after: {
         1: [
-          { target: States.TravelToLocation, cond: (c) => !!c.flightPlan },
+          { target: States.TravelToLocation, cond: (c) => !!c.ship.flightPlan },
           { target: States.GetMarket, cond: (c) => !c.gotMarket },
           {
             target: States.SellCargo,
@@ -105,7 +102,7 @@ const config: MachineConfig<Context, any, any> = {
             target: States.Idle,
             cond: (c) =>
               !!c.ship.location &&
-              c.tradeData?.tradeRoute.sellLocation === c.ship.location,
+              c.tradeData?.tradeRoute.sellLocation === c.ship.location?.symbol,
             actions: assign<Context>({ tradeData: undefined }),
           },
           {
@@ -118,7 +115,7 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             target: States.TravelToLocation,
-            cond: (c) => !c.flightPlan && !!c.tradeData,
+            cond: (c) => !c.ship.flightPlan && !!c.tradeData,
           },
           {
             target: States.Done,
@@ -136,7 +133,7 @@ const config: MachineConfig<Context, any, any> = {
         (c) =>
           c.goto ||
           c.tradeData?.tradeRoute.sellLocation ||
-          c.flightPlan!.destination,
+          c.ship.flightPlan!.destination,
         States.Idle,
         getDebug().debugTradeMachine
       ),
@@ -146,7 +143,7 @@ const config: MachineConfig<Context, any, any> = {
         src: async (c) => {
           const tradeRoutes = await determineBestTradeRouteByCurrentLocation(
             c.ship,
-            c.ship.location
+            c.ship.location!.symbol
           );
 
           if (tradeRoutes.length) {
@@ -160,7 +157,7 @@ const config: MachineConfig<Context, any, any> = {
 
           const closest = await determineClosestBestTradeRoute(
             c.ship,
-            c.ship.location
+            c.ship.location?.symbol
           );
 
           if (closest.length) {
@@ -234,7 +231,7 @@ const config: MachineConfig<Context, any, any> = {
               c.id,
               sellOrder.good,
               quantity,
-              c.ship.location!
+              c.ship.location!.symbol
             );
             ship = result.ship!;
             const lastBuy = await db.trades
@@ -257,20 +254,14 @@ const config: MachineConfig<Context, any, any> = {
               type: TradeType.Sell,
               good: sellOrder.good,
               quantity,
-              location: c.ship.location!,
+              location: c.ship.location!.symbol,
               shipId: c.id,
               timestamp: DateTime.now().toISO(),
               profit,
             });
           }
           const totalProfit = runningProfit.reduce((a, b) => a + b, 0);
-          await db.shipDetail
-            .where("shipId")
-            .equals(c.id)
-            .modify({
-              lastProfit: totalProfit,
-              lastProfitCreated: DateTime.now().toISO(),
-            } as Partial<IShipDetail>);
+          await reportLastProfit(c.id, totalProfit);
           return result;
         },
         onError: {
@@ -303,7 +294,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.GetMarket]: {
       invoke: {
         src: (context: Context) =>
-          api.getMarket(context.token, context.ship.location!),
+          api.getMarket(context.token, context.ship.location!.symbol),
         onError: {
           actions: printErrorAction(),
           target: States.Done,

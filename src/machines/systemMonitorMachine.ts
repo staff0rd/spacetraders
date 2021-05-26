@@ -57,7 +57,7 @@ export const getFlightPlans = async (token: string, username: string) => {
     ...new Set(
       ships
         .filter((p) => p.location)
-        .map((p) => getSystemFromLocationSymbol(p.location!))
+        .map((p) => getSystemFromLocationSymbol(p.location!.symbol))
     ),
   ].map((system) => api.getFlightPlans(token, username, system));
 };

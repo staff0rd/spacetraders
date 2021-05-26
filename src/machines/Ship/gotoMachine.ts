@@ -6,7 +6,6 @@ import {
   MachineConfig,
 } from "xstate";
 import db from "../../data";
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { confirmStrategy } from "./confirmStrategy";
 import { debugShipMachineStates } from "machines/debugStates";
@@ -40,9 +39,7 @@ const config: MachineConfig<Context, any, any> = {
       after: {
         1: [
           {
-            cond: (c) =>
-              !!c.flightPlan &&
-              DateTime.fromISO(c.flightPlan.arrivesAt) > DateTime.local(),
+            cond: (c) => !!c.ship.flightPlan,
             target: States.TravelToLocation,
           },
           { target: States.DetermineTradeRoute },
@@ -103,7 +100,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.ConfirmStrategy]: confirmStrategy(States.Idle, States.Done),
     [States.TravelToLocation]: {
       ...travelToLocation<Context>(
-        (c) => c.flightPlan?.destination || c.destination,
+        (c) => c.ship.flightPlan?.destination || c.destination,
         States.SwitchToTrade,
         false
       ),

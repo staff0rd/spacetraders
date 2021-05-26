@@ -4,8 +4,8 @@ import { Context } from "../playerMachine";
 import { haltMachine } from "./haltMachine";
 import { probeMachine } from "./probeMachine";
 import { gotoMachine } from "./gotoMachine";
-import { DateTime } from "luxon";
-import { CachedShip, getShip } from "data/localStorage/shipCache";
+import { getShip } from "data/localStorage/shipCache";
+import { CachedShip } from "data/localStorage/CachedShip";
 import * as api from "api";
 import { ShipOrders } from "data/IShipOrder";
 
@@ -20,8 +20,6 @@ export function spawnShipMachine(c: Context): any {
       api.getShip(c.token!, c.username!, ship.id);
       return;
     }
-    const flightPlanExpired =
-      flightPlan && DateTime.fromISO(flightPlan.arrivesAt) < DateTime.local();
 
     switch (ship.orders[0].order) {
       case ShipOrders.Probe:
@@ -41,7 +39,6 @@ export function spawnShipMachine(c: Context): any {
             token: c.token!,
             username: c.user!.username,
             ship,
-            flightPlan: flightPlanExpired ? undefined : flightPlan,
             shouldCheckOrders: true,
           }),
           { name: `ship-${ship.id}`, sync: true }
@@ -64,7 +61,6 @@ export function spawnShipMachine(c: Context): any {
             token: c.token!,
             username: c.user!.username,
             ship,
-            flightPlan: flightPlanExpired ? undefined : flightPlan,
             destination: ship.orders[0].payload?.destination!,
           })
         );

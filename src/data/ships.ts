@@ -2,7 +2,9 @@ import { Ship } from "api/Ship";
 import Dexie from "dexie";
 import { DateTime } from "luxon";
 import db from "./";
+import { IShipDetail } from "./IShipDetail";
 import { IShipOrder, ShipOrders, ShipOrderStatus } from "./IShipOrder";
+import * as shipCache from "./localStorage/shipCache";
 
 export const refreshShips = async (ships: Ship[]) => {
   await db.ships.clear();
@@ -77,3 +79,14 @@ export const getCurrentShipOrders = (shipId: string) =>
       [shipId, ShipOrderStatus.Pending, Dexie.maxKey]
     )
     .toArray();
+
+export const reportLastProfit = (shipId: string, profit: number) => {
+  shipCache.getShip(shipId).lastProfit = profit;
+  return db.shipDetail
+    .where("shipId")
+    .equals(shipId)
+    .modify({
+      lastProfit: profit,
+      lastProfitCreated: DateTime.now().toISO(),
+    } as Partial<IShipDetail>);
+};

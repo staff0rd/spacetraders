@@ -16,15 +16,17 @@ import db from "data";
 import { DebugCheckbox } from "components/Settings/DebugCheckbox";
 import { getDebug, setDebug } from "data/localStorage/getDebug";
 import { SystemContext } from "machines/MarketContext";
-import { Strategy } from "../Strategy";
+
 import { StrategyChange } from "components/Strategy/StrategyChange";
-import { ShipStrategy } from "data/Strategy/ShipStrategy";
+
 import { Trades } from "./Trades";
 import { Requests } from "./Requests";
 import { Orders } from "./Orders";
 import Dexie from "dexie";
 import * as api from "api";
 import { getLocalUser } from "data/localStorage/getLocalUser";
+import { getOrderLabel, getShip } from "data/localStorage/shipCache";
+import { ShipOrders } from "data/IShipOrder";
 
 const useStyles = makeStyles((theme) => ({
   strategy: {
@@ -46,12 +48,11 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
     setTab(newValue);
   };
 
-  const ship = useLiveQuery(
+  const query = useLiveQuery(
     async () => ({
       flightPlan: await db.flightPlans.get(shipId),
-      strategy: await db.strategies.get(shipId),
       detail: await db.shipDetail.get(shipId),
-      ship: await db.ships.get(shipId),
+      ship: getShip(shipId),
       probe: await db.probes.where("shipId").equals(shipId).first(),
       tradeData: await db.tradeData
         .where("[shipId+created+complete]")
@@ -65,29 +66,31 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
     [shipId]
   );
 
-  if (!ship) return <CircularProgress size={48} />;
+  if (!query) return <CircularProgress size={48} />;
 
   const { token, username } = getLocalUser()!;
   const sellCargo = () => {
-    ship?.ship?.cargo.map((c) =>
+    query?.ship?.cargo.map((c) =>
       api.sellOrder(
         token!,
         username,
-        ship!.ship!.id,
+        query!.ship!.id,
         c!.good,
         c.quantity,
-        ship!.ship!.location!
+        query.ship.location!.symbol
       )
     );
   };
+
+  const cachedShip = getShip(shipId);
 
   return (
     <>
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <Box>
-            <Typography variant="h6">{ship.detail!.name}</Typography>
-            <Typography>{ship.ship?.type}</Typography>
+            <Typography variant="h6">{query.detail!.name}</Typography>
+            <Typography>{query.ship.type}</Typography>
           </Box>
         </Grid>
         <Grid item xs={6}>
@@ -112,36 +115,29 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
           <Box>
             <Typography variant="h6">State</Typography>
             <Box className={classes.strategy}>
-              <Strategy strategy={ship?.strategy} />
-              {ship &&
-                ship.probe &&
-                ship.strategy &&
-                ship.strategy.strategy === ShipStrategy.Probe && (
+              <Typography>{getOrderLabel(query.ship.orders)}</Typography>
+              {query &&
+                query.probe &&
+                cachedShip.orders[0].order === ShipOrders.Probe && (
                   <div className={classes.probeLabel}>
-                    {ship.probe.location}
+                    {query.probe.location}
                   </div>
                 )}
-              {ship && ship.strategy && (
-                <StrategyChange
-                  ship={{
-                    id: shipId,
-                    strategy: ShipStrategy[ship!.strategy!.strategy],
-                  }}
-                />
-              )}
+
+              <StrategyChange ship={cachedShip} />
             </Box>
             <FlightProgress
-              flightPlan={ship.flightPlan}
+              flightPlan={query.flightPlan}
               fallback={
                 <>
-                  {ship.ship?.location || ""} {actor?.state.value}{" "}
+                  {query.ship?.location || ""} {actor?.state.value}{" "}
                 </>
               }
             />
           </Box>
         </Grid>
         <Grid item xs={6}>
-          <Cargo ship={ship!.ship} />
+          <Cargo ship={query.ship} />
         </Grid>
       </Grid>
       <Tabs value={tab} onChange={handleTabChange}>

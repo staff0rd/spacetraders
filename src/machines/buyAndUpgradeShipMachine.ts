@@ -57,6 +57,7 @@ const config: MachineConfig<Context, any, any> = {
             username: c.username,
             token: c.token,
             available: c.availableShips,
+            shipId: getUpgradingShip()!.fromShipId,
           }),
         onDone: States.Wait,
         onError: States.Wait,

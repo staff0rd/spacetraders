@@ -1,9 +1,9 @@
 import { useState } from "react";
 import MenuIcon from "@material-ui/icons/MoreVert";
 import { makeStyles, IconButton, Menu, MenuItem } from "@material-ui/core";
-import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { SelectLocationDialog } from "./SelectLocationDialog";
 import { newOrder } from "data/localStorage/shipCache";
+import { CachedShip } from "data/localStorage/CachedShip";
 import { ShipOrders } from "data/IShipOrder";
 
 const useStyles = makeStyles(() => ({
@@ -12,21 +12,16 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-interface IShip {
-  id: string;
-  strategy: string;
-}
-
 type Props = {
-  ship: IShip | IShip[];
+  ship: CachedShip | CachedShip[];
 };
 
 export const StrategyChange = ({ ship }: Props) => {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedShip, setSelectedShip] = useState<null | IShip | IShip[]>(
-    null
-  );
+  const [selectedShip, setSelectedShip] = useState<
+    null | CachedShip | CachedShip[]
+  >(null);
   const [selectLocationDialogOpen, setSelectLocationDialogOpen] = useState(
     false
   );
@@ -61,7 +56,7 @@ export const StrategyChange = ({ ship }: Props) => {
 
   const handleClick = (
     event: React.MouseEvent<HTMLButtonElement>,
-    ship?: IShip | IShip[]
+    ship?: CachedShip | CachedShip[]
   ) => {
     setAnchorEl(event.currentTarget);
     setSelectedShip(ship || null);
@@ -81,9 +76,8 @@ export const StrategyChange = ({ ship }: Props) => {
         open={Boolean(anchorEl)}
         onClose={() => handleClose()}
       >
-        {Object.keys(ShipStrategy)
+        {Object.keys(ShipOrders)
           .filter((p) => isNaN(+p))
-          .filter((p) => p !== "Change")
           .map((s) => (
             <MenuItem
               key={s}
@@ -102,7 +96,7 @@ export const StrategyChange = ({ ship }: Props) => {
           open={selectLocationDialogOpen}
           setOpen={setSelectLocationDialogOpen}
           action={(location) =>
-            handleClose(ShipStrategy[ShipStrategy.GoTo], { location })
+            handleClose(ShipOrders[ShipOrders.GoTo], { location })
           }
           cancel={cancel}
         />

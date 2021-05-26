@@ -16,17 +16,15 @@ import {
   useTheme,
   useMediaQuery,
 } from "@material-ui/core";
-import { ShipStrategy } from "../../data/Strategy/ShipStrategy";
 import db from "../../data";
-import { useLiveQuery } from "dexie-react-hooks";
 import { Probes } from "./Probes";
 import { StrategyChange } from "./StrategyChange";
 import { DataTable, right } from "../DataTable";
 import FlightProgress from "../Ships/FlightProgress";
 import NumberFormat from "react-number-format";
 import { Link } from "react-router-dom";
-
-import { ExtendedShip } from "./ExtendedShip";
+import { getShips, getOrderLabel } from "data/localStorage/shipCache";
+import { ShipOrders } from "data/IShipOrder";
 
 const useStyles = makeStyles((theme) => ({
   shipState: {
@@ -69,40 +67,11 @@ export const Strategy = ({ state }: Props) => {
   const [shipFilter, setShipFilter] = useState("");
   const [shipLimit, setShipLimit] = useState<number | "">("");
 
-  const ships = useLiveQuery(async () => {
-    const details = await db.shipDetail.filter((p) => !p.deleted).toArray();
-    const strats = await db.strategies.toArray();
-    const ships = await db.ships.toArray();
-    const flightPlans = await db.flightPlans.toArray();
-    return details.map(
-      (detail): ExtendedShip => {
-        const ship = ships.find((s) => s.id === detail.shipId);
-        const strategy =
-          ShipStrategy[
-            strats.find((s) => detail.shipId === s.shipId)?.strategy ||
-              ShipStrategy.Trade
-          ];
-        const flightPlan = flightPlans.find(
-          (fp) => fp.shipId === detail.shipId
-        );
-        const locationName = ship?.location || "";
-        return {
-          ...detail,
-          ...ship,
-          strategy,
-          flightPlan,
-          locationName,
-        } as ExtendedShip;
-      }
-    );
-  });
-
-  const strategies = useLiveQuery(() => db.strategies.toArray());
+  const ships = getShips();
 
   if (
     !state ||
     !state.context.actors.length ||
-    !strategies ||
     !ships ||
     !state.context.systems
   )
@@ -119,8 +88,12 @@ export const Strategy = ({ state }: Props) => {
     (ship) =>
       shipFilter === "" ||
       ship.name.toLowerCase().includes(shipFilter.toLowerCase()) ||
-      ship.strategy.toLowerCase().includes(shipFilter.toLowerCase()) ||
-      ship.locationName.toLowerCase().includes(shipFilter.toLowerCase()) ||
+      ShipOrders[ship.orders[0].order]
+        .toLowerCase()
+        .includes(shipFilter.toLowerCase()) ||
+      (ship.location?.name || "")
+        .toLowerCase()
+        .includes(shipFilter.toLowerCase()) ||
       ship.type?.toLowerCase().includes(shipFilter.toLowerCase())
   );
 
@@ -132,7 +105,7 @@ export const Strategy = ({ state }: Props) => {
     ship.id,
     <div className={classes.strategy}>
       <StrategyChange ship={ship} />
-      {ship.strategy}
+      {getOrderLabel(ship.orders)}
     </div>,
     ...(isMdDown
       ? [
@@ -161,18 +134,10 @@ export const Strategy = ({ state }: Props) => {
     ship.flightPlan ? (
       <FlightProgress flightPlan={ship.flightPlan} />
     ) : (
-      ship.locationName
+      ship.location?.name
     ),
   ]);
 
-  const shipWithUndefinedId = ships.find((s) => !s.id);
-  if (shipWithUndefinedId) {
-    db.shipDetail
-      .where("shipId")
-      .equals(shipWithUndefinedId.shipId)
-      .modify({ deleted: true });
-    throw new Error("Found ship with undefinedid");
-  }
   return (
     <>
       <Grid container>

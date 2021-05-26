@@ -15,13 +15,13 @@ import { MarketContext, SystemContext } from "./MarketContext";
 import { AvailableShip } from "../api/AvailableShip";
 import { calculateNetWorth } from "./calculateNetWorth";
 import { NetWorthLineItem } from "./NetWorthLineItem";
-import { Ship } from "../api/Ship";
 import { FlightPlan } from "../api/FlightPlan";
 import { spawnShipMachine } from "./Ship/spawnShipMachine";
 import { getLocalUser } from "../data/localStorage/getLocalUser";
 import { IAutomation } from "../data/localStorage/IAutomation";
 import { getDebug } from "../data/localStorage/getDebug";
-import { CachedShip, getShips } from "data/localStorage/shipCache";
+import { getShips } from "data/localStorage/shipCache";
+import { CachedShip } from "data/localStorage/CachedShip";
 import {
   SystemMonitorActor,
   systemMonitorMachine,
@@ -333,7 +333,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
         ...new Set(
           ships
             .filter((p) => p.location)
-            .map((p) => getSystemFromLocationSymbol(p.location!))
+            .map((p) => getSystemFromLocationSymbol(p.location!.symbol))
         ),
       ].map((system) => api.getFlightPlans(c.token!, c.username!, system));
     },
@@ -343,7 +343,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
           (actor) => actor?.state.context.id
         );
 
-        const toSpawn: CachedShip[] = getShips().filter((s: Ship) => {
+        const toSpawn: CachedShip[] = getShips().filter((s: CachedShip) => {
           const alreadySpawned = alreadySpawnedShipIds.find(
             (id) => id === s.id
           );

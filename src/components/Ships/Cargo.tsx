@@ -1,10 +1,10 @@
-import { Ship } from "../../api/Ship";
 import { CircularProgress } from "@material-ui/core";
 import { DataTable } from "../DataTable";
 import { GoodIcon } from "components/Trades/GoodIcon";
+import { CachedShip } from "data/localStorage/CachedShip";
 
 type Props = {
-  ship?: Ship;
+  ship?: CachedShip;
 };
 
 const CargoComponent = ({ ship }: Props) => {

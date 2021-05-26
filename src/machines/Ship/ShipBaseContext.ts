@@ -1,10 +1,4 @@
-import { FlightPlan } from "../../api/FlightPlan";
-import { Location } from "../../api/Location";
-import { Ship } from "../../api/Ship";
-
-export type ShipResponseContext = {
-  ship: Ship;
-};
+import { CachedShip } from "data/localStorage/CachedShip";
 
 export type UserContext = {
   token: string;
@@ -19,9 +13,8 @@ export type ShipOrdersContext = {
 export type ShipBaseContext = UserContext &
   ShipContext &
   ShipOrdersContext & {
-    flightPlan?: FlightPlan;
-    location?: Location;
-  } & ShipResponseContext;
+    ship: CachedShip;
+  };
 
 export type ShipContext = {
   id: string;

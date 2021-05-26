@@ -7,6 +7,7 @@ import * as determineTradeRoutes from "machines/Ship/determineBestTradeRoute";
 import { TradeRoute } from "machines/Ship/TradeRoute";
 import { createTradeRoute } from "./objectMother";
 import { DateTime } from "luxon";
+import { CachedShip } from "data/localStorage/CachedShip";
 
 export const waitForMachine = (
   machine: any,
@@ -49,7 +50,7 @@ export const mockGetters = ({
 }: {
   credits?: number;
   tickDelay?: number;
-  ships?: shipCache.CachedShip[];
+  ships?: CachedShip[];
   bestTradeRoutes?: TradeRoute[];
 } = {}) => {
   jest.spyOn(getCredits, "getCredits").mockReturnValue(credits);

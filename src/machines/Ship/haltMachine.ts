@@ -2,19 +2,15 @@ import {
   ActorRefFrom,
   createMachine,
   EventObject,
-  MachineOptions,
   StateMachine,
   MachineConfig,
 } from "xstate";
-import { Ship } from "../../api/Ship";
-import db from "../../data";
 import { ShipBaseContext } from "./ShipBaseContext";
 import { confirmStrategy } from "./confirmStrategy";
 import { debugShipMachineStates } from "machines/debugStates";
 
 enum States {
   Waiting = "waiting",
-  CheckStrategy = "checkStrategy",
   UpdateStrategy = "updateStrategy",
   Done = "done",
   ConfirmStrategy = "confirmStrategy",
@@ -27,12 +23,6 @@ export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 const config: MachineConfig<Context, any, any> = {
   id: "halt",
   initial: States.Waiting,
-  context: {
-    id: "",
-    token: "",
-    username: "",
-    ship: {} as Ship,
-  },
   states: {
     [States.Waiting]: {
       after: {
@@ -45,16 +35,5 @@ const config: MachineConfig<Context, any, any> = {
     [States.ConfirmStrategy]: confirmStrategy(States.Waiting, States.Done),
   },
 };
-const options: Partial<MachineOptions<Context, any>> = {
-  services: {
-    checkStrategy: async (c) => {
-      const strategy = await db.strategies.where({ shipId: c.id }).first();
-      return strategy;
-    },
-  },
-};
 
-export const haltMachine = createMachine(
-  debugShipMachineStates(config),
-  options
-);
+export const haltMachine = createMachine(debugShipMachineStates(config));

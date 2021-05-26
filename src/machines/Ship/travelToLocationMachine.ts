@@ -7,7 +7,6 @@ import {
   sendParent,
   StateMachine,
 } from "xstate";
-import { Ship } from "../../api/Ship";
 import db from "../../data";
 import { FlightPlan } from "../../api/FlightPlan";
 import * as api from "../../api";
@@ -21,6 +20,7 @@ import { getShip, newOrder } from "data/localStorage/shipCache";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
 import { ShipOrders } from "data/IShipOrder";
+import { CachedShip } from "data/localStorage/CachedShip";
 
 const throwError = (message: string) => {
   console.warn(message);
@@ -32,7 +32,6 @@ enum States {
   InTransit = "InTransit",
   BuyFuel = "buyFuel",
   GetShip = "getShip",
-  GetFlightPlan = "getFlightPlan",
   CreateFlightPlan = "createFlightPlan",
   CalculateNeededFuel = "calculateNeededFuel",
   Done = "done",
@@ -42,7 +41,7 @@ enum States {
 export type Context = {
   token: string;
   username: string;
-  ship: Ship;
+  ship: CachedShip;
   destination: string;
   flightPlan?: FlightPlan;
   neededFuel?: number;
@@ -55,14 +54,6 @@ export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 const config: MachineConfig<Context, any, any> = {
   id: "travel",
   initial: States.GetShip,
-  context: {
-    id: "",
-    token: "",
-    username: "",
-    ship: {} as Ship,
-    destination: "",
-    nextStop: "",
-  },
   states: {
     [States.Wait]: {
       after: {
@@ -78,21 +69,16 @@ const config: MachineConfig<Context, any, any> = {
           {
             target: States.Done,
             actions: assign<Context>({ success: true }) as any,
-            cond: (c) => c.destination === c.ship?.location,
+            cond: (c) => c.destination === c.ship.location?.symbol,
           },
           {
             target: States.CalculateNeededFuel,
             cond: (c) => c.neededFuel === undefined && !!c.ship.location,
           },
           {
-            target: States.GetFlightPlan,
-            cond: (c) =>
-              !c.ship.location && !c.flightPlan && !!c.ship.flightPlanId,
-          },
-          {
             target: States.GetShip,
             cond: (c) =>
-              !c.ship.location && !c.flightPlan && !c.ship.flightPlanId,
+              !c.ship.location && !c.flightPlan && !c.ship.flightPlan,
           },
           { target: States.InTransit, cond: (c) => !!c.flightPlan },
           {
@@ -133,13 +119,13 @@ const config: MachineConfig<Context, any, any> = {
               c.id,
               sellGood,
               1,
-              c.ship.location
+              c.ship.location!.symbol
             );
           }
 
           const fuel = await db.goodLocation
             .where("[location+good]")
-            .equals([c.ship.location!, "FUEL"])
+            .equals([c.ship.location!.symbol, "FUEL"])
             .last();
           const cost = fuel!.purchasePricePerUnit * neededFuel;
           if (cost > getCredits()) {
@@ -157,7 +143,7 @@ const config: MachineConfig<Context, any, any> = {
             c.id,
             "FUEL",
             neededFuel,
-            c.ship.location!,
+            c.ship.location!.symbol,
             0
           );
 
@@ -199,23 +185,6 @@ const config: MachineConfig<Context, any, any> = {
         },
       },
     },
-    [States.GetFlightPlan]: {
-      invoke: {
-        src: (c) => api.getFlightPlan(c.token, c.ship.flightPlanId!),
-        onDone: {
-          actions: [
-            assign<Context>({
-              flightPlan: (c, e: any) => e.data.flightPlan,
-            }) as any,
-            sendParent((c, e: any) => ({
-              type: "FLIGHTPLAN_UPDATE",
-              data: e.data.flightPlan,
-            })),
-          ],
-          target: States.Idle,
-        },
-      },
-    },
     [States.CreateFlightPlan]: {
       invoke: {
         src: (c) =>
@@ -223,7 +192,7 @@ const config: MachineConfig<Context, any, any> = {
             c.token,
             c.username,
             c.id,
-            c.ship.location!,
+            c.ship.location!.symbol,
             c.nextStop!
           ),
         onError: {
@@ -264,7 +233,7 @@ const config: MachineConfig<Context, any, any> = {
           const { graph, warps } = getGraph();
           const route = getRoute(
             graph,
-            c.ship.location!,
+            c.ship.location!.symbol,
             c.destination,
             c.ship,
             warps
@@ -297,7 +266,6 @@ const config: MachineConfig<Context, any, any> = {
           actions: assign<Context>({
             neededFuel: undefined,
             nextStop: undefined,
-            ship: (c) => ({ ...c.ship, location: c.nextStop }),
             success: true,
             flightPlan: undefined,
           }) as any,

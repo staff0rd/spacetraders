@@ -2,7 +2,7 @@ import { Location } from "api/Location";
 import { User } from "api/User";
 import { System } from "api/System";
 import { range } from "lodash";
-import { CachedShip } from "data/localStorage/shipCache";
+import { CachedShip } from "data/localStorage/CachedShip";
 import { DateTime } from "luxon";
 import { IShipOrder, ShipOrders, ShipOrderStatus } from "data/IShipOrder";
 import { TradeRoute } from "machines/Ship/TradeRoute";
@@ -41,7 +41,7 @@ export const createTradeRoute = (
 
 export const createShip = (ship: Partial<CachedShip> = {}): CachedShip => ({
   id: "my-ship-id",
-  location: "OE-PM-TR",
+  location: createLocation(),
   x: 21,
   y: -24,
   cargo: [],
@@ -58,11 +58,18 @@ export const createShip = (ship: Partial<CachedShip> = {}): CachedShip => ({
   ...ship,
 });
 
+const cachedShipToShip = (ship: CachedShip) => {
+  return {
+    ...ship,
+    location: ship.location?.symbol,
+  };
+};
+
 export const createUser = (user: Partial<User> = {}): User => ({
   ...user,
   username: "username",
   credits: 178875,
-  ships: [createShip()],
+  ships: [cachedShipToShip(createShip())],
   loans: [
     {
       id: "ckok4q12z144873615s655uy8ch2",

@@ -278,7 +278,6 @@ export const getShips = async (
 
 const clearShipFromDatabase = async (shipId: string) => {
   console.warn("Deleting ship");
-  await db.strategies.delete(shipId);
   await db.shipOrders.where("shipId").equals(shipId).delete();
   await db.ships.delete(shipId);
   await db.flightPlans.delete(shipId);
@@ -424,6 +423,9 @@ export const getFlightPlans = async (
         `game/systems/${symbol}/flight-plans`
       ),
     async (result) => {
+      result.flightPlans
+        .filter((fp) => fp.username === username)
+        .forEach((fp) => shipCache.newFlightPlan(fp));
       result.flightPlans.map((fp) => flightPlanToIntel(fp));
       await Promise.all(
         result.flightPlans
@@ -481,6 +483,7 @@ export const newFlightPlan = async (
     ),
   ];
   await shipCache.saveShip(ship!);
+  shipCache.newFlightPlan(result.flightPlan);
   flightPlanToIntel(result.flightPlan);
   return result;
 };
