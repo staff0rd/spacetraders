@@ -1,4 +1,5 @@
 import { Typography } from "@material-ui/core";
+import { getSystemFromLocationSymbol } from "data/localStorage/getSystemFromLocationSymbol";
 import { useLiveQuery } from "dexie-react-hooks";
 import db from "../../data";
 
@@ -12,10 +13,10 @@ export const Probes = () => {
   if (!probes) return <></>;
 
   probes.forEach((p) => {
-    const system = p.location.substring(0, 2);
+    const system = getSystemFromLocationSymbol(p.location);
     if (!systems.find((s) => s.symbol === system)) {
       const locations = probes.filter(
-        (p) => p.location.substring(0, 2) === system
+        (p) => getSystemFromLocationSymbol(p.location) === system
       );
       const probeCount = locations.filter((p) => !!p.shipId).length;
       systems.push({

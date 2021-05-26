@@ -8,6 +8,7 @@ import {
 import { debugMachineStates } from "./debugStates";
 import { getShips } from "data/localStorage/shipCache";
 import * as api from "api";
+import { getSystemFromLocationSymbol } from "data/localStorage/getSystemFromLocationSymbol";
 
 export type SystemMonitorActor = ActorRefFrom<StateMachine<Context, any, any>>;
 
@@ -54,7 +55,9 @@ export const getFlightPlans = async (token: string, username: string) => {
   const ships = getShips();
   [
     ...new Set(
-      ships.filter((p) => p.location).map((p) => p.location!.substring(0, 2))
+      ships
+        .filter((p) => p.location)
+        .map((p) => getSystemFromLocationSymbol(p.location!))
     ),
   ].map((system) => api.getFlightPlans(token, username, system));
 };

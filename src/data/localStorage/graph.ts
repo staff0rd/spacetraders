@@ -6,12 +6,13 @@ import { getFromToSystems, getLocationFuelNeeded } from "data/getFuelNeeded";
 import { distancePoint } from "components/Locations/Map/geometry";
 import { Route } from "./Route";
 import { ITradeShip } from "machines/Ship/ITradeShip";
+import { getSystemFromLocationSymbol } from "./getSystemFromLocationSymbol";
 
-const getSystems = (locations: Location[]): string[] => {
+export const getSystems = (locations: Location[]): string[] => {
   const set = new Set(
     locations.map((location) => {
       if (!location.symbol) console.warn(location);
-      return location.symbol.substring(0, 2);
+      return getSystemFromLocationSymbol(location.symbol);
     })
   );
   return [...set];
@@ -172,18 +173,18 @@ const isWarp = (from: Location, to: Location) => {
 
 function getDistance(from: Location, to: Location, warps: Location[]) {
   if (isWarp(from, to)) {
-    const warpFrom = warps.find((p) =>
-      p.symbol.startsWith(from.symbol.substring(0, 2))
+    const warpFromSystem = warps.find((p) =>
+      p.symbol.startsWith(getSystemFromLocationSymbol(from.symbol))
     );
-    if (!warpFrom) throw new Error("Could not find warpFrom");
+    if (!warpFromSystem) throw new Error("Could not find warpFromSystem");
     const warpTo = warps.find((p) =>
-      p.symbol.startsWith(to.symbol.substring(0, 2))
+      p.symbol.startsWith(getSystemFromLocationSymbol(to.symbol))
     );
-    if (!warpTo) throw new Error("Could not find warpTo");
+    if (!warpTo) throw new Error("Could not find warpToSystem");
 
     if (
-      (from.symbol === warpFrom.symbol && to.symbol === warpTo.symbol) ||
-      (from.symbol === warpTo.symbol && to.symbol === warpFrom.symbol)
+      (from.symbol === warpFromSystem.symbol && to.symbol === warpTo.symbol) ||
+      (from.symbol === warpTo.symbol && to.symbol === warpFromSystem.symbol)
     ) {
       // is WORMHOLE
       //console.log("wormhole!");
@@ -194,7 +195,7 @@ function getDistance(from: Location, to: Location, warps: Location[]) {
       // );
     }
 
-    const fromDistance = distancePoint(warpFrom, from);
+    const fromDistance = distancePoint(warpFromSystem, from);
     const toDistance = distancePoint(warpTo, to);
 
     return fromDistance + toDistance;

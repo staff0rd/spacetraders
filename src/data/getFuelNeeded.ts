@@ -1,5 +1,6 @@
 import { Location } from "api/Location";
 import { distancePoint } from "components/Locations/Map/geometry";
+import { getSystemFromLocationSymbol } from "./localStorage/getSystemFromLocationSymbol";
 import { getWarp } from "./localStorage/locationCache";
 
 const shipPenalty = (shipType: string) => {
@@ -58,7 +59,7 @@ const getFuelNeeded = (
 };
 
 export function getFromToSystems(from: Location, to: Location) {
-  const fromSystem = from.symbol.substring(0, 2);
-  const toSystem = to.symbol.substring(0, 2);
+  const fromSystem = getSystemFromLocationSymbol(from.symbol);
+  const toSystem = getSystemFromLocationSymbol(to.symbol);
   return { fromSystem, toSystem };
 }

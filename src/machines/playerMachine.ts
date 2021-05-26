@@ -34,6 +34,7 @@ import {
 import { IShipOrder, ShipOrders } from "data/IShipOrder";
 import { debugMachineStates } from "./debugStates";
 import { getTickDelay } from "./config";
+import { getSystemFromLocationSymbol } from "data/localStorage/getSystemFromLocationSymbol";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -332,7 +333,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
         ...new Set(
           ships
             .filter((p) => p.location)
-            .map((p) => p.location!.substring(0, 2))
+            .map((p) => getSystemFromLocationSymbol(p.location!))
         ),
       ].map((system) => api.getFlightPlans(c.token!, c.username!, system));
     },
