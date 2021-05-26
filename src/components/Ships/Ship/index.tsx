@@ -21,6 +21,7 @@ import { StrategyChange } from "components/Strategy/StrategyChange";
 import { ShipStrategy } from "data/Strategy/ShipStrategy";
 import { Trades } from "./Trades";
 import { Requests } from "./Requests";
+import { Orders } from "./Orders";
 import Dexie from "dexie";
 import * as api from "api";
 import { getLocalUser } from "data/localStorage/getLocalUser";
@@ -144,11 +145,13 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
         </Grid>
       </Grid>
       <Tabs value={tab} onChange={handleTabChange}>
-        <Tab label="Recent trades" />
-        <Tab label="Recent Requests" />
+        <Tab label="Trades" />
+        <Tab label="Orders" />
+        <Tab label="Requests" />
       </Tabs>
       {tab === 0 && <Trades shipId={shipId} />}
-      {tab === 1 && <Requests shipId={shipId} />}
+      {tab === 1 && <Orders shipId={shipId} />}
+      {tab === 2 && <Requests shipId={shipId} />}
     </>
   );
 };

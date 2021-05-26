@@ -51,7 +51,7 @@ export const clearProbes = async (shipId: string) => {
 
 export const getAllCurrentShipOrders = () =>
   db.shipOrders
-    .where("[shipId+status+created]")
+    .where("[shipId+status+createdAt]")
     .between(
       [Dexie.minKey, ShipOrderStatus.Pending, Dexie.minKey],
       [Dexie.maxKey, ShipOrderStatus.Pending, Dexie.maxKey]
@@ -60,7 +60,7 @@ export const getAllCurrentShipOrders = () =>
 
 export const getRecentShipOrders = (shipId: string) =>
   db.shipOrders
-    .where("[shipId+status+created]")
+    .where("[shipId+status+createdAt]")
     .between(
       [shipId, Dexie.minKey, Dexie.minKey],
       [shipId, Dexie.maxKey, Dexie.maxKey]
@@ -71,7 +71,7 @@ export const getRecentShipOrders = (shipId: string) =>
 
 export const getCurrentShipOrders = (shipId: string) =>
   db.shipOrders
-    .where("[shipId+status+created]")
+    .where("[shipId+status+createdAt]")
     .between(
       [shipId, ShipOrderStatus.Pending, Dexie.minKey],
       [shipId, ShipOrderStatus.Pending, Dexie.maxKey]

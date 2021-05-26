@@ -32,7 +32,7 @@ export const load = async () => {
     for (const s of ships) {
       const detail = await db.shipDetail.get(s.id);
       const orders = await db.shipOrders
-        .where("[shipId+status+created]")
+        .where("[shipId+status+createdAt]")
         .between(
           [s.id, ShipOrderStatus.Pending, Dexie.minKey],
           [s.id, ShipOrderStatus.Pending, Dexie.maxKey]
