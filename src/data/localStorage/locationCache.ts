@@ -17,7 +17,7 @@ export const getLocationName = (symbol: string): string | undefined => {
   const location = getLocation(symbol);
   if (location) {
     if (location.name === "Wormhole") {
-      return `${location.name} ${location.symbol.substring(0, 5)}`;
+      return location.symbol.replace("-W-", " > ");
     }
     return location.name;
   }
@@ -69,11 +69,7 @@ export function findWarpsFrom(
   toSystem: string
 ) {
   return {
-    enter: locations.find((p) =>
-      p.symbol.startsWith(`${fromSystem}-${toSystem}-`)
-    )!,
-    exit: locations.find((p) =>
-      p.symbol.startsWith(`${toSystem}-${fromSystem}-`)
-    )!,
+    enter: locations.find((p) => p.symbol === `${fromSystem}-W-${toSystem}`)!,
+    exit: locations.find((p) => p.symbol === `${toSystem}-W-${fromSystem}`)!,
   };
 }

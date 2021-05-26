@@ -86,11 +86,16 @@ export const getRoute = (
 ) => {
   const pathFinder = aStar<Location, Location>(graph, {
     distance(fromNode, toNode) {
+      const fromSystem = getSystemFromLocationSymbol(fromNode.data.symbol);
+      const toSystem = getSystemFromLocationSymbol(toNode.data.symbol);
+      if (
+        fromSystem !== toSystem &&
+        !warps.map((w) => w.symbol).includes(`${fromSystem}-W-${toSystem}`)
+      ) {
+        return Infinity; // TODO: Enable pathfinding across multiple warps
+      }
       const distance = getDistance(fromNode.data, toNode.data, warps);
       const fuel = getLocationFuelNeeded(fromNode.data, toNode.data, ship.type);
-      // console.warn(
-      //   `${fromNode.id}>>${toNode.id} - distance: ${distance}, fuel: ${fuel}`
-      // );
       if (fuel > ship.maxCargo) return Infinity;
       //if (hasGood(toNode.data, "FUEL") === 0) return distance + 100; // no fuel penalty
       return distance;
