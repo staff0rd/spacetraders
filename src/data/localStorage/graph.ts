@@ -22,10 +22,15 @@ const getLocationsBySystem = (system: string, locations: Location[]) => {
   return locations.filter((p) => p.symbol.startsWith(system));
 };
 
-const findWarp = (a: string, b: string, locations: Location[]) => {
+const findConnectedWormholes = (
+  fromSystem: string,
+  toSystem: string,
+  locations: Location[]
+) => {
   return locations.filter(
     (x) =>
-      x.symbol.startsWith(`${a}-${b}-`) || x.symbol.startsWith(`${b}-${a}-`)
+      x.symbol === `${fromSystem}-W-${toSystem}` ||
+      x.symbol === `${toSystem}-W-${fromSystem}`
   );
 };
 
@@ -57,17 +62,9 @@ export const getGraph = () => {
     });
   });
 
-  const warps: Location[] = [];
-  systems.forEach((a) => {
-    systems.forEach((b) => {
-      const warp = findWarp(a, b, locations);
-      if (warp.length) {
-        if (warp.length !== 2) throw new Error("Unexpected warp count");
-        warps.push(warp[0], warp[1]);
-        addLink(warp[0], warp[1], graph);
-      }
-    });
-  });
+  const warps: Location[] = getWormholes(systems, locations, (a, b) =>
+    addLink(a, b, graph)
+  );
 
   const notWormholes = locations.filter((p) => p.type !== "WORMHOLE");
 
@@ -167,8 +164,30 @@ const insertWarps = (routes: Route[]) => {
   return result;
 };
 
-const isWarp = (from: Location, to: Location) => {
-  return from.symbol.substring(0, 2) !== to.symbol.substring(0, 2);
+const isWarp = (from: Location, to: Location) =>
+  getSystemFromLocationSymbol(from.symbol) !==
+  getSystemFromLocationSymbol(to.symbol);
+
+export const getWormholes = (
+  systems: string[],
+  locations: Location[],
+  connectedWormholeCallback?: (a: Location, b: Location) => void
+) => {
+  const warps: Location[] = [];
+  systems.forEach((systemA) => {
+    systems.forEach((systemB) => {
+      const warp = findConnectedWormholes(systemA, systemB, locations);
+      if (warp.length) {
+        if (warp.length !== 2) throw new Error("Unexpected warp count");
+        if (!warps.includes(warp[0])) {
+          warps.push(warp[0], warp[1]);
+          connectedWormholeCallback &&
+            connectedWormholeCallback(warp[0], warp[1]);
+        }
+      }
+    });
+  });
+  return warps;
 };
 
 function getDistance(from: Location, to: Location, warps: Location[]) {
