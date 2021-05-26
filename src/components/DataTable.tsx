@@ -6,7 +6,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import Paper from "@material-ui/core/Paper";
 import { IconButton, makeStyles } from "@material-ui/core";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
@@ -80,7 +80,7 @@ export const DataTable = ({
         )}
         <TableBody>
           {rows.map((row, ix) => (
-            <>
+            <Fragment key={ix}>
               <TableRow
                 className={rowClassName ? rowClassName(ix) : ""}
                 key={firstColumnIsRowKey ? String(row[0]) : ix}
@@ -115,7 +115,7 @@ export const DataTable = ({
                   </TableCell>
                 </TableRow>
               )}
-            </>
+            </Fragment>
           ))}
         </TableBody>
       </Table>
