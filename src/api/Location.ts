@@ -8,7 +8,7 @@ export interface Location {
   name: string;
   x: number;
   y: number;
-  ships: Ship[];
+  ships?: Ship[];
   anomaly?: string;
   marketplace?: Marketplace[];
   messages?: string[];
