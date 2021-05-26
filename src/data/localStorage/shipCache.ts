@@ -8,18 +8,20 @@ import { IShipOrder, ShipOrders, ShipOrderStatus } from "data/IShipOrder";
 import Dexie from "dexie";
 import { newShipName } from "data/names";
 import { saveNewOrder, completeOrder as saveCompleteOrder } from "data/ships";
-
-export type CachedShip = Ship & {
-  name: string;
-  orders: IShipOrder[];
-};
+import { getLocation } from "./locationCache";
+import { CachedShip } from "./CachedShip";
 
 const local: { ships: CachedShip[] } = {
   ships: [],
 };
 
 const addShip = (ship: Ship, name: string, orders: IShipOrder[]) => {
-  local.ships.push({ ...ship, name, orders });
+  local.ships.push({
+    ...ship,
+    name,
+    orders,
+    location: getLocation(ship.location),
+  });
 };
 
 export const load = async () => {
@@ -54,15 +56,16 @@ export const saveShips = async (ships: Ship[]) => {
   await self.load();
 };
 
-export const saveShip = async (ship: Ship) => {
-  await db.ships.put(ship);
-  local.ships = local.ships.map((s) =>
-    s.id === ship.id
+export const saveShip = async (updatedShip: Ship) => {
+  await db.ships.put(updatedShip);
+  local.ships = local.ships.map((ship) =>
+    ship.id === updatedShip.id
       ? {
-          ...s,
           ...ship,
+          ...updatedShip,
+          location: getLocation(updatedShip.location),
         }
-      : s
+      : ship
   );
 };
 

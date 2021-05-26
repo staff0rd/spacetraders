@@ -9,8 +9,8 @@ type FuelCache = { [key: string]: { cost: number; available: number } };
 
 export const fuelCache: FuelCache = {};
 
-export const getLocation = (symbol: string): Location | undefined => {
-  return locations[symbol];
+export const getLocation = (symbol?: string): Location | undefined => {
+  if (symbol) return locations[symbol];
 };
 
 export const getLocationName = (symbol: string): string | undefined => {
