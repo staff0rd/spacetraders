@@ -10,7 +10,13 @@ import { fade } from "@material-ui/core/styles/colorManipulator";
 import clsx from "clsx";
 import { getLocation } from "data/localStorage/locationCache";
 import { Trades } from "./Trades";
-import { makeStyles, Typography, FormControl } from "@material-ui/core";
+import {
+  makeStyles,
+  Typography,
+  FormControl,
+  useTheme,
+  useMediaQuery,
+} from "@material-ui/core";
 import green from "@material-ui/core/colors/green";
 import red from "@material-ui/core/colors/red";
 import NumberFormat from "react-number-format";
@@ -43,6 +49,8 @@ type Props = {
 };
 
 export const TradeRoutes = ({ shipId }: Props) => {
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const classes = useStyles();
   const tradeRoutes = useLiveQuery(() => {
     return shipId
@@ -57,23 +65,38 @@ export const TradeRoutes = ({ shipId }: Props) => {
 
   if (!tradeRoutes) return <CircularProgress color="primary" size={48} />;
 
-  const rows = tradeRoutes.map((row) => [
-    row.id,
-    <Typography className={classes.text}>
-      <Link to={`/ships/owned/${row.shipId}`}>{getShip(row.shipId).name}</Link>
-    </Typography>,
-    `${getLocation(row.tradeRoute.buyLocation)?.name} > ${
+  const rows = tradeRoutes.map((row) => {
+    const shipLink = (
+      <Typography className={classes.text}>
+        <Link to={`/ships/owned/${row.shipId}`}>
+          {getShip(row.shipId).name}
+        </Link>
+      </Typography>
+    );
+
+    const route = `${getLocation(row.tradeRoute.buyLocation)?.name} > ${
       getLocation(row.tradeRoute.sellLocation)?.name
-    }`,
-    row.tradeRoute.quantityToBuy,
-    <GoodIcon good={row.tradeRoute.good} />,
-    right(formatCurrency(Math.round(row.tradeRoute.totalProfit))),
-    right(formatCurrency(row.profit)),
-    <Trades detail={row} />,
-  ]);
+    }`;
+
+    return [
+      row.id,
+      ...(isMdDown
+        ? [
+            <>
+              {shipLink}
+              {route}
+            </>,
+          ]
+        : [shipLink, route]),
+      row.tradeRoute.quantityToBuy,
+      <GoodIcon good={row.tradeRoute.good} />,
+      right(formatCurrency(Math.round(row.tradeRoute.totalProfit))),
+      right(formatCurrency(row.profit)),
+      <Trades detail={row} />,
+    ];
+  });
   const columns = [
-    "Ship",
-    "Route",
+    ...(isMdDown ? ["Ship / Route"] : ["Ship", "Route"]),
     "Qty",
     "Good",
     right("Expected"),

@@ -21,6 +21,9 @@ const useStyles = makeStyles((theme) => ({
       },
     },
   },
+  detailsButtonCell: {
+    paddingRight: "0 !important",
+  },
 }));
 
 export const right = (value: React.ReactNode) => ({
@@ -90,7 +93,7 @@ export const DataTable = ({
                   .filter((cell, ix) => (details ? ix < row.length - 2 : true))
                   .map((cell, ix) => convertCell(cell, ix, classes))}
                 {details && (
-                  <TableCell>
+                  <TableCell className={classes.detailsButtonCell}>
                     <IconButton
                       onClick={() =>
                         setShowDetails({
