@@ -30,10 +30,9 @@ describe("tradeMachine", () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     setupMockRequests();
-    mockRequest<api.GetLocationResponse>(
-      "game/locations/OE-PM-TR/marketplace",
-      { location }
-    );
+    mockRequest<api.GetLocationResponse>("game/locations/S1-L1/marketplace", {
+      location: createLocation(),
+    });
   });
   it("will idle after init", async () => {
     const ship = createShip({ name: "A" });

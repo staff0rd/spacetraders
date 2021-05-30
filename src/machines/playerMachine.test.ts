@@ -3,6 +3,7 @@ import * as names from "data/names";
 import {
   GetAvailableShipsResponse,
   GetAvailableStructuresResponse,
+  GetLocationResponse,
   GetShipsResponse,
   GetSystemsResponse,
   GetTokenResponse,
@@ -12,7 +13,7 @@ import {
   createUser,
   createShip,
   createSystem,
-  createOrder,
+  createLocation,
 } from "test/objectMother";
 import { GetFlightPlansResponse } from "api/GetFlightPlansResponse";
 
@@ -21,8 +22,11 @@ import { mockMachine } from "test/mockMachine";
 import { mockRequest, setupMockRequests } from "test/mockRequests";
 import { mockGetters, waitForMachine } from "test/helpers";
 
+const mockLocation = createLocation();
 const mockShip = createShip();
-const mockUser = createUser({ ships: [mockShip] });
+const mockUser = createUser({
+  ships: [{ ...mockShip, location: mockLocation.symbol }],
+});
 
 jest.mock("data/Database");
 jest.mock("data/ships");
@@ -55,7 +59,7 @@ beforeEach(() => {
     systems: [createSystem()],
   });
   mockRequest<GetShipsResponse>("users/username/ships", {
-    ships: [mockShip],
+    ships: [{ ...mockShip, location: mockLocation.symbol }],
   });
   mockRequest<GetAvailableStructuresResponse>("game/structures");
   mockRequest<GetAvailableShipsResponse>("game/ships", {
@@ -73,6 +77,12 @@ beforeEach(() => {
     ],
   });
   mockRequest<GetFlightPlansResponse>("game/systems/OE/flight-plans", {
+    flightPlans: [],
+  });
+  mockRequest<GetLocationResponse>("game/locations/S1-L1/marketplace", {
+    location: mockLocation,
+  });
+  mockRequest<GetFlightPlansResponse>("game/systems/S1/flight-plans", {
     flightPlans: [],
   });
 });
