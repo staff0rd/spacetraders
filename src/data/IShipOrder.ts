@@ -11,7 +11,7 @@ export enum ShipOrderStatus {
 }
 
 export interface IGotoOrderPayload {
-  destination: string;
+  location: string;
 }
 
 export interface IShipOrder {

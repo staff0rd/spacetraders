@@ -84,6 +84,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.GetAssignment]: {
       invoke: {
         src: (c) => getProbeAssignment(c.id),
+        onError: { target: States.Done, actions: printErrorAction() },
         onDone: [
           {
             cond: (_, e: any) => !e.data,

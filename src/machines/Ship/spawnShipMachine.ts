@@ -57,7 +57,7 @@ export function spawnShipMachine(c: Context): any {
             id: ship.id,
             token: c.token!,
             username: c.user!.username,
-            destination: ship.orders[0].payload?.destination!,
+            destination: ship.orders[0].payload?.location!,
           })
         );
 
