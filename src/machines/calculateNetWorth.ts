@@ -1,11 +1,11 @@
 import { SystemContext } from "./MarketContext";
 import { AvailableShip } from "../api/AvailableShip";
-import { Context as ShipContext } from "./Ship/tradeMachine";
 import { NetWorthLineItem, Category } from "./NetWorthLineItem";
 import { getCredits } from "data/localStorage/getCredits";
+import { getShips } from "data/localStorage/shipCache";
+import { CachedShip } from "data/localStorage/CachedShip";
 
 export const calculateNetWorth = (
-  scs: ShipContext[],
   availableShips: AvailableShip[],
   systems: SystemContext
 ): NetWorthLineItem[] => [
@@ -15,27 +15,26 @@ export const calculateNetWorth = (
     description: "Credits",
     quantity: getCredits(),
   },
-  ...scs
-    .filter((sc) => !!sc.ship)
-    .map((sc) => ({
-      value: Math.floor(
-        (availableShips.find((av) => av.type === sc.ship!.type)
-          ?.purchaseLocations[0].price || 0) * 0.25
-      ),
-      category: "asset" as Category,
-      description: sc.ship!.type,
-      quantity: 1,
-    })),
-  ...scs.map((s) => calculateCargoWorth(s, systems)).flat(),
+  ...getShips().map((ship) => ({
+    value: Math.floor(
+      (availableShips.find((av) => av.type === ship.type)?.purchaseLocations[0]
+        .price || 0) * 0.25
+    ),
+    category: "asset" as Category,
+    description: ship.type,
+    quantity: 1,
+  })),
+  ...getShips()
+    .map((s) => calculateCargoWorth(s, systems))
+    .flat(),
 ];
 
 const calculateCargoWorth = (
-  sc: ShipContext,
+  ship: CachedShip,
   systems: SystemContext
 ): NetWorthLineItem[] => {
-  if (!sc.ship) return [];
   const locationSymbol =
-    sc.ship.location?.symbol || sc.ship.flightPlan?.departure || "";
+    ship.location?.symbol || ship.flightPlan?.departure || "";
   const systemSymbol = locationSymbol.substr(0, 2);
   const system = systems[systemSymbol];
   if (!system) return [];
@@ -43,12 +42,12 @@ const calculateCargoWorth = (
   if (!location) return [];
   const market = location.marketplace;
   if (!market) return [];
-  return sc.ship.cargo.map((c) => ({
+  return ship.cargo.map((c) => ({
     value:
       c.quantity *
       (market.find((m) => m.symbol === c.good)?.sellPricePerUnit || 0),
     category: "asset",
-    description: `${sc.ship!.type} ${c.good}`,
+    description: `${ship!.type} ${c.good}`,
     quantity: c.quantity,
   }));
 };

@@ -14,7 +14,6 @@ export function travelToLocation<
           username: c.username,
           token: c.token,
           destination: destination(c),
-          ship: c.ship,
         }),
       onError: printError<TContext>(),
       onDone: {

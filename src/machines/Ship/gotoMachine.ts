@@ -14,7 +14,7 @@ import { DateTime } from "luxon";
 import { printErrorAction } from "./printError";
 import { travelToLocation } from "./travelToLocation";
 import * as api from "api";
-import * as shipCache from "data/localStorage/shipCache";
+import { getShip } from "data/localStorage/shipCache";
 
 enum States {
   Idle = "idle",
@@ -39,7 +39,7 @@ const config: MachineConfig<Context, any, any> = {
       after: {
         1: [
           {
-            cond: (c) => !!c.ship.flightPlan,
+            cond: (c) => !!getShip(c.id).flightPlan,
             target: States.TravelToLocation,
           },
           { target: States.DetermineTradeRoute },
@@ -54,11 +54,11 @@ const config: MachineConfig<Context, any, any> = {
           // if (!c.strategy.data.location) {
           //   throw new Error("No destination");
           // }
-          // if (!c.ship.location) {
+          // if (!getShip(c.id).location) {
           //   console.warn(`[${ship.name}] Has no location, will query`);
           // }
           // const location =
-          //   c.ship.location ??
+          //   getShip(c.id).location ??
           //   (await api.getShip(c.token, c.username, c.id)).ship.location;
 
           // if (!location) throw new Error("No departure location");
@@ -100,7 +100,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.ConfirmStrategy]: confirmStrategy(States.Idle, States.Done),
     [States.TravelToLocation]: {
       ...travelToLocation<Context>(
-        (c) => c.ship.flightPlan?.destination || c.destination,
+        (c) => getShip(c.id).flightPlan?.destination || c.destination,
         States.SwitchToTrade,
         false
       ),

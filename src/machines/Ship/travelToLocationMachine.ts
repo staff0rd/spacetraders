@@ -42,7 +42,6 @@ export type Context = {
   neededFuel?: number;
   success?: boolean;
   nextStop?: string;
-  ship: CachedShip;
 } & ShipContext;
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
@@ -60,24 +59,27 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.Idle]: {
-      entry: assign({ ship: (c, e) => getShip(c.id) }),
       after: {
         1: [
           {
             target: States.Done,
             actions: assign<Context>({ success: true }) as any,
-            cond: (c) => c.destination === c.ship.location?.symbol,
+            cond: (c) => c.destination === getShip(c.id).location?.symbol,
           },
           {
             target: States.CalculateNeededFuel,
-            cond: (c) => c.neededFuel === undefined && !!c.ship.location,
+            cond: (c) => c.neededFuel === undefined && !!getShip(c.id).location,
           },
-          { target: States.InTransit, cond: (c) => !!c.ship.flightPlan },
+          { target: States.InTransit, cond: (c) => !!getShip(c.id).flightPlan },
           {
             target: States.BuyFuel,
-            cond: (c) => getCargoQuantity(c.ship.cargo, "FUEL") < c.neededFuel!,
+            cond: (c) =>
+              getCargoQuantity(getShip(c.id).cargo, "FUEL") < c.neededFuel!,
           },
-          { target: States.CreateFlightPlan, cond: (c) => !!c.ship.location },
+          {
+            target: States.CreateFlightPlan,
+            cond: (c) => !!getShip(c.id).location,
+          },
         ],
       },
     },
@@ -85,34 +87,35 @@ const config: MachineConfig<Context, any, any> = {
       type: "final",
     },
     [States.BuyFuel]: {
-      entry: assign({ ship: (c, e) => getShip(c.id) }),
       invoke: {
         src: async (c) => {
-          const currentFuel = getCargoQuantity(c.ship.cargo, "FUEL");
+          const currentFuel = getCargoQuantity(getShip(c.id).cargo, "FUEL");
           const neededFuel = c.neededFuel! - currentFuel;
 
-          if (neededFuel > c.ship.spaceAvailable) {
+          if (neededFuel > getShip(c.id).spaceAvailable) {
             console.log("need more fuel than have space");
-            const sellGood = c.ship.cargo!.find((p) => p.good !== "FUEL")!.good;
+            const sellGood = getShip(c.id).cargo!.find(
+              (p) => p.good !== "FUEL"
+            )!.good;
             console.warn(
               `[${
                 getShip(c.id).name
               }] Selling 1x${sellGood} to make room for ${neededFuel} fuel`
             );
-            if (!c.ship.location) throw new Error("No ship location!");
+            if (!getShip(c.id).location) throw new Error("No ship location!");
             await api.sellOrder(
               c.token,
               c.username,
               c.id,
               sellGood,
               1,
-              c.ship.location!.symbol
+              getShip(c.id).location!.symbol
             );
           }
 
           const fuel = await db.goodLocation
             .where("[location+good]")
-            .equals([c.ship.location!.symbol, "FUEL"])
+            .equals([getShip(c.id).location!.symbol, "FUEL"])
             .last();
           const cost = fuel!.purchasePricePerUnit * neededFuel;
           if (cost > getCredits()) {
@@ -130,7 +133,7 @@ const config: MachineConfig<Context, any, any> = {
             c.id,
             "FUEL",
             neededFuel,
-            c.ship.location!.symbol,
+            getShip(c.id).location!.symbol,
             0
           );
 
@@ -161,14 +164,13 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.CreateFlightPlan]: {
-      entry: assign({ ship: (c, e) => getShip(c.id) }),
       invoke: {
         src: (c) =>
           api.newFlightPlan(
             c.token,
             c.username,
             c.id,
-            c.ship.location!.symbol,
+            getShip(c.id).location!.symbol,
             c.nextStop!
           ),
         onError: {
@@ -181,15 +183,14 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.CalculateNeededFuel]: {
-      entry: assign({ ship: (c, e) => getShip(c.id) }),
       invoke: {
         src: async (c: Context) => {
           const { graph, warps } = getGraph();
           const route = getRoute(
             graph,
-            c.ship.location!.symbol,
+            getShip(c.id).location!.symbol,
             c.destination,
-            c.ship,
+            getShip(c.id),
             warps
           );
           if (!route.length) throwError("Could not determine route!");
@@ -209,13 +210,11 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.InTransit]: {
-      entry: assign({ ship: (c, e) => getShip(c.id) }),
       after: [
         {
           delay: (c) => {
-            const thisShip = getShip(c.ship.id);
             const result = DateTime.fromISO(
-              c.ship.flightPlan!.arrivesAt
+              getShip(c.id).flightPlan!.arrivesAt
             ).diffNow("milliseconds").milliseconds;
             return result;
           },

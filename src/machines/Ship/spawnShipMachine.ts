@@ -28,7 +28,6 @@ export function spawnShipMachine(c: Context): any {
             id: ship.id,
             token: c.token!,
             username: c.user!.username,
-            ship,
           })
         );
 
@@ -38,7 +37,6 @@ export function spawnShipMachine(c: Context): any {
             id: ship.id,
             token: c.token!,
             username: c.user!.username,
-            ship,
             shouldCheckOrders: true,
           }),
           { name: `ship-${ship.id}`, sync: true }
@@ -50,7 +48,6 @@ export function spawnShipMachine(c: Context): any {
             id: ship.id,
             token: c.token!,
             username: c.user!.username,
-            ship,
           })
         );
 
@@ -60,7 +57,6 @@ export function spawnShipMachine(c: Context): any {
             id: ship.id,
             token: c.token!,
             username: c.user!.username,
-            ship,
             destination: ship.orders[0].payload?.destination!,
           })
         );

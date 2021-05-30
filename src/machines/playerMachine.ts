@@ -208,9 +208,8 @@ const config: MachineConfig<Context, any, Event> = {
           actions: assign<Context>({
             flightPlans: (c: Context, e: any) => {
               const ships = getShips();
-              const filtered = (e.data
-                .flightPlans as FlightPlan[]).filter((fp) =>
-                ships.find((s) => s.id === fp.shipId)
+              const filtered = (e.data.flightPlans as FlightPlan[]).filter(
+                (fp) => ships.find((s) => s.id === fp.shipId)
               );
               return filtered;
             },
@@ -385,11 +384,7 @@ const options: Partial<MachineOptions<Context, Event>> = {
     }) as any,
     netWorth: assign<Context>({
       netWorth: (c: Context) =>
-        calculateNetWorth(
-          c.actors.map((a) => a?.state?.context).filter((p) => p),
-          c.availableShips,
-          c.systems!
-        ) as any,
+        calculateNetWorth(c.availableShips, c.systems!) as any,
     }) as any,
   },
   services: {
