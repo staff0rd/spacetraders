@@ -94,9 +94,6 @@ const config: MachineConfig<Context, any, Event> = {
   initial: States.CheckStorage,
   context: initialContext,
   on: {
-    SHIP_UPDATE: {
-      actions: ["netWorth", assign({ ships: () => getShips() }) as any],
-    },
     STOP_ACTOR: {
       actions: (c, e: any) => {
         const actor = c.actors.find((a) => a.state!.context.id === e.data);

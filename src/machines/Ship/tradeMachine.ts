@@ -3,10 +3,8 @@ import {
   assign,
   createMachine,
   EventObject,
-  sendParent,
   StateMachine,
   MachineConfig,
-  MachineOptions,
 } from "xstate";
 import * as api from "../../api";
 import { Ship } from "../../api/Ship";
@@ -180,6 +178,7 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             cond: (c, e: any) => e.data.goto,
+            actions: assign({ goto: (c, e) => e.data.goto }),
             target: States.TravelToLocation,
           },
           {
@@ -272,21 +271,9 @@ const config: MachineConfig<Context, any, any> = {
           {
             target: States.SellCargo,
             cond: (c) => debugCond(c, atSellLocationWithSellableGoods),
-            actions: [
-              assign({
-                ship: (c, e: any) => e.data.ship,
-              }) as any,
-              "shipUpdate",
-            ],
           },
           {
             target: States.ConfirmStrategy,
-            actions: [
-              assign({
-                ship: (c, e: any) => e.data.ship,
-              }) as any,
-              "shipUpdate",
-            ],
           },
         ],
       },
@@ -382,12 +369,6 @@ const config: MachineConfig<Context, any, any> = {
           {
             target: States.Idle,
             cond: (c, e: any) => e.data.bought,
-            actions: [
-              assign({
-                ship: (c, e: any) => e.data.ship,
-              }) as any,
-              "shipUpdate",
-            ],
           },
           {
             target: States.Wait,
@@ -395,22 +376,9 @@ const config: MachineConfig<Context, any, any> = {
               (e.data.ship as Ship).cargo.filter(
                 (p) => p.good === c.tradeData!.tradeRoute.good
               ).length > 1,
-            actions: [
-              assign({
-                ship: (c, e: any) => e.data.ship,
-              }) as any,
-              "shipUpdate",
-            ],
           },
           {
             target: States.Wait,
-            actions: [
-              assign({
-                ship: (c, e: any) => e.data.ship,
-                tradeRoute: undefined, // no cargo so clear the traderoute
-              }) as any,
-              "shipUpdate",
-            ],
           },
         ],
       },
@@ -418,17 +386,7 @@ const config: MachineConfig<Context, any, any> = {
   },
 };
 
-const options: Partial<MachineOptions<Context, any>> = {
-  actions: {
-    shipUpdate: sendParent((c: Context) => ({
-      type: "SHIP_UPDATE",
-      data: c.ship,
-    })),
-  },
-};
-
-export const tradeMachine = () =>
-  createMachine(debugShipMachineStates(config), options);
+export const tradeMachine = () => createMachine(debugShipMachineStates(config));
 
 function atSellLocationWithSellableGoods(c: Context): boolean {
   const hasLocation = !!c.ship.location;

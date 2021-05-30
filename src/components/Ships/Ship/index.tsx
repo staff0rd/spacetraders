@@ -130,7 +130,7 @@ export const ShipComponent = ({ shipId, actor, systems }: Props) => {
               flightPlan={query.flightPlan}
               fallback={
                 <>
-                  {query.ship?.location || ""} {actor?.state.value}{" "}
+                  {query.ship?.location?.symbol || ""} {actor?.state.value}{" "}
                 </>
               }
             />

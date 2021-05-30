@@ -4,11 +4,9 @@ import {
   createMachine,
   EventObject,
   MachineConfig,
-  sendParent,
   StateMachine,
 } from "xstate";
 import db from "../../data";
-import { FlightPlan } from "../../api/FlightPlan";
 import * as api from "../../api";
 import { DateTime } from "luxon";
 import { ShipContext } from "./ShipBaseContext";
@@ -31,7 +29,6 @@ enum States {
   Idle = "idle",
   InTransit = "InTransit",
   BuyFuel = "buyFuel",
-  GetShip = "getShip",
   CreateFlightPlan = "createFlightPlan",
   CalculateNeededFuel = "calculateNeededFuel",
   Done = "done",
@@ -41,19 +38,18 @@ enum States {
 export type Context = {
   token: string;
   username: string;
-  ship: CachedShip;
   destination: string;
-  flightPlan?: FlightPlan;
   neededFuel?: number;
   success?: boolean;
   nextStop?: string;
+  ship: CachedShip;
 } & ShipContext;
 
 export type Actor = ActorRefFrom<StateMachine<Context, any, EventObject>>;
 
 const config: MachineConfig<Context, any, any> = {
   id: "travel",
-  initial: States.GetShip,
+  initial: States.Idle,
   states: {
     [States.Wait]: {
       after: {
@@ -64,6 +60,7 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.Idle]: {
+      entry: assign({ ship: (c, e) => getShip(c.id) }),
       after: {
         1: [
           {
@@ -75,12 +72,7 @@ const config: MachineConfig<Context, any, any> = {
             target: States.CalculateNeededFuel,
             cond: (c) => c.neededFuel === undefined && !!c.ship.location,
           },
-          {
-            target: States.GetShip,
-            cond: (c) =>
-              !c.ship.location && !c.flightPlan && !c.ship.flightPlan,
-          },
-          { target: States.InTransit, cond: (c) => !!c.flightPlan },
+          { target: States.InTransit, cond: (c) => !!c.ship.flightPlan },
           {
             target: States.BuyFuel,
             cond: (c) => getCargoQuantity(c.ship.cargo, "FUEL") < c.neededFuel!,
@@ -91,14 +83,9 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.Done]: {
       type: "final",
-      data: {
-        ship: (c: Context) => {
-          if (c.success) return { ...c.ship, location: c.destination };
-          else return getShip(c.id);
-        },
-      },
     },
     [States.BuyFuel]: {
+      entry: assign({ ship: (c, e) => getShip(c.id) }),
       invoke: {
         src: async (c) => {
           const currentFuel = getCargoQuantity(c.ship.cargo, "FUEL");
@@ -169,23 +156,12 @@ const config: MachineConfig<Context, any, any> = {
           { cond: (c, e: any) => e.data === States.Wait, target: States.Wait },
           {
             target: States.Idle,
-            actions: assign<Context>({
-              ship: (c, e: any) => e.data.ship,
-            }) as any,
           },
         ],
       },
     },
-    [States.GetShip]: {
-      invoke: {
-        src: (c) => db.ships.get(c.id),
-        onDone: {
-          actions: assign<Context>({ ship: (c, e: any) => e.data }) as any,
-          target: States.Idle,
-        },
-      },
-    },
     [States.CreateFlightPlan]: {
+      entry: assign({ ship: (c, e) => getShip(c.id) }),
       invoke: {
         src: (c) =>
           api.newFlightPlan(
@@ -201,33 +177,11 @@ const config: MachineConfig<Context, any, any> = {
         },
         onDone: {
           target: States.InTransit,
-          actions: [
-            assign({
-              flightPlan: (c, e: any) => e.data.flightPlan,
-              ship: (c, e: any) => ({
-                ...c.ship!,
-                cargo: [
-                  ...c.ship!.cargo.map((c) =>
-                    c.good !== "FUEL"
-                      ? c
-                      : {
-                          ...c,
-                          quantity: (e.data.flightPlan as FlightPlan)
-                            .fuelRemaining,
-                        }
-                  ),
-                ],
-              }),
-            }),
-            sendParent((c, e: any) => ({
-              type: "FLIGHTPLAN_UPDATE",
-              data: e.data.flightPlan,
-            })),
-          ],
         },
       },
     },
     [States.CalculateNeededFuel]: {
+      entry: assign({ ship: (c, e) => getShip(c.id) }),
       invoke: {
         src: async (c: Context) => {
           const { graph, warps } = getGraph();
@@ -255,19 +209,20 @@ const config: MachineConfig<Context, any, any> = {
       },
     },
     [States.InTransit]: {
+      entry: assign({ ship: (c, e) => getShip(c.id) }),
       after: [
         {
           delay: (c) => {
-            const result = DateTime.fromISO(c.flightPlan!.arrivesAt).diffNow(
-              "milliseconds"
-            ).milliseconds;
+            const thisShip = getShip(c.ship.id);
+            const result = DateTime.fromISO(
+              c.ship.flightPlan!.arrivesAt
+            ).diffNow("milliseconds").milliseconds;
             return result;
           },
           actions: assign<Context>({
             neededFuel: undefined,
             nextStop: undefined,
             success: true,
-            flightPlan: undefined,
           }) as any,
           target: States.Done,
         },

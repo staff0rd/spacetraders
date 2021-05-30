@@ -34,7 +34,7 @@ export const newFlightPlan = (flightPlan: FlightPlan | undefined) => {
       const ship = self.getShip(flightPlan.shipId);
       if (ship && ship.flightPlan?.id !== flightPlan.id) {
         ship.flightPlan = flightPlan;
-        const timeout = DateTime.local().diffNow("milliseconds").milliseconds;
+        const timeout = arrivesAt.diffNow("milliseconds").milliseconds;
         console.log(
           `Will remove flightplan in ${timeout}ms at ${arrivesAt.toISO()}`
         );

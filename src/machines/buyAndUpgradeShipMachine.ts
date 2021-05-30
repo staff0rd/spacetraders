@@ -5,7 +5,6 @@ import {
   ActorRefFrom,
   createMachine,
   MachineConfig,
-  sendParent,
   StateMachine,
 } from "xstate";
 import { buyShipMachine } from "./buyShipMachine";
@@ -46,7 +45,8 @@ const config: MachineConfig<Context, any, any> = {
             cond: () => getShips().length === 0 || shouldBuyShip(),
             target: States.BuyShip,
           },
-          { target: States.UpgradeShip },
+          { cond: () => !!getUpgradingShip(), target: States.UpgradeShip },
+          { target: States.Wait },
         ],
       },
     },
@@ -78,7 +78,6 @@ const config: MachineConfig<Context, any, any> = {
         },
         onDone: {
           target: States.Wait,
-          actions: sendParent("SHIP_UPDATE"),
         },
       },
     },
