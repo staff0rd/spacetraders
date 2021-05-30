@@ -25,7 +25,11 @@ import { getCargoQuantity } from "./getCargoQuantity";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
-import { getLastTradeData, newTradeRoute } from "data/tradeData";
+import {
+  getLastTradeData,
+  markLastComplete,
+  newTradeRoute,
+} from "data/tradeData";
 import { getShip, newOrder } from "data/localStorage/shipCache";
 import { ITradeRouteData } from "data/ITradeRouteData";
 import { ShipOrders } from "data/IShipOrder";
@@ -168,6 +172,7 @@ const config: MachineConfig<Context, any, any> = {
               closest[0].route.buyLocation
             }`;
             console.warn(message);
+            await markLastComplete(c.id);
             return { goto: closest[0].route.buyLocation };
           } else {
             const message = "No trade routes, switching to probe";
@@ -183,7 +188,10 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             cond: (c, e: any) => e.data.goto,
-            actions: assign({ goto: (c, e) => e.data.goto }),
+            actions: assign({
+              goto: (c, e: any) => e.data.goto,
+              tradeData: undefined,
+            }) as any,
             target: States.TravelToLocation,
           },
           {
@@ -198,11 +206,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.SellCargo]: {
       invoke: {
         src: async (c) => {
-          let ship: Ship = (await db.ships.where("id").equals(c.id).first())!;
-
-          let result: Partial<api.PurchaseOrderResponse> = {
-            ship: ship,
-          };
+          let ship = getShip(c.id);
 
           const toSell = ship.cargo.filter(
             (p) => p.good !== "FUEL" || c.tradeData?.tradeRoute.good === "FUEL"
@@ -210,7 +214,7 @@ const config: MachineConfig<Context, any, any> = {
 
           if (
             c.tradeData &&
-            c.tradeData.tradeRoute.buyLocation === ship.location
+            c.tradeData.tradeRoute.buyLocation === ship.location?.symbol
           ) {
             const fuelOverage =
               getCargoQuantity(ship.cargo, "FUEL") -
@@ -229,7 +233,7 @@ const config: MachineConfig<Context, any, any> = {
               getCargoQuantity(ship.cargo, sellOrder.good)
             );
             if (!getShip(c.id).location) throw new Error("No ship location");
-            result = await api.sellOrder(
+            const result = await api.sellOrder(
               c.token,
               c.username,
               c.id,
@@ -237,7 +241,7 @@ const config: MachineConfig<Context, any, any> = {
               quantity,
               getShip(c.id).location!.symbol
             );
-            ship = result.ship!;
+            ship = getShip(c.id);
             const lastBuy = await db.trades
               .reverse()
               .filter(
@@ -266,7 +270,6 @@ const config: MachineConfig<Context, any, any> = {
           }
           const totalProfit = runningProfit.reduce((a, b) => a + b, 0);
           await reportLastProfit(c.id, totalProfit);
-          return result;
         },
         onError: {
           actions: printErrorAction(),
@@ -312,10 +315,7 @@ const config: MachineConfig<Context, any, any> = {
     [States.BuyCargo]: {
       invoke: {
         src: async (c: Context) => {
-          let ship = (await db.ships.where("id").equals(c.id).first())!;
-          let result: Partial<api.PurchaseOrderResponse> = {
-            ship,
-          };
+          let ship = getShip(c.id);
 
           do {
             const quantity = Math.min(
@@ -331,9 +331,9 @@ const config: MachineConfig<Context, any, any> = {
                   cost
                 )}, but have ${formatCurrency(getCredits())}`
               );
-              return { bought: false, ship: result.ship };
+              return { bought: false };
             }
-            result = await api.purchaseOrder(
+            await api.purchaseOrder(
               c.token,
               c.username,
               c.id,
@@ -342,14 +342,13 @@ const config: MachineConfig<Context, any, any> = {
               c.tradeData!.tradeRoute.buyLocation,
               c.tradeData!.tradeRoute.profitPerUnit * quantity
             );
-            ship = result.ship!;
           } while (
-            result.ship!.cargo.find(
+            getShip(c.id).cargo.find(
               (g) => g.good === c.tradeData!.tradeRoute.good
             )!.quantity < c.tradeData!.tradeRoute.quantityToBuy
           );
 
-          return { bought: true, ship: result.ship };
+          return { bought: true };
         },
         onError: [
           //{code: 2004, message: "User has insufficient credits for transaction."},
