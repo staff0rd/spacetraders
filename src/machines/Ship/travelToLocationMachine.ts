@@ -18,7 +18,6 @@ import { getShip, newOrder } from "data/localStorage/shipCache";
 import { getCredits } from "data/localStorage/getCredits";
 import { formatCurrency } from "./formatNumber";
 import { ShipOrders } from "data/IShipOrder";
-import { CachedShip } from "data/localStorage/CachedShip";
 
 const throwError = (message: string) => {
   console.warn(message);

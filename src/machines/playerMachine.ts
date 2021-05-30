@@ -327,6 +327,8 @@ const options: Partial<MachineOptions<Context, Event>> = {
           (actor) => actor?.state.context.id
         );
 
+        const debug = getDebug();
+
         const toSpawn: CachedShip[] = getShips().filter((s: CachedShip) => {
           const alreadySpawned = alreadySpawnedShipIds.find(
             (id) => id === s.id
@@ -334,6 +336,8 @@ const options: Partial<MachineOptions<Context, Event>> = {
           if (alreadySpawned) {
             return false;
           }
+          if (debug.onlySpawnFocusedShip && debug.focusShip)
+            return s.id === debug.focusShip;
           return true;
         });
         type GroupByStrat = { order: ShipOrders; count: number };

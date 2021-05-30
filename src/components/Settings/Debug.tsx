@@ -39,6 +39,11 @@ export const Debug = () => {
         }
       />
       <DebugCheckbox
+        title="Only spawn focused ship"
+        persist={(value) => setDebug({ onlySpawnFocusedShip: value })}
+        initialValue={debug.onlySpawnFocusedShip}
+      />
+      <DebugCheckbox
         title="Debug Player Machine"
         persist={(value) => setDebug({ debugPlayerMachine: value })}
         initialValue={debug.debugPlayerMachine}

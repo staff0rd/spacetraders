@@ -59,7 +59,6 @@ export const load = async () => {
           [ship.id, ShipOrderStatus.Pending, Dexie.minKey],
           [ship.id, ShipOrderStatus.Pending, Dexie.maxKey]
         )
-        .reverse()
         .toArray();
       if (!detail) throw new Error(`Could not find name for ${ship.id}`);
       if (!local.ships.find((p) => p.id === ship.id)) {

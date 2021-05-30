@@ -16,7 +16,6 @@ import {
   useTheme,
   useMediaQuery,
 } from "@material-ui/core";
-import db from "../../data";
 import { Probes } from "./Probes";
 import { StrategyChange } from "./StrategyChange";
 import { DataTable, right } from "../DataTable";

@@ -7,5 +7,6 @@ export interface IDebug {
   debugHaltMachine: boolean;
   debugBuyAndUpgradeShipMachine: boolean;
   debugSystemMonitorMachine: boolean;
+  onlySpawnFocusedShip: boolean;
   focusTradeRoute?: { from: string; to: string; good: string };
 }

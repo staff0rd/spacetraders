@@ -7,6 +7,7 @@ const debug: IDebug = JSON.parse(localStorage.getItem(Keys.Debug)!) || {
   debugTradeMachine: false,
   debugUpgradeMachine: false,
   debugBuyAndUpgradeShipMachine: false,
+  onlySpawnFocusedShip: false,
   debugHaltMachine: false,
 };
 
