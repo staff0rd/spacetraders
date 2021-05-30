@@ -66,7 +66,6 @@ const cachedShipToShip = (ship: CachedShip) => {
 };
 
 export const createUser = (user: Partial<User> = {}): User => ({
-  ...user,
   username: "username",
   credits: 178875,
   ships: [cachedShipToShip(createShip())],
@@ -79,6 +78,7 @@ export const createUser = (user: Partial<User> = {}): User => ({
       type: "STARTUP",
     },
   ],
+  ...user,
 });
 
 export const createSystem = (system: Partial<System> = {}): System => ({
@@ -95,7 +95,6 @@ export const createSystem = (system: Partial<System> = {}): System => ({
 });
 
 export const createLocation = (location: Partial<Location> = {}): Location => ({
-  ...location,
   name: "Location 1",
   ships: [],
   symbol: "S1-L1",
@@ -111,4 +110,5 @@ export const createLocation = (location: Partial<Location> = {}): Location => ({
       volumePerUnit: 1,
     },
   ],
+  ...location,
 });

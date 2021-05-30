@@ -18,10 +18,10 @@ import { debugShipMachineStates } from "../debugStates";
 import { getDebug } from "../../data/localStorage/getDebug";
 import { printErrorAction } from "./printError";
 import * as ships from "data/ships";
-import { newOrder } from "data/localStorage/shipCache";
+import { getShip, newOrder } from "data/localStorage/shipCache";
 import { ShipOrders } from "data/IShipOrder";
 
-enum States {
+export enum States {
   Idle = "idle",
   GetAssignment = "getAssignment",
   Probe = "probe",
@@ -32,7 +32,7 @@ enum States {
   Done = "done",
 }
 
-const PROBE_DELAY_MINUTES = 2;
+const PROBE_DELAY_SECONDS = 30;
 
 export type Context = ShipBaseContext & {
   probe?: IProbe;
@@ -55,22 +55,26 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             target: States.TravelToLocation,
-            cond: (c) =>
-              !c.ship?.location ||
-              c.probe!.location !== c.ship.location?.symbol,
+            cond: (c) => {
+              const ship = getShip(c.id);
+              const hasLocation = !!ship.location;
+              const isAtProbeLocation =
+                c.probe!.location === ship.location?.symbol;
+              return !hasLocation || !isAtProbeLocation;
+            },
           },
           {
             target: States.Probe,
             cond: (c) =>
               !c.lastProbe ||
-              -c.lastProbe.diffNow("minutes").minutes >= PROBE_DELAY_MINUTES,
+              -c.lastProbe.diffNow("seconds").seconds >= PROBE_DELAY_SECONDS,
           },
         ],
         10000: [{ target: States.ConfirmStrategy }],
       },
     },
     [States.TravelToLocation]: travelToLocation<Context>(
-      (c) => c.probe?.location || c.ship.flightPlan?.destination || "", // should never hit empty string
+      (c) => c.probe?.location || getShip(c.id).flightPlan?.destination || "", // should never hit empty string
       States.Idle,
       getDebug().debugProbeMachine
     ),
@@ -97,9 +101,9 @@ const config: MachineConfig<Context, any, any> = {
       invoke: {
         src: async (c) => {
           try {
-            await api.getMarket(c.token, c.ship.location!.symbol);
-            await api.getDockedShips(c.token, c.ship.location!.symbol);
-            await api.getStructures(c.token, c.ship.location!.symbol);
+            await api.getMarket(c.token, getShip(c.id).location!.symbol);
+            await api.getDockedShips(c.token, getShip(c.id).location!.symbol);
+            await api.getStructures(c.token, getShip(c.id).location!.symbol);
           } catch (e) {
             console.error("Couldn't probe", e);
           }
@@ -122,7 +126,7 @@ const config: MachineConfig<Context, any, any> = {
     },
     [States.Waiting]: {
       after: {
-        [PROBE_DELAY_MINUTES * 1000 * 60]: {
+        [PROBE_DELAY_SECONDS * 1000 * 60]: {
           target: States.Probe,
         },
       },
