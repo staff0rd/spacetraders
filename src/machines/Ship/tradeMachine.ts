@@ -113,7 +113,7 @@ const config: MachineConfig<Context, any, any> = {
           },
           {
             target: States.BuyCargo,
-            cond: (c) => atBuyLocationWaitingToBuy(c),
+            cond: (c) => debugCond(c, atBuyLocationWaitingToBuy),
           },
           {
             target: States.TravelToLocation,
@@ -152,7 +152,7 @@ const config: MachineConfig<Context, any, any> = {
           if (tradeRoutes.length) {
             const tradeRoute = tradeRoutes[0];
             console.log(
-              `Rank: ${tradeRoute.rank}, ${tradeRoute.buyLocation}->${tradeRoute.sellLocation} ${tradeRoute.good}`
+              `[${ship.name}] Rank: ${tradeRoute.rank}, ${tradeRoute.buyLocation}->${tradeRoute.sellLocation} ${tradeRoute.good}`
             );
             await newTradeRoute(tradeRoute, c.id);
             return tradeRoute;
@@ -396,7 +396,7 @@ export const tradeMachine = () => createMachine(debugShipMachineStates(config));
 function atSellLocationWithSellableGoods(c: Context): boolean {
   const hasLocation = !!getShip(c.id).location;
   const atSellLocation =
-    c.tradeData?.tradeRoute.sellLocation === getShip(c.id).location;
+    c.tradeData?.tradeRoute.sellLocation === getShip(c.id).location?.symbol;
   return (
     hasLocation &&
     atSellLocation &&
@@ -408,7 +408,7 @@ function atBuyLocationWithTooMuchFuel(c: Context): boolean {
   const hasLocation = !!getShip(c.id).location;
   const hasTradeRoute = !!c.tradeData;
   const isBuyLocation =
-    getShip(c.id).location === c.tradeData?.tradeRoute.buyLocation;
+    getShip(c.id).location?.symbol === c.tradeData?.tradeRoute.buyLocation;
   return (
     hasLocation &&
     hasTradeRoute &&
@@ -423,21 +423,18 @@ function atBuyLocationWaitingToBuy(c: Context): boolean {
   const hasTradeRoute = !!c.tradeData;
   const hasLocation = !!getShip(c.id).location;
   const atBuyLocation =
-    c.tradeData?.tradeRoute.buyLocation === getShip(c.id).location;
-  return (
-    hasTradeRoute &&
-    hasLocation &&
-    atBuyLocation &&
+    c.tradeData?.tradeRoute.buyLocation === getShip(c.id).location?.symbol;
+  const hasSpace =
     getCargoQuantity(getShip(c.id).cargo, c.tradeData!.tradeRoute.good) <
-      c.tradeData!.tradeRoute.quantityToBuy
-  );
+    c.tradeData!.tradeRoute.quantityToBuy;
+  return hasTradeRoute && hasLocation && atBuyLocation && hasSpace;
 }
 
 function shouldDetermineTradeRoute(c: Context): boolean {
   const hasLocation = !!getShip(c.id).location;
   const hasTradeRoute = !!c.tradeData && c.tradeData.complete !== 1;
   const atSellLocation =
-    c.tradeData?.tradeRoute.sellLocation === getShip(c.id).location;
+    c.tradeData?.tradeRoute.sellLocation === getShip(c.id).location?.symbol;
   return hasLocation && (!hasTradeRoute || atSellLocation);
 }
 
