@@ -19,12 +19,13 @@ import NetWorthIcon from "@material-ui/icons/AccountBalance";
 import LocationsIcon from "@material-ui/icons/Language";
 import IntelIcon from "@material-ui/icons/Visibility";
 import { ErrorComponent } from "./ErrorComponent";
+import { getShips } from "data/localStorage/shipCache";
 
 export function getMenus(
   state: State<PlayerContext, PlayerEvent, any, PlayerSchema> | null,
   stop: () => any
 ) {
-  const shipCount = state?.context.ships?.length || 0;
+  const shipCount = getShips().length;
   const menu = [
     {
       icon: (
