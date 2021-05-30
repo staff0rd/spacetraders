@@ -35,9 +35,6 @@ export const newFlightPlan = (flightPlan: FlightPlan | undefined) => {
       if (ship && ship.flightPlan?.id !== flightPlan.id) {
         ship.flightPlan = flightPlan;
         const timeout = arrivesAt.diffNow("milliseconds").milliseconds;
-        console.log(
-          `Will remove flightplan in ${timeout}ms at ${arrivesAt.toISO()}`
-        );
         setTimeout(() => {
           ship.location = getLocation(ship.flightPlan!.destination);
           ship.flightPlan = undefined;
