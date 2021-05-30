@@ -5,16 +5,15 @@ import { setupMockRequests, mockRequest } from "test/mockRequests";
 import * as api from "api";
 import { ShipOrders } from "data/IShipOrder";
 import * as shipCache from "data/localStorage/shipCache";
-const location = createLocation();
 
 const createContext = (
-  shipContext: Partial<ShipContext> = { ship: createShip() }
+  shipId: string,
+  shipContext: Partial<ShipContext> = {}
 ): ShipContext => ({
   token: "123",
   username: "username",
-  ship: shipContext.ship!,
   shouldCheckOrders: true,
-  id: shipContext.ship!.id,
+  id: shipId,
   ...shipContext,
 });
 
@@ -38,7 +37,7 @@ describe("tradeMachine", () => {
     const ship = createShip({ name: "A" });
     mockGetters({ ships: [ship] });
     await waitForMachine(
-      getMachine(createContext({ ship, testId: "A" })),
+      getMachine(createContext(ship.id, { testId: "A" })),
       States.Idle
     );
   });
@@ -57,7 +56,7 @@ describe("tradeMachine", () => {
     });
     expect(shipCache.getShip(ship.id).name).toBe("B");
     await waitForMachine(
-      getMachine(createContext({ ship, testId: "B" })),
+      getMachine(createContext(ship.id, { testId: "B" })),
       States.Done
     );
     expect(shipCache.getShip(ship.id).name).toBe("B");
@@ -69,7 +68,7 @@ describe("tradeMachine", () => {
     });
     expect(shipCache.getShip(ship.id).name).toBe("C");
     await waitForMachine(
-      getMachine(createContext({ ship, testId: "C" })),
+      getMachine(createContext(ship.id, { testId: "C" })),
       States.DetermineTradeRoute
     );
     expect(shipCache.getShip(ship.id).name).toBe("C");
