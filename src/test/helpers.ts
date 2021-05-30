@@ -28,12 +28,16 @@ export const waitForMachine = (
     const interpreter = xstate.interpret(machine);
     interpreter["sendTo"] = jest.fn();
     const service = interpreter.onTransition((state) => {
-      if (debug)
+      if (debug) {
+        const time = DateTime.local().toISOTime();
+        const shipName = state.context?.id
+          ? shipCache.getShip(state.context?.id)?.name
+          : "";
+
         console.log(
-          `[${DateTime.local().toISOTime()}]  (${
-            shipCache.getShip(state.context?.id)?.name
-          })/(${state.context?.testId}) ${state.value}`
+          `[${time}] (${shipName})/(${state.context?.testId}) ${state.value}`
         );
+      }
       if (state.matches(desiredState)) {
         service.stop();
         res(service);

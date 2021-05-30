@@ -53,13 +53,15 @@ const config: MachineConfig<Context, any, any> = {
 
 export const getFlightPlans = async (token: string, username: string) => {
   const ships = getShips();
-  [
-    ...new Set(
-      ships
-        .filter((p) => p.location)
-        .map((p) => getSystemFromLocationSymbol(p.location!.symbol))
-    ),
-  ].map((system) => api.getFlightPlans(token, username, system));
+  return await Promise.all(
+    [
+      ...new Set(
+        ships
+          .filter((p) => p.location)
+          .map((p) => getSystemFromLocationSymbol(p.location!.symbol))
+      ),
+    ].map((system) => api.getFlightPlans(token, username, system))
+  );
 };
 
 export const systemMonitorMachine = createMachine(

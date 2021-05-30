@@ -16,6 +16,7 @@ import {
   createLocation,
 } from "test/objectMother";
 import { GetFlightPlansResponse } from "api/GetFlightPlansResponse";
+import * as api from "api";
 
 import * as trade from "machines/Ship/tradeMachine";
 import { mockMachine } from "test/mockMachine";
@@ -101,5 +102,20 @@ describe("playerMachine", () => {
     expect(createMachineSpy).toHaveBeenCalledWith(
       expect.objectContaining({ id: mockShip.id })
     );
+  });
+
+  it("gets flightplans if ships in system", async () => {
+    const spy = jest.spyOn(api, "getFlightPlans");
+    mockGetters({ ships: [createShip()] });
+    await waitForMachine(playerMachine, States.Ready);
+
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it("does not get flightplans if no ships", async () => {
+    const spy = jest.spyOn(api, "getFlightPlans");
+    mockGetters();
+    await waitForMachine(playerMachine, States.Ready);
+    expect(spy).not.toHaveBeenCalled();
   });
 });

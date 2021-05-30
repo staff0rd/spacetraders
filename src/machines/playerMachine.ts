@@ -34,7 +34,6 @@ import {
 import { IShipOrder, ShipOrders } from "data/IShipOrder";
 import { debugMachineStates } from "./debugStates";
 import { getTickDelay } from "./config";
-import { getSystemFromLocationSymbol } from "data/localStorage/getSystemFromLocationSymbol";
 
 export enum States {
   CheckStorage = "checkStorage",
@@ -202,15 +201,15 @@ const config: MachineConfig<Context, any, Event> = {
     },
     [States.GetFlightPlans]: {
       invoke: {
-        src: (c) => api.getFlightPlans(c.token!, c.username!, "OE"),
+        src: (c) => getFlightPlans(c.token!, c.username!),
         onDone: {
           target: States.SpawnShips,
           actions: assign<Context>({
             flightPlans: (c: Context, e: any) => {
               const ships = getShips();
-              const filtered = (e.data.flightPlans as FlightPlan[]).filter(
-                (fp) => ships.find((s) => s.id === fp.shipId)
-              );
+              const filtered = (
+                (e.data.flightPlans as FlightPlan[]) ?? []
+              ).filter((fp) => ships.find((s) => s.id === fp.shipId));
               return filtered;
             },
           }) as any,
@@ -322,17 +321,6 @@ const config: MachineConfig<Context, any, Event> = {
 
 const options: Partial<MachineOptions<Context, Event>> = {
   actions: {
-    getSystemFlightPlans: (c) => {
-      console.warn("Getting system flight plans");
-      const ships = getShips();
-      [
-        ...new Set(
-          ships
-            .filter((p) => p.location)
-            .map((p) => getSystemFromLocationSymbol(p.location!.symbol))
-        ),
-      ].map((system) => api.getFlightPlans(c.token!, c.username!, system));
-    },
     spawnShips: assign<Context>({
       actors: (c, e: any) => {
         const alreadySpawnedShipIds = c.actors.map(
