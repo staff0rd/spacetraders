@@ -42,10 +42,26 @@ export const Trades = ({ detail }: { detail: ITradeRouteData }) => {
         prefix="$"
       />
     ),
+    right(
+      <NumberFormat
+        value={row.cost / row.quantity}
+        thousandSeparator=","
+        displayType="text"
+        prefix="$"
+      />
+    ),
     DateTime.fromISO(row.timestamp).toRelative(),
   ]);
 
-  const columns = ["Location", "Type", "Good", "Qty", "Cost", "When"];
+  const columns = [
+    "Location",
+    "Type",
+    "Good",
+    "Qty",
+    right("Cost"),
+    right("Per"),
+    "When",
+  ];
 
   return (
     <DataTable
